@@ -1,0 +1,309 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id             Int           @id @default(autoincrement())
+  name           String
+  email          String?       @unique
+  password       String?
+  taxId          String?
+  countryCode    String        @default("XX")
+  city           String?
+  address        String?
+  phone          String?
+  isMaster       Boolean       @default(false)
+  isActive       Boolean       @default(true)
+  clientType     String        @default("C")
+  source         String?
+  ejecutivoId    Int?
+  marketTargetId Int?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  licenses       License[]
+  marketTarget   MarketTarget? @relation(fields: [marketTargetId], references: [id])
+  users          User[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
+  password       String
+  fullName       String
+  position       String?
+  phone          String?
+  country        String?
+  city           String?
+  organizationId Int?
+  role           String         @default("MEMBER")
+  isActive       Boolean        @default(true)
+  lastLogin      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  followUps      FollowUp[]     @relation("UserFollowUps")
+  notifications  Notification[]
+  roleDetail     Role           @relation(fields: [role], references: [name])
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model ProductTemplate {
+  id                        Int       @id @default(autoincrement())
+  code                      String    @unique
+  name                      String
+  category                  String
+  defaultQuestions          Int       @default(0)
+  defaultCases              Int       @default(0)
+  defaultAdmins             Int       @default(1)
+  basePrice                 Decimal   @default(0)
+  currency                  String    @default("USD")
+  defaultMobileUsers        Int       @default(0)
+  defaultPhoneUsers         Int       @default(0)
+  defaultDataEntries        Int       @default(0)
+  defaultAnalysts           Int       @default(0)
+  defaultClients            Int       @default(0)
+  defaultClassifiers        Int       @default(0)
+  defaultCaptureSupervisors Int       @default(0)
+  defaultKioskSupervisors   Int       @default(0)
+  defaultParticipants       Int       @default(0)
+  concurrentQuestionnaires  Int       @default(0)
+  licenses                  License[]
+
+  @@map("product_templates")
+}
+
+model ServerNode {
+  id              Int       @id @default(autoincrement())
+  name            String
+  ipAddress       String?
+  type            String
+  status          String    @default("active")
+  provider        String?
+  costMonthly     Decimal?  @default(0)
+  costAnnual      Decimal?  @default(0)
+  currency        String    @default("USD")
+  billingCycle    String    @default("MONTHLY")
+  nextPaymentDate DateTime?
+  size            String?
+  capacity        Int?      @default(100)
+  domains         Domain[]
+  licenses        License[]
+
+  @@map("server_nodes")
+}
+
+model License {
+  id                       Int              @id @default(autoincrement())
+  serialKey                String           @unique
+  friendlyName             String?
+  organizationId           Int
+  productTemplateId        Int?
+  status                   String           @default("ACTIVE")
+  purchaseDate             DateTime         @default(now())
+  expirationDate           DateTime?
+  autoRenew                Boolean          @default(false)
+  paypalSubId              String?
+  lastPaymentDate          DateTime?
+  limitQuestions           Int
+  limitCases               Int
+  limitAdmins              Int
+  limitMobileUsers         Int              @default(0)
+  limitPhoneUsers          Int              @default(0)
+  limitDataEntries         Int              @default(0)
+  limitAnalysts            Int              @default(0)
+  limitClients             Int              @default(0)
+  limitClassifiers         Int              @default(0)
+  limitCaptureSupervisors  Int              @default(0)
+  limitKioskSupervisors    Int              @default(0)
+  limitParticipants        Int              @default(0)
+  concurrentQuestionnaires Int              @default(0)
+  machineId                String?
+  hostingType              String           @default("CLOUD_ROTATOR")
+  serverNodeId             Int?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  activations              ActivationLog[]
+  serverNode               ServerNode?      @relation(fields: [serverNodeId], references: [id])
+  productTemplate          ProductTemplate? @relation(fields: [productTemplateId], references: [id])
+  organization             Organization     @relation(fields: [organizationId], references: [id])
+
+  @@map("licenses")
+}
+
+model ActivationLog {
+  id        Int      @id @default(autoincrement())
+  licenseId Int
+  pcName    String?
+  ipAddress String?
+  keyUsed   String?
+  date      DateTime @default(now())
+  license   License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@map("activation_logs")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String   @default("UNKNOWN")
+  entity    String   @default("UNKNOWN")
+  entityId  String?
+  details   String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model PurchaseIntent {
+  token         String   @id
+  paypalOrderId String?
+  paypalSubId   String?
+  payerEmail    String
+  payerName     String?
+  productCode   String
+  amountPaid    Decimal?
+  status        String
+  createdAt     DateTime @default(now())
+
+  @@map("purchase_intents")
+}
+
+model Prospect {
+  id            Int            @id @default(autoincrement())
+  company       String
+  contactName   String?
+  email         String?
+  phone         String?
+  status        String         @default("NUEVO")
+  stage         String?
+  interestLevel Int            @default(50)
+  nextFollowUp  DateTime?
+  country       String?
+  countryCode   String?
+  notes         String?
+  source        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  followUps     FollowUp[]
+  pipelineStage PipelineStage? @relation(fields: [stage], references: [value])
+
+  @@map("prospects")
+}
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  group       String   @default("GENERAL")
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@map("system_settings")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String   @default("info")
+  title     String
+  message   String
+  metadata  String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Role {
+  name        String  @id
+  description String?
+  permissions String
+  isSystem    Boolean @default(false)
+  users       User[]
+
+  @@map("roles")
+}
+
+model Domain {
+  id           Int         @id @default(autoincrement())
+  domainName   String      @unique
+  isPropio     Boolean     @default(false)
+  serverId     Int?
+  expiresAt    DateTime?
+  observations String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  server       ServerNode? @relation(fields: [serverId], references: [id])
+
+  @@map("domains")
+}
+
+model EmailTemplate {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  subject   String
+  body      String
+  variables String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_templates")
+}
+
+model PipelineStage {
+  id         Int        @id @default(autoincrement())
+  label      String
+  value      String     @unique
+  color      String?
+  orderIndex Int        @default(0)
+  prospects  Prospect[]
+
+  @@map("pipeline_stages")
+}
+
+model MarketTarget {
+  id            Int            @id @default(autoincrement())
+  name          String
+  abbreviation  String         @unique
+  organizations Organization[]
+
+  @@map("market_targets")
+}
+
+model MigrationClient {
+  id           Int      @id @default(autoincrement())
+  empresa      String?
+  contacto     String?
+  correo       String?
+  servidor     String?
+  observations String?
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+
+  @@map("migration_clients")
+}
+
+model FollowUp {
+  id         Int       @id @default(autoincrement())
+  userId     Int?
+  prospectId Int?
+  tipo       String
+  fecha      DateTime  @default(now())
+  canal      String?
+  resultado  String?
+  createdAt  DateTime  @default(now())
+  prospect   Prospect? @relation(fields: [prospectId], references: [id])
+  user       User?     @relation("UserFollowUps", fields: [userId], references: [id])
+
+  @@map("follow_ups")
+}

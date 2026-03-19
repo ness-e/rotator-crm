@@ -1,0 +1,116 @@
+{
+    "backend/src/routes/auth.js": {
+        "description": "Rutas de autenticación para usuarios y organizaciones",
+        "where": "Montado en /api/auth en backend/src/index.js",
+        "when": "Todas las operaciones de login, registro y recuperación de contraseña",
+        "functionality": [
+            "POST /login - Autenticación de usuarios con email/password",
+            "POST /register - Registro público de nuevos usuarios",
+            "POST /recover - Solicitud de recuperación de contraseña",
+            "POST /reset - Reseteo de contraseña con token"
+        ],
+        "dependencies": [
+            "bcrypt",
+            "jsonwebtoken",
+            "zod"
+        ],
+        "relatedFiles": [
+            "middleware/auth.js",
+            "services/email.service.js",
+            "models/User.prisma"
+        ],
+        "module": "Backend Route",
+        "category": "Authentication"
+    },
+    "backend/src/routes/users.js": {
+        "description": "Rutas CRUD para gestión de usuarios del sistema",
+        "where": "Montado en /api/users en backend/src/index.js",
+        "when": "Operaciones de administración de usuarios",
+        "functionality": [
+            "GET / - Listar todos los usuarios",
+            "POST / - Crear nuevo usuario",
+            "PUT /:id - Actualizar usuario existente",
+            "DELETE /:id - Eliminar usuario"
+        ],
+        "dependencies": [
+            "prisma",
+            "zod"
+        ],
+        "relatedFiles": [
+            "middleware/auth.js",
+            "middleware/roles.js"
+        ],
+        "module": "Backend Route",
+        "category": "User Management"
+    },
+    "backend/src/routes/licenses.js": {
+        "description": "Rutas CRUD para gestión de licencias",
+        "where": "Montado en /api/licenses en backend/src/index.js",
+        "when": "Operaciones de creación, activación y gestión de licencias",
+        "functionality": [
+            "GET / - Listar licencias",
+            "POST / - Crear nueva licencia",
+            "POST /generate - Generar código de licencia",
+            "POST /activate - Activar licencia con código",
+            "PUT /:id - Actualizar licencia",
+            "DELETE /:id - Eliminar licencia"
+        ],
+        "dependencies": [
+            "prisma",
+            "crypto"
+        ],
+        "relatedFiles": [
+            "services/license.service.js",
+            "services/audit.service.js"
+        ],
+        "module": "Backend Route",
+        "category": "License Management"
+    },
+    "frontend/src/pages/AdminUsers.jsx": {
+        "description": "Página de administración de usuarios del sistema",
+        "where": "Ruta /admin/users en el router principal",
+        "when": "Accesible solo para usuarios con rol SUPER_ADMIN o ADMIN",
+        "functionality": [
+            "Listar todos los usuarios con paginación",
+            "Crear nuevos usuarios manualmente",
+            "Editar información de usuarios",
+            "Eliminar usuarios con confirmación",
+            "Filtrar por organización, rol y estado",
+            "Asignar/cambiar roles"
+        ],
+        "dependencies": [
+            "@/hooks/useApi",
+            "@/components/ui/*",
+            "react-query"
+        ],
+        "relatedFiles": [
+            "backend/src/routes/users.js",
+            "components/UserForm.jsx"
+        ],
+        "module": "Frontend Page",
+        "category": "Admin"
+    },
+    "frontend/src/pages/AdminLicenses.jsx": {
+        "description": "Página de administración de licencias",
+        "where": "Ruta /admin/licenses en el router principal",
+        "when": "Gestión completa de licencias del sistema",
+        "functionality": [
+            "Listar todas las licencias",
+            "Generar nuevas licencias",
+            "Activar licencias",
+            "Ver historial de activaciones",
+            "Filtrar por estado y organización",
+            "Renovar licencias vencidas"
+        ],
+        "dependencies": [
+            "@/hooks/useApi",
+            "@/components/ui/*"
+        ],
+        "relatedFiles": [
+            "backend/src/routes/licenses.js",
+            "services/license.service.js"
+        ],
+        "module": "Frontend Page",
+        "category": "Admin"
+    }
+}
