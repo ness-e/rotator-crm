@@ -3,7 +3,7 @@
  * @description Archivo del sistema main.jsx.
  * @module Module
  * @path /frontend/src/main.jsx
- * @lastUpdated 2026-01-27
+ * @lastUpdated 2026-03-25
  * @author Sistema (Auto-Generated)
  */
 
@@ -32,7 +32,7 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="theme">
         <Routes>
           <Route path="/*" element={<App />} />
           <Route path="*" element={<Navigate to="/" replace />} />

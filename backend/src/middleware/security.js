@@ -88,7 +88,7 @@ import helmet from 'helmet'
  */
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // 5 intentos por ventana
+  max: process.env.NODE_ENV === 'production' ? 5 : 20, // Estricto en prod, relajado en dev
   message: 'Too many login attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
@@ -99,7 +99,7 @@ export const authRateLimiter = rateLimit({
  */
 export const apiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // 100 requests por ventana
+  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // 100 en prod, 10000 en dev
   message: 'Too many requests, please try again later',
   standardHeaders: true,
   legacyHeaders: false,

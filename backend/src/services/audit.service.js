@@ -122,9 +122,12 @@ export const logAction = async ({ userId, userEmail, userName, action, entity, e
         await prisma.auditLog.create({
             data: {
                 userId: userId ? Number(userId) : null,
+                userEmail: userEmail ? String(userEmail) : null,
+                userName: userName ? String(userName) : null,
                 action: String(spanishAction),
                 entity: String(entity),
                 entityId: String(entityId || ''),
+                entityName: entityName ? String(entityName) : null,
                 details: typeof details === 'object' ? JSON.stringify(details) : String(details || ''),
                 ip: String(ip || '0.0.0.0')
             }

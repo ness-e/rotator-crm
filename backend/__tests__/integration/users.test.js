@@ -22,7 +22,8 @@ describe('Users Integration Tests', () => {
             data: {
                 email: `master-${Date.now()}@example.com`,
                 password: 'masterPassword123',
-                fullName: 'Master User',
+                firstName: 'Master',
+                lastName: 'User',
                 role: 'SUPER_ADMIN',
                 country: 'US'
             }
@@ -77,7 +78,8 @@ describe('Users Integration Tests', () => {
                 .send({
                     email: `newuser-${Date.now()}@example.com`,
                     password: 'newPassword123',
-                    fullName: 'New User',
+                    firstName: 'New',
+                    lastName: 'User',
                     role: 'MEMBER',
                     country: 'US'
                 });
@@ -96,7 +98,8 @@ describe('Users Integration Tests', () => {
                 .send({
                     email: masterUser.email, // Duplicate
                     password: 'somePassword123',
-                    fullName: 'Duplicate User',
+                    firstName: 'Duplicate',
+                    lastName: 'User',
                     role: 'MEMBER',
                     country: 'US'
                 });
@@ -111,7 +114,8 @@ describe('Users Integration Tests', () => {
                 .send({
                     email: `not-an-email-${Date.now()}`,
                     password: 'somePassword123',
-                    fullName: 'Invalid User',
+                    firstName: 'Invalid',
+                    lastName: 'User',
                     role: 'MEMBER',
                     country: 'US'
                 });
@@ -133,7 +137,8 @@ describe('Users Integration Tests', () => {
                     .send({
                         email: `updatetest-${Date.now()}@example.com`,
                         password: 'password123',
-                        fullName: 'Update Test',
+                        firstName: 'Update',
+                        lastName: 'Test',
                         role: 'MEMBER',
                         country: 'US'
                     });
@@ -144,11 +149,13 @@ describe('Users Integration Tests', () => {
                 .put(`/users/${testUser.id}`)
                 .set('Authorization', `Bearer ${masterToken}`)
                 .send({
-                    fullName: 'Updated Name'
+                    firstName: 'Updated',
+                    lastName: 'Name'
                 });
 
             expect(response.status).toBe(200);
-            expect(response.body.fullName).toBe('Updated Name');
+            expect(response.body.firstName).toBe('Updated');
+            expect(response.body.lastName).toBe('Name');
         });
     });
 
@@ -161,7 +168,8 @@ describe('Users Integration Tests', () => {
                 .send({
                     email: `deletetest-${Date.now()}@example.com`,
                     password: 'password123',
-                    fullName: 'Delete Test',
+                    firstName: 'Delete',
+                    lastName: 'Test',
                     role: 'MEMBER',
                     country: 'US'
                 });

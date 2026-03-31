@@ -47,6 +47,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Search, Plus, Globe, UserCircle, Edit, Trash2, Phone, Calendar } from 'lucide-react';
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect } from '@/hooks/useApi';
 import { useToast } from '@/components/ui/use-toast';
+import { GlobalPhoneInput } from '@/components/GlobalSelects';
 
 const PIPELINE_STAGES = [
     { id: 'NUEVO', label: 'Nuevo', color: 'bg-slate-100 dark:bg-slate-900' },
@@ -344,7 +345,7 @@ export default function AdminProspects() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Teléfono</Label>
-                                <Input value={formData.phone || ''} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                                <GlobalPhoneInput value={formData.phone || ''} onChange={val => setFormData({ ...formData, phone: val })} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">

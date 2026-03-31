@@ -44,7 +44,7 @@ const router = Router()
 
 // GET /users - list all users
 router.get('/', authRequired, async (req, res) => {
-  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER' || req.user.role === 'SUPER_ADMIN'
+  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER'
   console.log('GET /users - User:', req.user.email, 'isMaster:', isMaster, 'orgId:', req.user.orgId);
   
   const where = {}
@@ -68,7 +68,7 @@ router.get('/', authRequired, async (req, res) => {
 // GET /users/:id
 router.get('/:id', authRequired, validateParams(ParamIdSchema), async (req, res) => {
   const id = Number(req.validated.params.id)
-  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER' || req.user.role === 'SUPER_ADMIN'
+  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER'
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -89,7 +89,7 @@ router.get('/:id', authRequired, validateParams(ParamIdSchema), async (req, res)
 router.post('/', authRequired, async (req, res) => {
   try {
     const data = req.body
-    const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER' || req.user.role === 'SUPER_ADMIN'
+    const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER'
 
     // RBAC: Non-masters can only create users for their own organization
     let targetOrgId = (data.organizationId && !isNaN(Number(data.organizationId))) ? Number(data.organizationId) : null
@@ -112,7 +112,8 @@ router.post('/', authRequired, async (req, res) => {
       data: {
         email: data.email,
         password: hashedPassword,
-        fullName: data.fullName,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
         position: data.position,
         phone: data.phone,
         role: data.role || 'MEMBER',
@@ -121,6 +122,53 @@ router.post('/', authRequired, async (req, res) => {
       },
       include: { organization: true }
     })
+
+    // Auto-create default license for the new user if they belong to an organization
+    if (user.organizationId) {
+        const { generateSerial } = await import('../services/licenseSerial.js');
+        const { generateEncryptedActivationKey } = await import('../services/licenseEncryption.js');
+        const expDate = new Date('3000-01-01');
+        
+        const serialKey = generateSerial({
+            countryCode: user.organization?.countryCode || 'VE',
+            versionAbbr: 'ST',
+            hostingAbbr: 'DEF',
+            expirationDate: expDate,
+            email: user.email,
+            orgName: user.organization?.name || 'Rotator',
+            activatorFirstName: req.user.firstName || 'A',
+            activatorLastName: req.user.lastName || 'U',
+            activatorEmail: req.user.email
+        });
+
+        const majorSetting = await prisma.systemSetting.findUnique({ where: { key: 'SOFTWARE_VERSION_MAJOR' } });
+        const minorSetting = await prisma.systemSetting.findUnique({ where: { key: 'SOFTWARE_VERSION_MINOR' } });
+        const magicSetting = await prisma.systemSetting.findUnique({ where: { key: 'XOR_MAGIC_WORD' } });
+
+        const encryptedActivationKey = generateEncryptedActivationKey({
+            softwareVersionMajor: majorSetting?.value || '4',
+            softwareVersionMinor: minorSetting?.value || '3',
+            hardwareId: '0', versionId: 0, expirationDate: expDate, hostingPlanId: 0, serverType: 0,
+            admins: 1, mobiles: 0, phones: 0, dataEntries: 0, analysts: 0, classifiers: 0,
+            captureSups: 0, kioskSups: 0, clients: 0, questions: 100
+        }, magicSetting?.value || 'yiyo');
+
+        await prisma.license.create({
+            data: {
+                organizationId: user.organizationId,
+                ownedByUserId: user.id,
+                serialKey,
+                status: 'ACTIVE',
+                expirationDate: expDate,
+                limitQuestions: 100, limitCases: 0, limitAdmins: 1, limitMobileUsers: 0, limitPhoneUsers: 0,
+                limitDataEntries: 0, limitAnalysts: 0, limitClients: 0, limitClassifiers: 0, limitCaptureSupervisors: 0,
+                limitKioskSupervisors: 0, limitParticipants: 0, concurrentQuestionnaires: 0,
+                encryptedActivationKey,
+                activatedByUserId: req.user.id,
+                notes: 'Licencia por defecto generada automáticamente al crear el usuario.'
+            }
+        });
+    }
 
     // Log
     logAction({
@@ -142,7 +190,7 @@ router.post('/', authRequired, async (req, res) => {
 // PUT /users/:id
 router.put('/:id', authRequired, validateParams(ParamIdSchema), async (req, res) => {
   const id = Number(req.validated.params.id)
-  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER' || req.user.role === 'SUPER_ADMIN'
+  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER'
   
   try {
     const data = req.body
@@ -156,7 +204,7 @@ router.put('/:id', authRequired, validateParams(ParamIdSchema), async (req, res)
     }
 
     // Filter data to only include valid User fields
-    const allowedFields = ['email', 'password', 'fullName', 'position', 'phone', 'country', 'city', 'organizationId', 'role', 'isActive']
+    const allowedFields = ['email', 'password', 'firstName', 'lastName', 'position', 'phone', 'country', 'city', 'organizationId', 'role', 'isActive']
     const updateData = {}
     
     Object.keys(data).forEach(key => {
@@ -206,7 +254,7 @@ router.put('/:id', authRequired, validateParams(ParamIdSchema), async (req, res)
 // DELETE /users/:id
 router.delete('/:id', authRequired, validateParams(ParamIdSchema), async (req, res) => {
   const id = Number(req.validated.params.id)
-  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER' || req.user.role === 'SUPER_ADMIN'
+  const isMaster = req.user.tipo === 'MASTER' || req.user.role === 'MASTER'
 
   try {
     // 1. Fetch existing user to check ownership

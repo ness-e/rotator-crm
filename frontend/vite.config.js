@@ -35,7 +35,8 @@ export default defineConfig({
       '/prospects': { target: 'http://localhost:3005', changeOrigin: true },
       '/followups': { target: 'http://localhost:3005', changeOrigin: true },
       '/templates': { target: 'http://localhost:3005', changeOrigin: true },
-      '/health': { target: 'http://localhost:3005', changeOrigin: true }
+      '/health': { target: 'http://localhost:3005', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:3005', changeOrigin: true }
     }
   },
   build: {

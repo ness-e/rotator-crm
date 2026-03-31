@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/popover';
 import { Country, State, City } from 'country-state-city';
 import 'react-phone-number-input/style.css';
-import PhoneInput from 'react-phone-number-input';
+import PhoneInput, { getCountryCallingCode } from 'react-phone-number-input';
 import es from 'react-phone-number-input/locale/es';
 
 // --- Country Select ---
@@ -264,7 +264,75 @@ export function GlobalCitySelect({ countryCode, stateCode, value, onChange, clas
 
 
 // --- Phone Input ---
-export function GlobalPhoneInput({ value, onChange, className }) {
+const PhoneCountrySelect = ({ value, onChange, options, iconComponent: Icon }) => {
+    const [open, setOpen] = React.useState(false);
+    
+    // Filter out the 'ZZ' (International) option which doesn't have a value
+    const selectedOption = options.find((o) => o.value === value);
+
+    return (
+        <Popover open={open} onOpenChange={setOpen} modal={true}>
+            <PopoverTrigger asChild>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="flex gap-1 px-2 h-8 w-[100px] justify-between hover:bg-transparent"
+                >
+                    {selectedOption && Icon ? (
+                        <div className="flex items-center gap-1">
+                            <span className="w-5 flex items-center justify-center flex-shrink-0">
+                                <Icon country={value} label={selectedOption.label} />
+                            </span>
+                            <span className="text-sm">+{getCountryCallingCode(value)}</span>
+                        </div>
+                    ) : (
+                        <span className="text-sm">País</span>
+                    )}
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0 z-[100]">
+                <Command>
+                    <CommandInput placeholder="Buscar código o país..." />
+                    <CommandList className="max-h-[300px] overflow-y-auto">
+                        <CommandEmpty>No encontrado.</CommandEmpty>
+                        <CommandGroup>
+                            {options.filter(o => o.value).map((option) => (
+                                <CommandItem
+                                    key={option.value}
+                                    value={`${option.label} +${getCountryCallingCode(option.value)}`}
+                                    onSelect={() => {
+                                        onChange(option.value);
+                                        setOpen(false);
+                                    }}
+                                    className="flex items-center gap-2 cursor-pointer"
+                                >
+                                    <span className="w-5 flex items-center justify-center flex-shrink-0">
+                                        {Icon && <Icon country={option.value} label={option.label} />}
+                                    </span>
+                                    <span className="flex-1 truncate">{option.label}</span>
+                                    <span className="text-muted-foreground text-xs flex-shrink-0">
+                                        +{getCountryCallingCode(option.value)}
+                                    </span>
+                                    <Check
+                                        className={cn(
+                                            "ml-auto h-4 w-4",
+                                            value === option.value ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+export const GlobalPhoneInput = React.forwardRef(({ value, onChange, className }, ref) => {
     const [defaultCountry, setDefaultCountry] = React.useState("CO");
 
     React.useEffect(() => {
@@ -281,7 +349,7 @@ export function GlobalPhoneInput({ value, onChange, className }) {
     // Custom styles to override react-phone-number-input and match shadcn/ui
     // Using !important to force override of library default styles
     return (
-        <div className={cn("relative", className)}>
+        <div ref={ref} className={cn("relative", className)}>
             <style>{`
                 .PhoneInput {
                     display: flex;
@@ -312,8 +380,9 @@ export function GlobalPhoneInput({ value, onChange, className }) {
                     onChange={onChange}
                     labels={es}
                     defaultCountry={defaultCountry}
-                    international
-                    countryCallingCodeEditable={false}
+
+                    countrySelectComponent={PhoneCountrySelect}
+
                     className="flex-1 bg-transparent border-none outline-none shadow-none"
                     numberInputProps={{
                         className: "bg-transparent border-none outline-none text-sm w-full focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
@@ -322,4 +391,6 @@ export function GlobalPhoneInput({ value, onChange, className }) {
             </div>
         </div>
     )
-}
+});
+
+GlobalPhoneInput.displayName = 'GlobalPhoneInput';

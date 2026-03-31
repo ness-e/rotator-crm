@@ -7,10 +7,8 @@
 
 import React, { useState } from 'react';
 import { Users, UserPlus, Pencil, Trash2, Building2 } from 'lucide-react';
-import { FilterBar } from '@/components/FilterBar';
 import { DataTable } from '@/components/DataTable';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -22,12 +20,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/useApi';
+import { GlobalPhoneInput } from '@/components/GlobalSelects';
+import { useDebouncedValue } from '../utils/debounce';
+import AdminGestionLayout from '@/components/AdminGestionLayout';
 
 // Schema aligned with Prisma User model
 const userSchema = z.object({
-  fullName: z.string().min(1, 'Nombre requerido'),
+  firstName: z.string().min(1, 'Nombre requerido'),
+  lastName: z.string().min(1, 'Apellido requerido'),
   email: z.string().email('Email inválido'),
-  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MEMBER', 'BILLING']).default('MEMBER'),
+  role: z.enum(['MASTER', 'ANALISTA', 'VISUALIZADOR', 'CLIENTE']).default('CLIENTE'),
   organizationId: z.string().min(1, 'Organización requerida'), // Form handles as string
   phone: z.string().optional(),
   password: z.string().optional()
@@ -55,6 +57,11 @@ export default function AdminUsers() {
   const deleteUser = useDeleteUser();
 
   const [searchValue, setSearchValue] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const debouncedSearch = useDebouncedValue(searchValue, 300);
+
+  
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -63,9 +70,10 @@ export default function AdminUsers() {
   const form = useForm({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      fullName: '',
+      firstName: '',
+      lastName: '',
       email: '',
-      role: 'MEMBER',
+      role: 'CLIENTE',
       organizationId: '',
       phone: '',
       password: ''
@@ -94,7 +102,8 @@ export default function AdminUsers() {
   const handleEdit = (user) => {
     setEditing(user);
     form.reset({
-      fullName: user.fullName,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       email: user.email,
       role: user.role,
       organizationId: user.organizationId ? String(user.organizationId) : '',
@@ -106,7 +115,7 @@ export default function AdminUsers() {
 
   const handleNew = () => {
     setEditing(null);
-    form.reset({ fullName: '', email: '', role: 'MEMBER', organizationId: '', phone: '', password: '' });
+    form.reset({ firstName: '', lastName: '', email: '', role: 'CLIENTE', organizationId: '', phone: '', password: '' });
     setOpen(true);
   };
 
@@ -121,16 +130,24 @@ export default function AdminUsers() {
     setDeleteConfirmOpen(false);
   };
 
-  const filtered = users.filter(u =>
-    u.fullName?.toLowerCase().includes(searchValue.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const filtered = users.filter((u) => {
+    const search = debouncedSearch.toLowerCase();
+    const fn = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
+    return fn.includes(search) ||
+           u.email?.toLowerCase().includes(search);
+  });
+
+  const isAll = String(pageSize) === 'all';
+  const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filtered.length / Number(pageSize)));
+  const currentPage = Math.min(page, totalPages);
+  const start = isAll ? 0 : (currentPage - 1) * Number(pageSize);
+  const pageItems = isAll ? filtered : filtered.slice(start, start + Number(pageSize));
 
   const columns = [
     {
-      key: 'fullName', label: 'Usuario', render: (v, r) => (
+      key: 'name', label: 'Usuario', render: (_, r) => (
         <div>
-          <div className="font-medium text-slate-900 dark:text-slate-100">{v}</div>
+          <div className="font-medium text-slate-900 dark:text-slate-100">{`${r.firstName || ''} ${r.lastName || ''}`.trim() || r.email}</div>
           <div className="text-xs text-muted-foreground">{r.email}</div>
         </div>
       )
@@ -143,7 +160,7 @@ export default function AdminUsers() {
         </div>
       )
     },
-    { key: 'role', label: 'Rol', render: (v) => <StatusBadge status={v === 'SUPER_ADMIN' ? 'active' : 'info'} label={v} /> },
+    { key: 'role', label: 'Rol', render: (v) => <StatusBadge status={v === 'MASTER' ? 'active' : v === 'ANALISTA' ? 'warning' : 'info'} label={v} /> },
     {
       key: 'actions', label: '', render: (_, r) => (
         <div className="flex justify-end gap-2">
@@ -155,87 +172,97 @@ export default function AdminUsers() {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Usuarios</h1>
-          <p className="text-muted-foreground">Directorio global de usuarios y accesos.</p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleNew} className="rounded-xl shadow-lg hover:scale-105 transition-all">
-              <UserPlus className="mr-2 h-4 w-4" /> Nuevo Usuario
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editing ? 'Editar Usuario' : 'Crear Usuario'}</DialogTitle>
-              <DialogDescription>
-                {editing ? 'Modifica los datos del usuario existente.' : 'Ingresa la información para el nuevo usuario.'}
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="fullName" render={({ field }) => (
-                  <FormItem><FormLabel>Nombre Completo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem><FormLabel>Correo Electrónico</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="organizationId" render={({ field }) => (
-                    <FormItem><FormLabel>Organización</FormLabel><FormControl>
-                      <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
-                        <option value="">Seleccionar...</option>
-                        {orgs.map(o => (
-                          <option key={o.id} value={String(o.id)}>{o.name}</option>
-                        ))}
-                      </select>
-                    </FormControl><FormMessage /></FormItem>
+    <>
+      <AdminGestionLayout
+        title="Usuarios"
+        description="Directorio global de usuarios y accesos."
+        icon={Users}
+        searchValue={searchValue}
+        onSearchChange={(v) => { setSearchValue(v); setPage(1); }}
+        pageSize={pageSize}
+        onPageSizeChange={(v) => { setPageSize(v); setPage(1); }}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filtered.length}
+        onPageChange={setPage}
+        searchPlaceholder="Buscar por nombre o correo electrónico..."
+        actions={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleNew} className="rounded-xl shadow-lg hover:scale-105 transition-all">
+                <UserPlus className="mr-2 h-4 w-4" /> Nuevo Usuario
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editing ? 'Editar Usuario' : 'Crear Usuario'}</DialogTitle>
+                <DialogDescription>
+                  {editing ? 'Modifica los datos del usuario existente.' : 'Ingresa la información para el nuevo usuario.'}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="firstName" render={({ field }) => (
+                      <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="lastName" render={({ field }) => (
+                      <FormItem><FormLabel>Apellido</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem><FormLabel>Correo Electrónico</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
-                  <FormField control={form.control} name="role" render={({ field }) => (
-                    <FormItem><FormLabel>Rol</FormLabel><FormControl>
-                      <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
-                        <option value="MEMBER">MEMBER</option>
-                        <option value="ADMIN">ADMIN</option>
-                        <option value="BILLING">BILLING</option>
-                        <option value="SUPER_ADMIN">SUPER ADMIN</option>
-                      </select>
-                    </FormControl><FormMessage /></FormItem>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="organizationId" render={({ field }) => (
+                      <FormItem><FormLabel>Organización</FormLabel><FormControl>
+                        <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
+                          <option value="">Seleccionar...</option>
+                          {orgs.map(o => (
+                            <option key={o.id} value={String(o.id)}>{o.name}</option>
+                          ))}
+                        </select>
+                      </FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="role" render={({ field }) => (
+                      <FormItem><FormLabel>Rol</FormLabel><FormControl>
+                        <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
+                          <option value="CLIENTE">CLIENTE</option>
+                          <option value="ANALISTA">ANALISTA</option>
+                          <option value="VISUALIZADOR">VISUALIZADOR</option>
+                          <option value="MASTER">MASTER</option>
+                        </select>
+                      </FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem><FormLabel>Teléfono</FormLabel><FormControl><GlobalPhoneInput value={field.value || ''} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
                   )} />
-                </div>
-                <FormField control={form.control} name="phone" render={({ field }) => (
-                  <FormItem><FormLabel>Teléfono</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="password" render={({ field }) => (
-                  <FormItem><FormLabel>Contraseña {editing && '(Opcional)'}</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-                  <Button type="submit">Guardar</Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card className="border-none shadow-xl dark:bg-slate-900/50">
-        <CardContent className="p-6">
-          <FilterBar searchValue={searchValue} onSearchChange={setSearchValue} />
-          <DataTable columns={columns} data={filtered} loading={isLoading} />
-        </CardContent>
-      </Card>
+                  <FormField control={form.control} name="password" render={({ field }) => (
+                    <FormItem><FormLabel>Contraseña {editing && '(Opcional)'}</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+                    <Button type="submit">Guardar</Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        }
+      >
+        <DataTable columns={columns} data={pageItems} loading={isLoading} />
+      </AdminGestionLayout>
 
       <ConfirmDialog
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
-        title={`¿Eliminar a ${userToDelete?.fullName}?`}
+        title={`¿Eliminar a ${userToDelete?.firstName || ''} ${userToDelete?.lastName || ''}?`.trim()}
         description="Esta acción no se puede deshacer."
         confirmText="Eliminar"
         onConfirm={handleDelete}
         variant="destructive"
       />
-    </div>
+    </>
   );
 }

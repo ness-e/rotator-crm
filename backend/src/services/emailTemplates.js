@@ -129,17 +129,90 @@ export const templates = {
     /**
      * Enlace de Activación (Magic Link)
      */
-    magicLink: (name, link) => baseLayout(`
-        <h2>Activa tu Licencia</h2>
-        <p>Hola ${name || 'Usuario'},</p>
-        <p>Gracias por tu compra en Rotator Survey. Para activar tu cuenta y licencia, haz clic en el siguiente botón:</p>
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${link}" class="button">Activar Cuenta Ahora</a>
-        </div>
-        <p>Si el botón no funciona, puedes copiar y pegar el siguiente enlace en tu navegador:</p>
-        <p style="word-break: break-all; color: #777; font-size: 13px;">${link}</p>
-        <p>Este enlace expirará en 24 horas.</p>
-    `, 'Activa tu Licencia Rotator')
+    magicLink: (name, link) => {
+        const title = 'SISTEMA DE USUARIOS ROTATOR SURVEY';
+        const header = 'INVITACIÓN DE REGISTRO';
+        const msg = 'Apreciable cliente,<br><br><b>¡Ha sido invitado para registrarse y activar su cuenta corporativa en Rotator Survey!</b><br><br>Para continuar con su registro de manera segura, haga clic en el link mostrado abajo.<br><br>';
+        const boton = 'Clic para registrarse';
+        const footer = 'Si por alguna razón no logra registrarse, por favor entre en contacto via SKYPE al id ROTATOR_COMERCIAL, o al correo dmedina@rotatorsurvey.com<br><br>¡Gracias y bienvenido en nombre del equipo de Rotator Survey!';
+
+        return `<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0;">
+<meta name="format-detection" content="telephone=no" />
+<style>
+/* Reset styles */
+body { margin: 0; padding: 0; min-width: 100%; width: 100% !important; height: 100% !important; background-color: #F8F9FA;}
+body, table, td, div, p, a { -webkit-font-smoothing: antialiased; text-size-adjust: 100%; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; line-height: 100%; }
+table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse !important; border-spacing: 0; }
+img { border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+#outlook a { padding: 0; }
+.ReadMsgBody { width: 100%; }
+.ExternalClass { width: 100%; }
+.ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div { line-height: 100%; }
+@media all and (min-width: 560px) {
+    .container { border-radius: 8px; -webkit-border-radius: 8px; -moz-border-radius: 8px; -khtml-border-radius: 8px; }
+}
+a, a:hover { color: #FFFFFF; }
+.footer a, .footer a:hover { color: #828999; }
+</style>
+<title>INVITACIÓN ROTATOR SURVEY</title>
+</head>
+<body topmargin="0" rightmargin="0" bottommargin="0" leftmargin="0" marginwidth="0" marginheight="0" width="100%" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; width: 100%; height: 100%; -webkit-font-smoothing: antialiased; text-size-adjust: 100%; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; line-height: 100%; font-family: sans-serif; background-color: #F8F9FA;" text="#333333">
+<br><br>
+<table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; width: 100%; background-color: #F8F9FA;" class="background">
+    <tr>
+        <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;"  >
+        <table border="0" cellpadding="0" cellspacing="0" align="center" width="500" style="border-collapse: collapse; border-spacing: 0; padding: 0; width: inherit; max-width: 500px; background-color: #FFFFFF; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" class="wrapper">
+            <tr>
+                <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;padding-top: 30px;" class="hero">
+                    <a target="_blank" style="text-decoration: none;" href="https://rotatorsurvey.com">
+                        <img border="0" vspace="0" hspace="0" src="https://rotatorsurvey.com/user/images/1.png" alt="Rotator Survey" title="Hero Image" width="250" style="width: 250px;max-width: 250px; font-size: 13px; margin: 0; padding: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; border: none; display: block;" />
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 13px; font-weight: 400; line-height: 150%; letter-spacing: 2px;padding-top: 27px;padding-bottom: 0; font-family: sans-serif; color: #565F73;" class="supheader">${title}</td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;  padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 24px; font-weight: bold; line-height: 130%;padding-top: 5px; font-family: sans-serif; color: #111827;" class="header">${header}</td>
+            </tr>
+            <tr>
+                <td align="left" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 16px; font-weight: 400; line-height: 160%;padding-top: 15px; font-family: sans-serif; color: #4B5563;" class="paragraph">            
+                        ${msg}
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%;padding-top: 25px;padding-bottom: 25px;" class="button">
+                    <a href="${link}" target="_blank" style="text-decoration: underline;">
+                        <table border="0" cellpadding="0" cellspacing="0" align="center" style="max-width: 260px; min-width: 120px; border-collapse: collapse; border-spacing: 0; padding: 0;">
+                            <tr>
+                                <td align="center" valign="middle" style="padding: 14px 28px; margin: 0; text-decoration: underline; border-collapse: collapse; border-spacing: 0; border-radius: 6px; -webkit-border-radius: 6px; -moz-border-radius: 6px; -khtml-border-radius: 6px;" bgcolor="#E9703E">
+                                    <a target="_blank" style="text-decoration: underline;color: #FFFFFF; font-family: sans-serif; font-size: 16px; font-weight: 600; line-height: 120%;" href="${link}">${boton}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%;" class="line">
+                        <hr color="#E5E7EB" align="center" width="100%" size="1" noshade style="margin: 0; padding: 0;" />
+                    </td>
+                </tr>
+            <tr>
+                    <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 13px; font-weight: 400; line-height: 150%;padding-top: 20px;padding-bottom: 30px;color: #828999;font-family: sans-serif;" class="footer">${footer}</td>
+                </tr> 
+        </table>
+        <br><br>
+        </td>
+    </tr>
+</table>
+</body>
+</html>`;
+    }
 };
 
 export default templates;

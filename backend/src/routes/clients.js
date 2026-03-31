@@ -65,7 +65,7 @@ router.get('/', authRequired, requireMaster, async (req, res) => {
                 if (primaryLicense.expirationDate && new Date(primaryLicense.expirationDate) < now) expiredLicenses++
                 totalLicenses++
 
-                const sType = primaryLicense.hostingType || 'LOCAL' // Where to get this? Maybe infer or usage?
+                const sType = primaryLicense.hostingPlanId || 'NONE'
                 serverCount[sType] = (serverCount[sType] || 0) + 1
             }
 
@@ -73,8 +73,8 @@ router.get('/', authRequired, requireMaster, async (req, res) => {
             return {
                 id_cliente: o.id,
                 organizacion_cliente: o.name,
-                nombre_cliente: o.users[0]?.fullName || 'Sin Contacto',
-                apellido_cliente: '',
+                nombre_cliente: o.users[0]?.firstName || 'Sin Contacto',
+                apellido_cliente: o.users[0]?.lastName || '',
                 pais_cliente: o.countryCode,
                 ciudad_cliente: o.city,
                 correo_cliente: o.users[0]?.email || '', // Member email
@@ -171,7 +171,7 @@ router.get('/crm-stats', authRequired, requireMaster, async (req, res) => {
                 totalLicenses++
                 if (l.expirationDate && new Date(l.expirationDate) < now) expiredLicenses++
 
-                const h = l.hostingType || 'UNKNOWN'
+                const h = l.hostingPlanId || 'NONE'
                 hostingCount[h] = (hostingCount[h] || 0) + 1
             })
         })
@@ -217,7 +217,8 @@ const updateSchema = z.object({
     city: z.string().optional(),
     address: z.string().optional(),
     phone: z.string().optional(),
-    clientType: z.string().optional()
+    clientType: z.string().optional(),
+    notes: z.string().nullable().optional()
 })
 
 // PUT /clients/:id - Update Organization

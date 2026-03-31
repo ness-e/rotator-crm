@@ -14,16 +14,32 @@ import { validateBody } from '../middleware/validate.js';
 import { UserUpdateSchema } from '../validation/schemas.js';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
+
+// Configurar multer para uploads de avatares
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.cwd(), 'uploads', 'avatars');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${req.user.id}_${Date.now()}${ext}`);
+  }
+});
+const upload = multer({ storage });
 
 // Helper to map User+Organization to Legacy format
 const mapUserToLegacy = (user) => {
   if (!user) return null;
 
-  const names = (user.fullName || '').split(' ');
-  const nombre = names[0] || '';
-  const apellido = names.slice(1).join(' ') || '';
+  const nombre = user.firstName || '';
+  const apellido = user.lastName || '';
 
   // Get license from Organization if user has no direct one (B2B logic)
   // We assume the first license of the org is the "main" one for the dashboard of a member
@@ -38,6 +54,7 @@ const mapUserToLegacy = (user) => {
     apellido_cliente: apellido,
     correo_cliente: user.email,
     password_cliente: user.password, // Ideally shouldn't return this, but legacy might expect existence key
+    profilePicture: user.profilePicture || '',
 
     // Organization Info (from relation)
     organizacion_cliente: user.organization?.name || '',
@@ -99,7 +116,7 @@ router.put('/', authRequired, validateBody(UserUpdateSchema), async (req, res) =
   try {
     const data = req.validated.body;
 
-    // 1. Prepare User Data (fullName)
+    // 1. Prepare User Data (firstName, lastName)
     const { nombre_cliente, apellido_cliente } = data;
     let updateUserData = {};
     if (nombre_cliente || apellido_cliente) {
@@ -109,10 +126,10 @@ router.put('/', authRequired, validateBody(UserUpdateSchema), async (req, res) =
       // Better: Fetch current first to merge properly if partial update.
       // Since schema is partial, we should fetch.
       const current = await prisma.user.findUnique({ where: { id } });
-      const currentNames = (current.fullName || '').split(' ');
-      const newFirst = nombre_cliente ?? currentNames[0] ?? '';
-      const newLast = apellido_cliente ?? currentNames.slice(1).join(' ') ?? '';
-      updateUserData.fullName = `${newFirst} ${newLast}`.trim();
+      const newFirst = nombre_cliente ?? current.firstName ?? '';
+      const newLast = apellido_cliente ?? current.lastName ?? '';
+      updateUserData.firstName = newFirst;
+      updateUserData.lastName = newLast;
     }
 
     if (data.telefono_cliente) {
@@ -191,6 +208,41 @@ router.put('/password', authRequired, validateBody(PasswordChangeSchema), async 
     res.json({ ok: true, message: 'Contraseña actualizada correctamente' });
   } catch (e) {
     res.status(400).json({ error: e.message || 'Bad request' });
+  }
+});
+
+// POST /me/avatar - Subir o cambiar foto de perfil
+router.post('/avatar', authRequired, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se subió ninguna imagen' });
+    
+    // Delete previous avatar file if exists
+    const currentUser = await prisma.user.findUnique({ where: { id: req.user.id }, select: { profilePicture: true } });
+    if (currentUser?.profilePicture) {
+      const oldFilename = path.basename(currentUser.profilePicture);
+      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', oldFilename);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+    
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { profilePicture: avatarUrl },
+      include: {
+        organization: {
+          include: {
+            licenses: { take: 1 }
+          }
+        },
+        notifications: true
+      }
+    });
+    
+    res.json(mapUserToLegacy(user));
+  } catch (e) {
+    console.error('Error in POST /me/avatar:', e);
+    res.status(500).json({ error: 'Error al subir la imagen' });
   }
 });
 

@@ -2,69 +2,39 @@
  * @file roles.js
  * @description Role-based access control (RBAC) middleware
  * 
- * @overview
- * This middleware provides role-based authorization for protected routes. Currently
- * implements requireMaster middleware to restrict access to SUPER_ADMIN and MASTER
- * users/organizations only.
- * 
- * @features
- * - Master/Admin role verification
- * - Supports both User and Organization roles
- * - 403 Forbidden on unauthorized access
- * - Compatible with legacy 'tipo' field and new 'role' field
- * 
- * @roles-supported
- * - SUPER_ADMIN: Full system access (User role)
- * - MASTER: Legacy master role (User tipo or Organization isMaster)
- * - ADMIN: Organization admin (User role)
- * - MEMBER: Regular user (User role)
- * 
- * @usage
- * ```javascript
- * import { requireMaster } from './middleware/roles.js';
- * import { authRequired } from './middleware/auth.js';
- * 
- * // Protect admin-only routes
- * router.get('/admin/users', authRequired, requireMaster, (req, res) => {
- *   // Only SUPER_ADMIN and MASTER can access
- * });
- * 
- * // Chain with other middleware
- * router.delete('/admin/organizations/:id', 
- *   authRequired, 
- *   requireMaster, 
- *   deleteOrganization
- * );
- * ```
- * 
- * @req-user-structure
- * Expects req.user to have:
- * - role: 'SUPER_ADMIN' | 'ADMIN' | 'MEMBER'
- * - tipo: 'MASTER' | 'USER' (legacy field)
- * 
- * @future-enhancements
- * - Add requireAdmin middleware
- * - Add requireRole(role) generic middleware
- * - Add permission-based authorization
- * - Add organization-scoped permissions
- * 
- * @dependencies
- * - None (pure middleware)
- * 
- * @related-files
- * - backend/src/middleware/auth.js - Provides req.user
- * - backend/src/routes/*.js - Admin routes use requireMaster
- * - backend/prisma/schema.prisma - Role enum definition
+ * @roles
+ * - MASTER: Full system control (Rotator Software only)
+ * - ANALISTA: Read/write internal access (Rotator Software only)
+ * - VISUALIZADOR: Read-only internal access (Rotator Software only)
+ * - CLIENTE: External client access (customer organizations)
  * 
  * @module roles.middleware
  * @path /backend/src/middleware/roles.js
- * @lastUpdated 2026-01-29
- * @author Sistema
+ * @lastUpdated 2026-03-20
  */
 
+/** Only MASTER users can access */
 export function requireMaster(req, res, next) {
-  if (!req.user || (req.user.tipo !== 'MASTER' && req.user.role !== 'MASTER' && req.user.role !== 'SUPER_ADMIN')) {
-    return res.status(403).json({ error: 'Forbidden' })
+  if (!req.user || (req.user.role !== 'MASTER' && req.user.tipo !== 'MASTER')) {
+    return res.status(403).json({ error: 'Forbidden: MASTER role required' })
+  }
+  next()
+}
+
+/** MASTER or ANALISTA can access */
+export function requireAnalyst(req, res, next) {
+  const allowed = ['MASTER', 'ANALISTA']
+  if (!req.user || (!allowed.includes(req.user.role) && req.user.tipo !== 'MASTER')) {
+    return res.status(403).json({ error: 'Forbidden: ANALISTA or MASTER role required' })
+  }
+  next()
+}
+
+/** Any internal Rotator role (MASTER, ANALISTA, VISUALIZADOR) can access */
+export function requireInternal(req, res, next) {
+  const allowed = ['MASTER', 'ANALISTA', 'VISUALIZADOR']
+  if (!req.user || (!allowed.includes(req.user.role) && req.user.tipo !== 'MASTER')) {
+    return res.status(403).json({ error: 'Forbidden: Internal role required' })
   }
   next()
 }

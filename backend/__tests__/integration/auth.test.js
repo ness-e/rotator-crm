@@ -18,7 +18,8 @@ describe('Auth Integration Tests', () => {
             data: {
                 email: `test-${Date.now()}@example.com`,
                 password: 'testPassword123',
-                fullName: 'Test User',
+                firstName: 'Test',
+                lastName: 'User',
                 role: 'MEMBER',
                 country: 'US'
             }

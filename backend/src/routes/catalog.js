@@ -161,10 +161,47 @@ router.delete('/hosting/:id', authRequired, requireMaster, async (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message || 'Bad request' }) }
 })
 
-// GET /catalog/license-versions
+// GET /catalog/license-versions — uses ProductTemplate model (formerly LicenseVersion)
 router.get('/license-versions', authRequired, requireMaster, async (req, res) => {
-  const rows = await prisma.licenseVersion.findMany({ orderBy: { id_version: 'asc' } })
-  res.json(rows)
+  try {
+    const templates = await prisma.productTemplate.findMany({
+      orderBy: { id: 'asc' },
+      include: { defaultHostingPlan: true }
+    })
+    // Map to legacy field names expected by AdminPlans frontend
+    const rows = templates.map(t => ({
+      id_version: t.versionId ?? t.id,
+      version_nombre: t.name,
+      version_letra: t.abbreviation || t.code,
+      n_preguntas: t.defaultQuestions,
+      n_casos: t.defaultCases,
+      n_admins: t.defaultAdmins,
+      n_moviles: t.defaultMobileUsers,
+      n_telefonicos: t.defaultPhoneUsers,
+      n_digitadores: t.defaultDataEntries,
+      n_analistas: t.defaultAnalysts,
+      n_clientes: t.defaultClients,
+      n_clasificadores: t.defaultClassifiers,
+      n_supervisores_captura: t.defaultCaptureSupervisors,
+      n_supervisores_kiosco: t.defaultKioskSupervisors,
+      n_participantes: t.defaultParticipants,
+      hosting: t.defaultHostingPlanId,
+      servidor: t.defaultServerType,
+      cuestionarios_concurrentes: t.concurrentQuestionnaires,
+      price_monthly: Number(t.basePrice) || 0,
+      price_annual: Number(t.basePrice) * 10 || 0,
+      price_currency: t.currency,
+      // Keep original fields available
+      _templateId: t.id,
+      _code: t.code,
+      _category: t.category,
+      _isActive: t.isActive,
+    }))
+    res.json(rows)
+  } catch (e) {
+    console.error('license-versions error:', e.message)
+    res.status(500).json({ error: e.message })
+  }
 })
 
 // POST /catalog/license-versions

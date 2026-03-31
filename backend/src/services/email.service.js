@@ -86,7 +86,7 @@ export const sendPasswordResetEmail = async (email, code, orgName) => {
  * Aviso de vencimiento de licencia
  */
 export const sendLicenseExpiryWarning = async (user, license, days) => {
-    const html = templates.licenseExpiry(user.fullName, license.serialKey, days);
+    const html = templates.licenseExpiry(user.firstName + ' ' + user.lastName, license.serialKey, days);
     return sendEmail(user.email, 'Aviso de Vencimiento de Licencia', html);
 };
 
@@ -100,10 +100,19 @@ export const sendPurchaseConfirmation = async (data) => {
     return sendEmail(email, subject, html);
 };
 
+/**
+ * Enviar Enlace de Invitación / Registro
+ */
+export const sendInvitationEmail = async (email, link) => {
+    const html = templates.magicLink('', link);
+    return sendEmail(email, 'Invitación a Rotator Survey', html);
+};
+
 export default {
     sendEmail,
     sendWelcomeEmail,
     sendPasswordResetEmail,
     sendLicenseExpiryWarning,
-    sendPurchaseConfirmation
+    sendPurchaseConfirmation,
+    sendInvitationEmail
 };

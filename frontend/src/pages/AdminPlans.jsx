@@ -68,10 +68,10 @@ export default function AdminPlans({ defaultTab = null }) {
   })
 
   const hSchema = z.object({
-    id_hosting: z.coerce.number().int().positive().optional(),
-    version_hosting: z.string().min(1, 'Requerido'),
-    letras_hosting: z.string().min(1, 'Requerido'),
-    cuestionarios_c: z.coerce.number().int().min(0).default(0),
+    id: z.coerce.number().int().positive().optional(),
+    name: z.string().min(1, 'Requerido'),
+    abbreviation: z.string().min(1, 'Requerido'),
+    concurrentQuestionnaires: z.coerce.number().int().min(0).default(0),
   })
 
   const vForm = useForm({
@@ -103,7 +103,7 @@ export default function AdminPlans({ defaultTab = null }) {
 
   const hForm = useForm({
     resolver: zodResolver(hSchema),
-    defaultValues: { id_hosting: '', version_hosting: '', letras_hosting: '', cuestionarios_c: 0 }
+    defaultValues: { id: '', name: '', abbreviation: '', concurrentQuestionnaires: 0 }
   })
 
   // Watchers for Automation
@@ -133,20 +133,17 @@ export default function AdminPlans({ defaultTab = null }) {
   }, [])
 
   const loadData = async () => {
+    setLoading(true)
+    // Load independently so one failing endpoint doesn't block the other
     try {
-      setLoading(true)
-      const [v, h] = await Promise.all([
-        api.get('/catalog/license-versions'),
-        api.get('/catalog/hosting')
-      ])
+      const v = await api.get('/catalog/license-versions')
       if (v.ok) setVersions(await v.json())
+    } catch (e) { console.error('Error loading versions:', e) }
+    try {
+      const h = await api.get('/hosting-plans')
       if (h.ok) setHosting(await h.json())
-    } catch (e) {
-      console.error(e)
-      toast({ title: 'Error cargando datos', variant: 'destructive' })
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { console.error('Error loading hosting plans:', e) }
+    setLoading(false)
   }
 
   // --- ACTIONS ---
@@ -170,7 +167,7 @@ export default function AdminPlans({ defaultTab = null }) {
 
   const onSubmitH = async (vals) => {
     const method = editingH ? 'PUT' : 'POST'
-    const url = editingH ? `/catalog/hosting/${editingH.id_hosting}` : '/catalog/hosting'
+    const url = editingH ? `/hosting-plans/${editingH.id}` : '/hosting-plans'
     const res = await (method === 'PUT' ? api.put(url, vals) : api.post(url, vals))
     if (!res.ok) {
       const e = await res.json().catch(() => ({ error: 'Error' }));
@@ -184,13 +181,13 @@ export default function AdminPlans({ defaultTab = null }) {
 
   const deleteV = async (row) => {
     if (!window.confirm('¿Eliminar versión?')) return
-    const res = await api.del(`/catalog/license-versions/${row.id_version}`)
+    const res = await api.delete(`/catalog/license-versions/${row.id_version}`)
     if (res.ok) { toast({ title: 'Versión eliminada' }); loadData() }
   }
 
   const deleteH = async (row) => {
     if (!window.confirm('¿Eliminar hosting?')) return
-    const res = await api.del(`/catalog/hosting/${row.id_hosting}`)
+    const res = await api.delete(`/hosting-plans/${row.id}`)
     if (res.ok) { toast({ title: 'Hosting eliminado' }); loadData() }
   }
 
@@ -206,8 +203,8 @@ export default function AdminPlans({ defaultTab = null }) {
     { key: 'n_clientes', label: 'Clientes' },
     {
       key: 'hosting', label: 'Hosting', render: (v) => {
-        const found = hosting.find(h => h.id_hosting === v);
-        return found ? found.version_hosting : (v || '-')
+        const found = hosting.find(h => h.id === v);
+        return found ? found.name : (v || '-')
       }
     },
     { key: 'price_monthly', label: 'Precio/Mes', render: (v) => v ? `$${v}` : '-' },
@@ -223,10 +220,10 @@ export default function AdminPlans({ defaultTab = null }) {
   ]
 
   const hCols = [
-    { key: 'id_hosting', label: 'ID', render: v => <span className="font-mono text-xs">{v}</span> },
-    { key: 'version_hosting', label: 'Versión Hosting', render: v => <span className="font-medium">{v}</span> },
-    { key: 'letras_hosting', label: 'Letra', render: v => <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{v}</span> },
-    { key: 'cuestionarios_c', label: 'Cuestionarios Conc.' },
+    { key: 'id', label: 'ID', render: v => <span className="font-mono text-xs">{v}</span> },
+    { key: 'name', label: 'Nombre', render: v => <span className="font-medium">{v}</span> },
+    { key: 'abbreviation', label: 'Abreviación', render: v => <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{v}</span> },
+    { key: 'concurrentQuestionnaires', label: 'Cuestionarios Conc.' },
     {
       key: 'actions', label: 'Acciones', sortable: false, render: (_, row) => (
         <div className="flex gap-2">
@@ -239,7 +236,7 @@ export default function AdminPlans({ defaultTab = null }) {
 
   // --- FILTERED DATA ---
   const fv = useMemo(() => versions.filter(v => !qv || v.version_nombre?.toLowerCase().includes(qv.toLowerCase()) || v.version_letra?.toLowerCase().includes(qv.toLowerCase())), [versions, qv])
-  const fh = useMemo(() => hosting.filter(h => !qh || h.version_hosting?.toLowerCase().includes(qh.toLowerCase()) || h.letras_hosting?.toLowerCase().includes(qh.toLowerCase())), [hosting, qh])
+  const fh = useMemo(() => hosting.filter(h => !qh || h.name?.toLowerCase().includes(qh.toLowerCase()) || h.abbreviation?.toLowerCase().includes(qh.toLowerCase())), [hosting, qh])
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -300,7 +297,7 @@ export default function AdminPlans({ defaultTab = null }) {
                         <FormItem><FormLabel>Plan de Hosting</FormLabel>
                           <select {...field} value={field.value || ''} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
                             <option value="">Selecciona Hosting</option>
-                            {hosting.map(h => <option key={h.id_hosting} value={h.id_hosting}>{h.version_hosting} ({h.letras_hosting})</option>)}
+                            {hosting.map(h => <option key={h.id} value={h.id}>{h.name} ({h.abbreviation})</option>)}
                           </select>
                         </FormItem>
                       )} />
@@ -361,10 +358,10 @@ export default function AdminPlans({ defaultTab = null }) {
                 <Form {...hForm}>
                   <form onSubmit={hForm.handleSubmit(onSubmitH)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <FormField control={hForm.control} name="version_hosting" render={({ field }) => <FormItem><FormLabel>Nombre Versión</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
-                      <FormField control={hForm.control} name="letras_hosting" render={({ field }) => <FormItem><FormLabel>Letras (Código)</FormLabel><FormControl><Input {...field} className="font-mono uppercase" /></FormControl><FormMessage /></FormItem>} />
+                      <FormField control={hForm.control} name="name" render={({ field }) => <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                      <FormField control={hForm.control} name="abbreviation" render={({ field }) => <FormItem><FormLabel>Abreviación</FormLabel><FormControl><Input {...field} className="font-mono uppercase" /></FormControl><FormMessage /></FormItem>} />
                     </div>
-                    <FormField control={hForm.control} name="cuestionarios_c" render={({ field }) => <FormItem><FormLabel>Cuestionarios Concurrentes</FormLabel><FormControl><Input type="number"{...field} /></FormControl><FormDescription>Límite técnico de concurrencia</FormDescription><FormMessage /></FormItem>} />
+                    <FormField control={hForm.control} name="concurrentQuestionnaires" render={({ field }) => <FormItem><FormLabel>Cuestionarios Concurrentes</FormLabel><FormControl><Input type="number"{...field} /></FormControl><FormDescription>Límite técnico de concurrencia</FormDescription><FormMessage /></FormItem>} />
                     <DialogFooter>
                       <Button type="submit">{editingH ? 'Guardar Cambios' : 'Crear Hosting'}</Button>
                     </DialogFooter>

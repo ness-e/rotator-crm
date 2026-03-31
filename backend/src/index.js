@@ -19,7 +19,7 @@ import meRouter from './routes/me.js';
 import usersRouter from './routes/users.js';
 import licensesRouter from './routes/licenses.js';
 import activationsRouter from './routes/activations.js';
-import pendingLicensesRouter from './routes/licenciasEnActivacion.js';
+import pendingLicensesRouter from './routes/invitations.js';
 import catalogRouter from './routes/catalog.js';
 import auditRouter from './routes/audit.js';
 import rolesRouter from './routes/roles.js';
@@ -37,6 +37,9 @@ import migrationClientsRouter from './routes/migration-clients.js';
 import followupsRouter from './routes/followups.js';
 import templatesRouter from './routes/templates.js';
 import validateRouter from './routes/validate.js';
+import hostingPlansRouter from './routes/hosting-plans.js';
+import locationsRouter from './routes/locations.js';
+import providersRouter from './routes/providers.js';
 import logger from './config/logger.js';
 import { helmetConfig, apiRateLimiter, authRateLimiter, validateOrigin } from './middleware/security.js';
 import { cacheMiddleware } from './middleware/cache.js';
@@ -68,13 +71,21 @@ if (process.env.NODE_ENV === 'production') {
   app.use(validateOrigin);
 }
 
-// CORS restringido al frontend
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5180'
+// CORS configuration supporting multiple origins
+const origins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5180').split(',').map(o => o.trim());
 app.use(cors({
-  origin: FRONTEND_ORIGIN,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (origins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
+  credentials: true, // Switched to true if required for cookies/sessions later
 }))
 
 app.get('/health', (req, res) => res.json({ ok: true }));
@@ -105,7 +116,7 @@ apiRouter.use('/me', meRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/licenses', licensesRouter);
 apiRouter.use('/activations', activationsRouter);
-apiRouter.use('/pending-licenses', pendingLicensesRouter);
+apiRouter.use('/invitations', pendingLicensesRouter);
 apiRouter.use('/catalog', cacheMiddleware(300), catalogRouter);
 apiRouter.use('/audit', auditRouter);
 apiRouter.use('/roles', rolesRouter);
@@ -121,9 +132,15 @@ apiRouter.use('/domains', domainsRouter);
 apiRouter.use('/migration-clients', migrationClientsRouter);
 apiRouter.use('/followups', followupsRouter);
 apiRouter.use('/templates', templatesRouter);
+apiRouter.use('/hosting-plans', hostingPlansRouter);
 apiRouter.use('/validate', validateRouter);
+apiRouter.use('/locations', locationsRouter);
+apiRouter.use('/providers', providersRouter);
 
-app.use('/api', apiRateLimiter, apiRouter);
+app.use('/api', apiRouter);
+
+// Servir archivos subidos (avatars, etc)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Servir frontend en producción o proxy en desarrollo
 const isProduction = process.env.NODE_ENV === 'production';
@@ -135,7 +152,7 @@ if (isProduction) {
     // No servir index.html para rutas API
     if (req.path.startsWith('/auth') || req.path.startsWith('/me') ||
       req.path.startsWith('/users') || req.path.startsWith('/licenses') ||
-      req.path.startsWith('/activations') || req.path.startsWith('/pending-licenses') ||
+      req.path.startsWith('/activations') || req.path.startsWith('/invitations') ||
       req.path.startsWith('/catalog') || req.path.startsWith('/notifications') ||
       req.path.startsWith('/api-docs') || req.path.startsWith('/health')) {
       return res.status(404).json({ error: 'Not found' });
@@ -147,8 +164,8 @@ if (isProduction) {
   try {
     // import dinámico para no requerir dependencia en producción
     const { createProxyMiddleware } = await import('http-proxy-middleware');
-    const VITE_TARGET = process.env.VITE_DEV_SERVER || 'http://localhost:5173';
-    const apiPrefixes = ['/auth', '/me', '/users', '/licenses', '/activations', '/pending-licenses', '/catalog', '/notifications', '/api-docs', '/health', '/api/validate'];
+    const VITE_TARGET = process.env.VITE_DEV_SERVER || 'http://localhost:5180';
+    const apiPrefixes = ['/auth', '/me', '/users', '/licenses', '/activations', '/invitations', '/catalog', '/notifications', '/api-docs', '/health', '/api/validate'];
     app.use('*', (req, res, next) => {
       if (apiPrefixes.some(p => req.path.startsWith(p))) return next();
       return createProxyMiddleware({
@@ -255,9 +272,6 @@ async function testConnection() {
   }
 }
 
-// Mount API router
-app.use('/api', apiRouter);
-
 // 404 handler - must be after all routes
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 app.use(notFoundHandler);
@@ -274,7 +288,7 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`Frontend origin: ${FRONTEND_ORIGIN}`);
+  logger.info(`Allowed origins: ${origins.join(', ')}`);
   if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
     logger.info(`Swagger docs: http://localhost:${PORT}/api-docs`);
   }

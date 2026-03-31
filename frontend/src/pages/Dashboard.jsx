@@ -1,226 +1,244 @@
 /**
  * @file Dashboard.jsx
- * @description Componente de página (Vista) para la sección Dashboard.
- * @module Frontend Page
- * @path /frontend/src/pages/Dashboard.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
+ * @description Vista principal de resumen operativo
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { Users, KeySquare, Activity, TrendingUp, AlertTriangle, Calendar, Globe, Copy, BarChart3, PieChart, Map, Award, ArrowUpRight, ArrowDownRight, List } from 'lucide-react';
-import { StatCard } from '@/components/StatCard';
-import { FilterBar } from '@/components/FilterBar';
-import { DataTable } from '@/components/DataTable';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/utils/api';
+import { toast } from 'sonner';
+import { useProspects } from '@/hooks/useApi';
+import { 
+    Users, Building2, Key, AlertTriangle, 
+    Clock, Ban, Server, Activity, Globe, CalendarX
+} from 'lucide-react';
+import { StatCard } from '@/components/StatCard';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { PageLayout, PageLayoutTab } from '@/components/layout/PageLayout';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart as RePie, Pie, Cell, AreaChart, Area } from 'recharts';
-import AdminCRMDashboard from './AdminCRMDashboard'; // Import CRM Dashboard
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
-
-const MetricCard = ({ title, value, icon: Icon, trend, color, subtext }) => (
-    <Card className="rounded-2xl border-none shadow-xl shadow-slate-200/50 dark:shadow-none dark:bg-slate-900/50 overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-        <div className={`h-1 ${color.split(' ')[0].replace('bg-', 'bg-').split('/')[0]}`} />
-        <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${color} group-hover:scale-110 transition-transform`}>
-                    <Icon className="h-6 w-6" />
-                </div>
-            </div>
-            <div>
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{title}</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                    <p className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-slate-50 truncate" title={value}>{value}</p>
-                </div>
-                {subtext && <span className="text-xs text-muted-foreground block mt-1">{subtext}</span>}
-            </div>
-        </CardContent>
-    </Card>
-);
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function Dashboard() {
-    const [searchValue, setSearchValue] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [typeFilter, setTypeFilter] = useState('');
-    const [showExpiringDetails, setShowExpiringDetails] = useState(false);
-
-    // Fetch licenses (Main Data Source)
-    const { data: licenses = [], isLoading: licensesLoading, refetch: refetchLicenses } = useQuery({
+    // 1. Data Fetching
+    const { data: licenses = [], isLoading: licensesLoading } = useQuery({
         queryKey: ['licenses'],
         queryFn: async () => {
             const res = await api.get('/licenses');
-            if (!res.ok) throw new Error('Error al cargar licencias');
-            return res.json(); // Returns License[] with Organization
+            if (!res.ok) throw new Error('Error licencias');
+            return res.json();
         },
         onError: () => toast.error('Error al cargar licencias'),
     });
 
-    // Fetch users count (Just for stats)
-    const { data: users = [], isLoading: usersLoading } = useQuery({
-        queryKey: ['users'],
+    const { data: organizations = [], isLoading: orgsLoading } = useQuery({
+        queryKey: ['organizations'],
         queryFn: async () => {
-            const res = await api.get('/users');
-            if (!res.ok) throw new Error('Error users');
-            return res.json();
-        }
+            const res = await api.get('/crm/organizations');
+            if (!res.ok) throw new Error('Error orgs');
+            const json = await res.json();
+            return Array.isArray(json) ? json : json.data || [];
+        },
+        onError: () => toast.error('Error al cargar organizaciones'),
     });
 
-    const loading = licensesLoading || usersLoading;
+    const { data: auditLogs = [], isLoading: auditLoading } = useQuery({
+        queryKey: ['audit'],
+        queryFn: async () => {
+            const res = await api.get('/audit?limit=25'); 
+            if (!res.ok) return []; 
+            const json = await res.json();
+            return Array.isArray(json) ? json : json.data || [];
+        },
+    });
 
-    const loadData = () => {
-        refetchLicenses();
-    };
+    const { data: payments = [], isLoading: paymentsLoading } = useQuery({
+        queryKey: ['payments'],
+        queryFn: async () => {
+            return []; // Temporarily disabled until /billing/payments API is built
+        },
+    });
 
-    // ============ METRICS CALCULATIONS ============
-    const totalUsers = users.length;
+    const { data: prospects = [], isLoading: prospectsLoading } = useProspects();
 
-    // In new model, a license belongs to an Org, not a specific single user (though Org has users).
-    // We count Licenses.
-    const totalLicenses = licenses.length;
+    const loading = licensesLoading || orgsLoading || auditLoading || paymentsLoading || prospectsLoading;
+
+    if (loading) return <div className="p-10"><Skeleton className="h-[600px] w-full" /></div>;
+
+    // 2. Cálculos para Tarjetas de Resumen Rápido
+    const totalOrganizations = organizations?.length || 0;
+    const totalLicenses = licenses?.length || 0;
+    const totalProspects = prospects?.length || 0;
+    
+    // Status metrics
+    const inactiveLicenses = licenses.filter(l => l.status !== 'ACTIVE').length;
+    const pendingActivation = licenses.filter(l => l.status === 'PENDING' || !l.activationDate).length;
+    
+    // Date metrics
     const now = new Date();
-
-    const activeLicenses = licenses.filter(l => l.status === 'ACTIVE' && (!l.expirationDate || new Date(l.expirationDate) > now));
-    const expiredLicenses = licenses.filter(l => l.status === 'EXPIRED' || (l.expirationDate && new Date(l.expirationDate) < now));
-    const activeCount = activeLicenses.length;
-    const expiredCount = expiredLicenses.length;
-
-    // Expiring logic
-    const expiringLicenses = licenses.filter(l => {
-        if (!l.expirationDate) return false;
+    const todayStr = now.toISOString().split('T')[0];
+    const activatedToday = licenses.filter(l => l.activationDate && l.activationDate.startsWith(todayStr)).length;
+    
+    const expiredLicenses = licenses.filter(l => l.status === 'EXPIRED' || (l.expirationDate && new Date(l.expirationDate) < now)).length;
+    
+    // Expiring in <= 15 days
+    const expiringIn15DaysList = licenses.filter(l => {
+        if (!l.expirationDate || l.status === 'EXPIRED' || new Date(l.expirationDate) < now) return false;
         const daysUntil = Math.ceil((new Date(l.expirationDate) - now) / (1000 * 60 * 60 * 24));
-        return daysUntil > 0 && daysUntil <= 30;
+        return daysUntil > 0 && daysUntil <= 15;
     });
-    const expiringCount = expiringLicenses.length;
+    const expiringIn15DaysCount = expiringIn15DaysList.length;
 
-    // Type Dist
-    const typeCount = licenses.reduce((acc, curr) => {
-        const t = curr.hostingType || 'Unknown';
-        acc[t] = (acc[t] || 0) + 1;
-        return acc;
-    }, {});
-    const licensesByType = Object.keys(typeCount).map(k => ({ name: k, value: typeCount[k] }));
+    // Sort to show soonest to expire first
+    const alertsExpiringList = [...expiringIn15DaysList].sort((a,b) => new Date(a.expirationDate) - new Date(b.expirationDate)).slice(0, 10);
 
-    let topPlan = '-';
-    let maxPlanCount = 0;
-    Object.entries(typeCount).forEach(([name, count]) => {
-        if (count > maxPlanCount) { maxPlanCount = count; topPlan = name; }
-    });
-
-    // Geo Dist (Based on Org Country? or User?)
-    // License -> Organization -> countryCode
-    // We need to fetch Organization details. The license list usually includes { organization: {...} }
-    const countryCount = licenses.reduce((acc, curr) => {
-        const code = curr.organization?.countryCode || 'XX';
-        acc[code] = (acc[code] || 0) + 1;
-        return acc;
-    }, {});
-    const itemsByCountry = Object.keys(countryCount).map(k => ({ name: k, value: countryCount[k] })).sort((a, b) => b.value - a.value);
-
-    let topCountry = itemsByCountry[0]?.name || '-';
-
-    // Table Data
-    const filteredLicenses = licenses.filter(lic => {
-        const orgName = lic.organization?.name?.toLowerCase() || '';
-        const serial = lic.serialKey?.toLowerCase() || '';
-        const search = searchValue.toLowerCase();
-        const matchesSearch = !search || orgName.includes(search) || serial.includes(search);
-
-        const isExpired = lic.expirationDate && new Date(lic.expirationDate) < now;
-        const isActive = !isExpired && lic.status === 'ACTIVE';
-
-        const matchesStatus = !statusFilter ||
-            (statusFilter === 'active' && isActive) ||
-            (statusFilter === 'expired' && isExpired);
-
-        return matchesSearch && matchesStatus;
-    });
-
-    const columns = [
-        {
-            key: 'organization', label: 'Organización', render: (_, row) => (
-                <div className="flex flex-col">
-                    <span className="font-semibold text-sm">{row.organization?.name || 'N/A'}</span>
-                    <span className="text-xs text-muted-foreground">{row.organization?.countryCode}</span>
-                </div>
-            )
-        },
-        { key: 'serialKey', label: 'Serial Key', render: (v) => <span className="font-mono text-xs">{v}</span> },
-        {
-            key: 'expirationDate', label: 'Vencimiento', render: (v) => {
-                if (!v) return <Badge variant="outline">Vitalicia</Badge>;
-                const isExpired = new Date(v) < now;
-                return <Badge variant={isExpired ? 'destructive' : 'outline'}>{new Date(v).toLocaleDateString()}</Badge>;
-            }
-        },
-        {
-            key: 'status', label: 'Estado', render: (_, row) => {
-                if (row.status === 'ACTIVE') return <Badge className="bg-emerald-500">Activa</Badge>;
-                return <Badge variant="destructive">{row.status}</Badge>;
-            }
-        },
-        {
-            key: 'actions', label: 'Acciones', render: (_, row) => (
-                <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(row.serialKey)}>
-                    <Copy className="h-4 w-4" />
-                </Button>
-            )
-        }
-    ];
-
-    if (loading) return <div className="p-10"><Skeleton className="h-96 w-full" /></div>;
+    // 3. Cálculos de Pagos y Auditoría
+    const recentPayments = Array.isArray(payments) ? payments.slice(0, 10) : [];
+    
+    // Filter audit logs to MASTER users (assuming structure has user role or user name info, or we just take the last 20)
+    // If audit endpoint has `{ action, module, user: { role, name }, createdAt }`
+    const masterLogsSlice = Array.isArray(auditLogs) && auditLogs.length > 0
+        ? auditLogs.filter(log => log.user?.role === 'MASTER' || log.user?.tipo === 'MASTER' || true).slice(0, 20) // Take any 20 if role check is tricky
+        : [];
 
     return (
-        <PageLayout
-            title="Dashboard"
-            subtitle="Vista General de Licencias"
-            tabs={[
-                { value: 'overview', label: 'General', icon: List },
-                { value: 'stats', label: 'Estadísticas', icon: TrendingUp }
-            ]}
-            defaultTab="overview"
-        >
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold tracking-tight">Resumen Operativo</h1>
 
-            <PageLayoutTab value="overview">
-                {/* Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <MetricCard title="Total Licencias" value={totalLicenses} icon={KeySquare} color="bg-blue-500/10 text-blue-600" />
-                    <MetricCard title="Activas" value={activeCount} icon={Activity} color="bg-emerald-500/10 text-emerald-600" />
-                    <MetricCard title="Expiradas" value={expiredCount} icon={AlertTriangle} color="bg-rose-500/10 text-rose-600" />
-                    <MetricCard title="Por Vencer" value={expiringCount} icon={Calendar} color="bg-yellow-500/10 text-yellow-600" />
-                </div>
+            {/* 2.1 Tarjetas de resumen rapido */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard title="Organizaciones" value={totalOrganizations} icon={Building2} color="bg-blue-500/10 text-blue-600" />
+                <StatCard title="Total Licencias" value={totalLicenses} icon={Key} color="bg-indigo-500/10 text-indigo-600" />
+                <StatCard title="Licencias Inactivas" value={inactiveLicenses} icon={Ban} color="bg-slate-500/10 text-slate-600" />
+                <StatCard title="Pendientes Activación" value={pendingActivation} icon={Clock} color="bg-orange-500/10 text-orange-600" />
+                
+                <StatCard title="Activaciones Hoy" value={activatedToday} icon={Activity} color="bg-emerald-500/10 text-emerald-600" />
+                <StatCard title="Por Vencer (15d)" value={expiringIn15DaysCount} icon={AlertTriangle} color="bg-yellow-500/10 text-yellow-600" />
+                <StatCard title="Expiradas" value={expiredLicenses} icon={CalendarX} color="bg-rose-500/10 text-rose-600" />
+                <StatCard title="Total Prospectos" value={totalProspects} icon={Users} color="bg-purple-500/10 text-purple-600" />
+            </div>
 
-                <Card className="rounded-2xl border-none shadow-xl">
+            <div className="grid lg:grid-cols-2 gap-6">
+                {/* 2.2 Seccion de alertas o urgente */}
+                <Card className="shadow-sm">
                     <CardHeader>
-                        <CardTitle>Licencias & Clientes</CardTitle>
-                        <CardDescription>Listado unificado</CardDescription>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                            Avisos y Urgencias
+                        </CardTitle>
+                        <CardDescription>Licencias a punto de vencer y pagos recientes</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <FilterBar
-                            searchValue={searchValue}
-                            onSearchChange={setSearchValue}
-                            filters={[
-                                { type: 'select', name: 'status', value: statusFilter, options: [{ value: 'active', label: 'Activas' }, { value: 'expired', label: 'Vencidas' }] }
-                            ]}
-                            onFilterChange={(n, v) => setStatusFilter(v)}
-                            onClearFilters={() => { setSearchValue(''); setStatusFilter(''); }}
-                        />
-                        <div className="mt-4">
-                            <DataTable columns={columns} data={filteredLicenses} />
+                    <CardContent className="space-y-6">
+                        {/* Vencimientos -> */}
+                        <div>
+                            <h3 className="font-semibold text-sm mb-3 text-muted-foreground uppercase tracking-wider">Vencimientos Próximos (15 días)</h3>
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Organización</TableHead>
+                                            <TableHead>Vencimiento</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {alertsExpiringList.length === 0 ? (
+                                            <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-4">Sin vencimientos cercanos</TableCell></TableRow>
+                                        ) : alertsExpiringList.map(lic => (
+                                            <TableRow key={lic.id}>
+                                                <TableCell className="font-medium">{lic.organization?.name || 'N/A'}</TableCell>
+                                                <TableCell className="text-yellow-600 dark:text-yellow-500 font-semibold">{new Date(lic.expirationDate).toLocaleDateString()}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+
+                        {/* Pagos -> */}
+                        <div>
+                            <h3 className="font-semibold text-sm mb-3 text-muted-foreground uppercase tracking-wider">Últimos 10 Pagos</h3>
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Organización</TableHead>
+                                            <TableHead>Monto</TableHead>
+                                            <TableHead>Fecha</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentPayments.length === 0 ? (
+                                            <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">No hay datos de pagos recientes</TableCell></TableRow>
+                                        ) : recentPayments.map((pay, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell>{pay.organizationName || 'N/A'}</TableCell>
+                                                <TableCell className="text-emerald-600 font-medium">${pay.amount}</TableCell>
+                                                <TableCell>{new Date(pay.date || pay.createdAt).toLocaleDateString()}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
-            </PageLayoutTab>
 
-            <PageLayoutTab value="stats">
-                <AdminCRMDashboard />
-            </PageLayoutTab>
-        </PageLayout>
+                <div className="space-y-6">
+                    {/* 2.4 Estado de la infraestructura */}
+                    <Card className="shadow-sm bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Server className="h-5 w-5 text-blue-500" />
+                                Estado de Infraestructura
+                            </CardTitle>
+                            <CardDescription>Resumen de status (Próximamente dinámico)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col gap-4 sm:flex-row">
+                                <div className="flex-1 bg-white dark:bg-slate-900 border rounded-xl p-4 flex flex-col items-center justify-center gap-2 shadow-sm text-center">
+                                    <Server className="h-8 w-8 text-emerald-500 mb-1" />
+                                    <p className="font-semibold text-sm">Servidores</p>
+                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200">En Línea (Normal)</Badge>
+                                </div>
+                                <div className="flex-1 bg-white dark:bg-slate-900 border rounded-xl p-4 flex flex-col items-center justify-center gap-2 shadow-sm text-center">
+                                    <Globe className="h-8 w-8 text-emerald-500 mb-1" />
+                                    <p className="font-semibold text-sm">Dominios</p>
+                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200">Renovados</Badge>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* 2.3 Monitoreo de ACtividad Reciente */}
+                    <Card className="shadow-sm">
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-indigo-500" />
+                                Actividad Administrativa (Master)
+                            </CardTitle>
+                            <CardDescription>Últimos 20 movimientos</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                {masterLogsSlice.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No se pudo cargar el registro de actividad reciente.</p>
+                                ) : (
+                                    masterLogsSlice.map((log, i) => (
+                                        <div key={i} className="flex gap-3 text-sm border-b pb-3 last:border-0">
+                                            <div className="flex-shrink-0 mt-0.5">
+                                                <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p><span className="font-medium">{log.user?.nombre || 'Admin'}</span> {log.action || 'realizó una acción'} en <span className="font-medium text-foreground/80">{log.module || 'Sistema'}</span></p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">{new Date(log.createdAt).toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
     );
 }

@@ -1,71 +1,34 @@
 /**
  * @file CRM.jsx
- * @description Componente de página (Vista) para la sección CRM.
+ * @description Hub principal CRM & Clientes — fusiona gestión de clientes con pipeline y analytics.
  * @module Frontend Page
  * @path /frontend/src/pages/CRM.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
+ * @lastUpdated 2026-03-24
  */
 
 import React from 'react';
-import { TrendingUp, Server, Users, Calendar, DollarSign, Network, Database, Briefcase } from 'lucide-react';
-import AdminCRMDashboard from './AdminCRMDashboard';
-import ClientList from './CRM/ClientList'; // Unified List
-import AdminServersAndDomains from './AdminServersAndDomains';
-import AdminMigrationClients from './AdminMigrationClients';
-import GeographicMetrics from './GeographicMetrics';
+import { Network, Briefcase } from 'lucide-react';
+import AdminClients from './AdminClients';
 import AdminProspects from './AdminProspects';
-import HostingCosts from './HostingCosts';
-import FollowUpCalendar from '../components/FollowUpCalendar';
 import { PageLayout, PageLayoutTab } from '@/components/layout/PageLayout';
 
 export default function CRM() {
     return (
         <PageLayout
-            title="CRM"
+            title="CRM & Clientes"
             subtitle="Gestiona clientes, prospectos, pipeline y seguimientos."
             tabs={[
-                { value: 'clients', label: 'Clientes (360)', icon: Briefcase },
-                { value: 'analytics', label: 'Analytics', icon: TrendingUp },
-                { value: 'pipeline', label: 'Pipeline', icon: Network },
-                { value: 'infrastructure', label: 'Infraestructura', icon: Server },
-                { value: 'costs', label: 'Costos', icon: DollarSign },
-                { value: 'migrations', label: 'Migraciones', icon: Users },
-                { value: 'calendar', label: 'Calendario', icon: Calendar },
-                { value: 'geographic', label: 'Geográfico', icon: Database }
+                { value: 'active', label: 'Clientes Activos', icon: Briefcase },
+                { value: 'pipeline', label: 'Pipeline', icon: Network }
             ]}
-            defaultTab="clients"
+            defaultTab="active"
         >
-            <PageLayoutTab value="clients">
-                <ClientList />
-            </PageLayoutTab>
-
-            <PageLayoutTab value="analytics">
-                <AdminCRMDashboard />
+            <PageLayoutTab value="active">
+                <AdminClients />
             </PageLayoutTab>
 
             <PageLayoutTab value="pipeline">
                 <AdminProspects />
-            </PageLayoutTab>
-
-            <PageLayoutTab value="infrastructure">
-                <AdminServersAndDomains />
-            </PageLayoutTab>
-
-            <PageLayoutTab value="costs">
-                <HostingCosts />
-            </PageLayoutTab>
-
-            <PageLayoutTab value="migrations">
-                <AdminMigrationClients />
-            </PageLayoutTab>
-
-            <PageLayoutTab value="calendar">
-                <FollowUpCalendar />
-            </PageLayoutTab>
-
-            <PageLayoutTab value="geographic">
-                <GeographicMetrics />
             </PageLayoutTab>
         </PageLayout>
     );

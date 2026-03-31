@@ -130,7 +130,8 @@ export const AuthLoginSchema = z.object({
 export const AuthRegisterSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: passwordSchema,
-  fullName: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   role: z.string().optional()
 })
 
@@ -148,7 +149,8 @@ export const PublicRegisterSchema = z.object({
 
 // Users
 export const UserCreateSchema = z.object({
-  fullName: z.string().trim().min(1).max(200),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
   email: z.string().email('Invalid email format').max(255),
   password: passwordSchema.optional().or(z.literal('').transform(() => undefined)),
   position: z.string().trim().min(1).max(200).optional().or(z.literal('').transform(() => undefined)),
@@ -156,7 +158,7 @@ export const UserCreateSchema = z.object({
   country: z.string().trim().min(1).max(50).optional().or(z.literal('').transform(() => undefined)),
   city: z.string().trim().min(1).max(100).optional().or(z.literal('').transform(() => undefined)),
   organizationId: z.coerce.number().int().positive().optional().or(z.literal('').transform(() => undefined)),
-  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MEMBER', 'BILLING'], { errorMap: () => ({ message: 'Invalid role' }) }).optional()
+  role: z.enum(['MASTER', 'ANALISTA', 'VISUALIZADOR', 'CLIENTE'], { errorMap: () => ({ message: 'Invalid role' }) }).optional()
 })
 export const UserUpdateSchema = UserCreateSchema.partial()
 

@@ -23,79 +23,129 @@ model Organization {
   source         String?
   ejecutivoId    Int?
   marketTargetId Int?
+  notes          String?
+  language       String        @default("en")  // Derived from countryCode: es, pt, en
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   licenses       License[]
   marketTarget   MarketTarget? @relation(fields: [marketTargetId], references: [id])
-  users          User[]
+  users          User[]        @relation("OrganizationUsers")
+
+  adminContactName     String?
+  adminContactLastName String?
+  adminContactEmail    String?
+
+  useContactName       String?
+  useContactLastName   String?
+  useContactEmail      String?
+
+  businessType         String?
+  status               String   @default("Nuevo")
+
+  primerContactoId     Int?
+  primerContacto       User?    @relation("PrimerContacto", fields: [primerContactoId], references: [id])
+
+  servers              ServerNode[]
 
   @@map("organizations")
 }
 
 model User {
-  id             Int            @id @default(autoincrement())
-  email          String         @unique
-  password       String
-  fullName       String
-  position       String?
-  phone          String?
-  country        String?
-  city           String?
-  organizationId Int?
-  role           String         @default("MEMBER")
-  isActive       Boolean        @default(true)
-  lastLogin      DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  followUps      FollowUp[]     @relation("UserFollowUps")
-  notifications  Notification[]
-  roleDetail     Role           @relation(fields: [role], references: [name])
-  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                 Int            @id @default(autoincrement())
+  email              String         @unique
+  password           String
+  firstName          String
+  lastName           String
+  position           String?
+  phone              String?
+  country            String?
+  city               String?
+  organizationId     Int?
+  role               String         @default("CLIENTE")
+  isActive           Boolean        @default(true)
+  profilePicture     String?
+  lastLogin          DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  followUps          FollowUp[]     @relation("UserFollowUps")
+  notifications      Notification[]
+  activatedLicenses  License[]      @relation("LicenseActivator")
+  auditLogs          AuditLog[]
+  roleDetail         Role           @relation(fields: [role], references: [name])
+  organization       Organization?  @relation("OrganizationUsers", fields: [organizationId], references: [id], onDelete: Cascade)
+  contactedOrganizations Organization[] @relation("PrimerContacto")
+  ownedLicense       License?       @relation("LicenseOwner")
 
   @@map("users")
 }
 
 model ProductTemplate {
-  id                        Int       @id @default(autoincrement())
-  code                      String    @unique
+  id                        Int          @id @default(autoincrement())
+  code                      String       @unique
   name                      String
   category                  String
-  defaultQuestions          Int       @default(0)
-  defaultCases              Int       @default(0)
-  defaultAdmins             Int       @default(1)
-  basePrice                 Decimal   @default(0)
-  currency                  String    @default("USD")
-  defaultMobileUsers        Int       @default(0)
-  defaultPhoneUsers         Int       @default(0)
-  defaultDataEntries        Int       @default(0)
-  defaultAnalysts           Int       @default(0)
-  defaultClients            Int       @default(0)
-  defaultClassifiers        Int       @default(0)
-  defaultCaptureSupervisors Int       @default(0)
-  defaultKioskSupervisors   Int       @default(0)
-  defaultParticipants       Int       @default(0)
-  concurrentQuestionnaires  Int       @default(0)
+  abbreviation              String?      @unique
+  versionId                 Int?         @unique
+  defaultQuestions          Int          @default(0)
+  defaultCases              Int          @default(0)
+  defaultAdmins             Int          @default(1)
+  basePrice                 Decimal      @default(0)
+  currency                  String       @default("USD")
+  defaultMobileUsers        Int          @default(0)
+  defaultPhoneUsers         Int          @default(0)
+  defaultDataEntries        Int          @default(0)
+  defaultAnalysts           Int          @default(0)
+  defaultClients            Int          @default(0)
+  defaultClassifiers        Int          @default(0)
+  defaultCaptureSupervisors Int          @default(0)
+  defaultKioskSupervisors   Int          @default(0)
+  defaultParticipants       Int          @default(0)
+  defaultHostingPlanId      Int?
+  defaultServerType         Int          @default(0)
+  concurrentQuestionnaires  Int          @default(0)
+  isActive                  Boolean      @default(true)
   licenses                  License[]
+  defaultHostingPlan        HostingPlan? @relation(fields: [defaultHostingPlanId], references: [id])
 
   @@map("product_templates")
 }
 
+model HostingPlan {
+  id                       Int               @id @default(autoincrement())
+  name                     String
+  abbreviation             String            @unique
+  concurrentQuestionnaires Int               @default(2)
+  isActive                 Boolean           @default(true)
+  licenses                 License[]
+  productTemplates         ProductTemplate[]
+
+  @@map("hosting_plans")
+}
+
 model ServerNode {
-  id              Int       @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   name            String
   ipAddress       String?
   type            String
-  status          String    @default("active")
-  provider        String?
-  costMonthly     Decimal?  @default(0)
-  costAnnual      Decimal?  @default(0)
-  currency        String    @default("USD")
-  billingCycle    String    @default("MONTHLY")
+  status          String          @default("active")
+  providerId      Int?
+  providerPlanId  Int?
+  organizationId  Int?
+  costMonthly     Decimal?        @default(0)
+  costAnnual      Decimal?        @default(0)
+  currency        String          @default("USD")
+  billingCycle    String          @default("MONTHLY")
   nextPaymentDate DateTime?
   size            String?
-  capacity        Int?      @default(100)
+  capacity        Int?            @default(100)
+  observations    String?
+  primaryDomain   String?         @unique
   domains         Domain[]
-  licenses        License[]
+
+  providerRef     Provider?       @relation(fields: [providerId], references: [id])
+  providerPlan    ProviderPlan?   @relation(fields: [providerPlanId], references: [id])
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+  licenseServers  LicenseServer[] @relation("LicenseServers")
 
   @@map("server_nodes")
 }
@@ -126,53 +176,68 @@ model License {
   limitParticipants        Int              @default(0)
   concurrentQuestionnaires Int              @default(0)
   machineId                String?
-  hostingType              String           @default("CLOUD_ROTATOR")
-  serverNodeId             Int?
+  hostingPlanId            Int?
+  encryptedActivationKey   String?
+  activatedByUserId        Int?
+  notes                    String?
   createdAt                DateTime         @default(now())
   updatedAt                DateTime         @updatedAt
   activations              ActivationLog[]
-  serverNode               ServerNode?      @relation(fields: [serverNodeId], references: [id])
+  hostingPlan              HostingPlan?     @relation(fields: [hostingPlanId], references: [id])
   productTemplate          ProductTemplate? @relation(fields: [productTemplateId], references: [id])
   organization             Organization     @relation(fields: [organizationId], references: [id])
+  activatedBy              User?            @relation("LicenseActivator", fields: [activatedByUserId], references: [id])
+  licenseServers           LicenseServer[]
+
+  ownedByUserId            Int?             @unique
+  ownedByUser              User?            @relation("LicenseOwner", fields: [ownedByUserId], references: [id])
 
   @@map("licenses")
 }
 
 model ActivationLog {
-  id        Int      @id @default(autoincrement())
-  licenseId Int
-  pcName    String?
-  ipAddress String?
-  keyUsed   String?
-  date      DateTime @default(now())
-  license   License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  licenseId  Int
+  pcName     String?
+  ipAddress  String?
+  keyUsed    String?
+  hardwareId String?
+  date       DateTime @default(now())
+  license    License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
 
+  @@unique([licenseId, hardwareId, pcName])
   @@map("activation_logs")
 }
 
 model AuditLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  action    String   @default("UNKNOWN")
-  entity    String   @default("UNKNOWN")
-  entityId  String?
-  details   String?
-  ip        String?
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  userEmail  String?
+  userName   String?
+  action     String   @default("UNKNOWN")
+  entity     String   @default("UNKNOWN")
+  entityId   String?
+  entityName String?
+  details    String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
 }
 
 model PurchaseIntent {
-  token         String   @id
-  paypalOrderId String?
-  paypalSubId   String?
-  payerEmail    String
-  payerName     String?
-  productCode   String
-  amountPaid    Decimal?
-  status        String
-  createdAt     DateTime @default(now())
+  token           String   @id
+  paypalOrderId   String?
+  paypalSubId     String?
+  payerEmail      String
+  payerName       String?
+  productCode     String
+  licenseTypeCode String?
+  amountPaid      Decimal?
+  status          String
+  createdAt       DateTime @default(now())
 
   @@map("purchase_intents")
 }
@@ -237,12 +302,18 @@ model Domain {
   id           Int         @id @default(autoincrement())
   domainName   String      @unique
   isPropio     Boolean     @default(false)
+  status       String      @default("active")
   serverId     Int?
   expiresAt    DateTime?
   observations String?
+  appName      String?
+  ftpAddress   String?
+  ftpUser      String?
+  ftpPassword  String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   server       ServerNode? @relation(fields: [serverId], references: [id])
+  licenseServers LicenseServer[]
 
   @@map("domains")
 }
@@ -306,4 +377,54 @@ model FollowUp {
   user       User?     @relation("UserFollowUps", fields: [userId], references: [id])
 
   @@map("follow_ups")
+}
+
+model LicenciaEnActivacion {
+  id                String   @id @default(cuid())
+  email             String   
+  token             String   @unique
+  productTemplateId Int?     
+  status            String   @default("PENDING") 
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("licencias_en_activacion")
+}
+
+model Provider {
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
+  website   String?
+  notes     String?
+  isActive  Boolean         @default(true)
+  plans     ProviderPlan[]
+  servers   ServerNode[]
+
+  @@map("providers")
+}
+
+model ProviderPlan {
+  id         Int          @id @default(autoincrement())
+  name       String
+  specs      String?
+  providerId Int
+  isActive   Boolean      @default(true)
+  provider   Provider     @relation(fields: [providerId], references: [id])
+  servers    ServerNode[]
+
+  @@map("provider_plans")
+}
+
+model LicenseServer {
+  id         Int        @id @default(autoincrement())
+  licenseId  Int
+  serverId   Int
+  domainId   Int?
+
+  license    License    @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  server     ServerNode @relation("LicenseServers", fields: [serverId], references: [id], onDelete: Cascade)
+  domain     Domain?    @relation(fields: [domainId], references: [id], onDelete: SetNull)
+
+  @@unique([licenseId, serverId, domainId])
+  @@map("license_servers")
 }

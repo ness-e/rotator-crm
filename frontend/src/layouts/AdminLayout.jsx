@@ -1,51 +1,49 @@
 /**
  * @file AdminLayout.jsx
- * @description Archivo del sistema AdminLayout.jsx.
- * @module Module
+ * @description Main admin layout with sidebar, breadcrumbs, and notifications.
+ *   Uses Zustand auth store for user state (no duplicate fetchMe calls).
+ * @module Layout
  * @path /frontend/src/layouts/AdminLayout.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
+ * @lastUpdated 2026-03-20
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
+import { AdminHeader } from '@/components/layout/AdminHeader';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import NotificationsMenu from '@/components/NotificationsMenu';
 import { api } from '@/utils/api';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function AdminLayout() {
-  const [me, setMe] = useState(null);
+  const { user: me, setUser: setMe } = useAuthStore();
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!me); // Skip loading if already cached
   const [showNotifications, setShowNotifications] = useState(false);
+  const fetchedRef = useRef(false); // Prevent duplicate fetches
 
   const nav = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
 
   const logout = async () => {
     try {
       await api.post('/auth/logout');
     } catch { }
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    useAuthStore.getState().logout();
     nav('/');
   };
 
   useEffect(() => {
-    const fetchMe = async () => {
+    // Skip if already fetched in this session or if user data exists
+    if (fetchedRef.current || me) {
+      setLoading(false);
+      return;
+    }
+    fetchedRef.current = true;
+
+    const fetchMe = async (retries = 2) => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -56,9 +54,20 @@ export default function AdminLayout() {
         const res = await api.get('/me');
 
         if (!res.ok) {
+          if (res.status === 429) {
+            const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10);
+            if (retryAfter > 5) {
+               throw new Error(`Límite de peticiones alcanzado. Por favor, intenta de nuevo en ${Math.ceil(retryAfter / 60)} minutos.`);
+            }
+            if (retries > 0) {
+              await new Promise(r => setTimeout(r, retryAfter * 1000));
+              return fetchMe(retries - 1);
+            }
+            throw new Error('Límite de peticiones alcanzado. Por favor, intenta más tarde.');
+          }
+
           if (res.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
+            useAuthStore.getState().logout();
             nav('/');
             return;
           }
@@ -66,7 +75,7 @@ export default function AdminLayout() {
         }
 
         const data = await res.json();
-        setMe(data);
+        setMe(data); // Store in Zustand — persists across re-renders
       } catch (err) {
         setError(err.message);
         console.error('Error fetching user data:', err);
@@ -76,47 +85,16 @@ export default function AdminLayout() {
     };
 
     fetchMe();
-  }, [nav]);
+  }, []); // Empty deps — only run once on mount
 
-  // Función para obtener breadcrumbs dinámicos basados en la ruta
-  const getBreadcrumbs = () => {
-    const path = location.pathname;
-    const routes = {
-      '/admin/dashboard': { title: 'Dashboard', parent: null },
-      '/admin/gestion': { title: 'Gestión', parent: null },
-      '/admin/clientes': { title: 'Clientes', parent: null },
-      '/admin/crm': { title: 'CRM', parent: null },
-      '/admin/configuracion': { title: 'Configuración', parent: null },
-      '/admin/users': { title: 'Usuarios', parent: 'Gestión' },
-      '/admin/licenses': { title: 'Licencias', parent: 'Gestión' },
-      '/admin/management': { title: 'Administración', parent: 'Gestión' },
-      '/admin/default-plans': { title: 'Planes', parent: 'Configuración' },
-      '/admin/audit': { title: 'Auditoría', parent: 'Configuración' },
-      '/admin/activations': { title: 'Activaciones', parent: 'Gestión' },
-      '/admin/prospects': { title: 'Prospectos', parent: 'CRM' },
-      '/admin/clients': { title: 'Clientes', parent: 'CRM' },
-      '/admin/prospects-pipeline': { title: 'Pipeline', parent: 'CRM' },
-      '/admin/hosting-costs': { title: 'Costos de Hosting', parent: 'CRM' },
-      '/admin/calendar': { title: 'Calendario', parent: 'CRM' },
-      '/admin/new-client': { title: 'Nuevo Cliente', parent: 'Clientes' },
-      '/admin/pending-clients': { title: 'Clientes Pendientes', parent: 'Clientes' },
-      '/admin/pending-licenses-inbox': { title: 'Licencias Pendientes', parent: 'Gestión' },
-    };
-
-    const current = routes[path] || { title: 'Dashboard', parent: null };
-
-    return {
-      parent: current.parent,
-      current: current.title,
-    };
-  };
-
-  const breadcrumbs = getBreadcrumbs();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-muted-foreground">Cargando...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-muted-foreground">Cargando...</span>
+        </div>
       </div>
     );
   }
@@ -124,7 +102,15 @@ export default function AdminLayout() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-destructive">{error}</div>
+        <div className="text-center space-y-4">
+          <p className="text-destructive font-medium">{error}</p>
+          <button
+            onClick={() => { setError(''); fetchedRef.current = false; setLoading(true); window.location.reload(); }}
+            className="text-sm text-primary hover:underline"
+          >
+            Reintentar
+          </button>
+        </div>
       </div>
     );
   }
@@ -133,45 +119,14 @@ export default function AdminLayout() {
     <SidebarProvider defaultOpen={true}>
       <AppSidebar
         user={me}
-        unreadCount={me?.unreadNotifications || 0}
-        onNotificationsClick={() => setShowNotifications(true)}
-        onLogout={logout}
       />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/admin/dashboard">
-                  Dashboard
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              {breadcrumbs.parent && (
-                <>
-                  <BreadcrumbSeparator className="hidden md:block" />
-                  <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbPage className="text-muted-foreground">
-                      {breadcrumbs.parent}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
-              {breadcrumbs.current !== 'Dashboard' && (
-                <>
-                  <BreadcrumbSeparator className="hidden md:block" />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="font-medium">
-                      {breadcrumbs.current}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
-        {/* REDUCED PADDING - Removed pt-10, now just p-4 md:p-6 */}
+        <AdminHeader 
+          user={me} 
+          unreadCount={me?.unreadNotifications || 0}
+          onNotificationsClick={() => setShowNotifications(true)}
+          onLogout={logout}
+        />
         <div className="flex flex-1 flex-col p-4 md:p-6">
           <Outlet />
         </div>
@@ -183,7 +138,7 @@ export default function AdminLayout() {
           <NotificationsMenu
             mode="list"
             onRead={(count) =>
-              setMe((prev) => ({ ...prev, unreadNotifications: count }))
+              setMe({ ...me, unreadNotifications: count })
             }
           />
         </DialogContent>

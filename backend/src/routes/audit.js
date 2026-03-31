@@ -26,7 +26,7 @@ router.get('/', authRequired, requireMaster, async (req, res) => {
             prisma.auditLog.findMany({
                 skip,
                 take: limit,
-                orderBy: { fecha: 'desc' }
+                orderBy: { createdAt: 'desc' }
             }),
             prisma.auditLog.count()
         ]);

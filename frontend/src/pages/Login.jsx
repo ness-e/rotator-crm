@@ -28,8 +28,9 @@ export default function Login() {
         const decoded = JSON.parse(atob(token.split('.')[1]));
         const isMaster = decoded.isMaster === true || 
                         decoded.tipo === 'MASTER' || 
-                        decoded.role === 'SUPER_ADMIN' || 
-                        decoded.role === 'MASTER';
+                        decoded.role === 'MASTER' ||
+                        decoded.role === 'ANALISTA' ||
+                        decoded.role === 'VISUALIZADOR';
         nav(isMaster ? '/admin/dashboard' : '/panel', { replace: true });
       } catch (err) {
         console.error('Error parsing token:', err);
@@ -44,8 +45,8 @@ export default function Login() {
       password: values.password || ''
     }
     
-    // Check if we're in development on port 5180 to use the backend on 3001
-    const apiBase = (typeof window !== 'undefined' && window.location.port === '5180') ? 'http://localhost:3005' : ''
+    // Use relative paths to rely on Vite proxy (works for localhost and network IP)
+    const apiBase = ''
     
     try {
       const res = await fetch(`${apiBase}/api/auth/login`, { 
@@ -63,8 +64,9 @@ export default function Login() {
         const decoded = JSON.parse(atob(token.split('.')[1]))
         const isMaster = decoded.isMaster === true || 
                         decoded.tipo === 'MASTER' || 
-                        decoded.role === 'SUPER_ADMIN' || 
-                        decoded.role === 'MASTER';
+                        decoded.role === 'MASTER' ||
+                        decoded.role === 'ANALISTA' ||
+                        decoded.role === 'VISUALIZADOR';
 
         nav(isMaster ? '/admin/dashboard' : '/panel', { replace: true });
       } else {

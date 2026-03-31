@@ -1,13 +1,13 @@
 /**
  * @file Configuracion.jsx
- * @description Componente de página (Vista) para la sección Configuracion.
+ * @description Configuración del sistema — simplificada a 4 tabs.
  * @module Frontend Page
  * @path /frontend/src/pages/Configuracion.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
+ * @lastUpdated 2026-03-23
  */
 
 import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -18,16 +18,15 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Settings, Save, AlertCircle, Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle, Database, Package, Clock, List, Mail, Plug } from 'lucide-react'
+import { Settings, Save, AlertCircle, Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle, Database, Package, Mail, Plug } from 'lucide-react'
 import { api } from '@/utils/api'
 import { useToast } from '@/components/ui/use-toast'
 import { PERMISSION_LABELS, ALL_PERMISSIONS } from '@/constants/permissions'
 import AdminPlans from './AdminPlans'
-import PendingLicensesInbox from './PendingLicensesInbox'
 import AdminConstants from './AdminConstants'
 import AdminEmailTemplates from './AdminEmailTemplates'
 import AdminIntegrations from './AdminIntegrations'
-import AdminAudit from './AdminAudit'
+
 
 // ============ SETTINGS TAB ============
 function SettingsTab() {
@@ -354,14 +353,16 @@ function BackupTab() {
 }
 
 // ============ MAIN COMPONENT ============
-// Now using useSearchParams to persist tab selection in URL
-import { useSearchParams } from 'react-router-dom';
-
 export default function Configuracion() {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Determine the active tab: URL param > default
-    const activeTab = searchParams.get('tab') || 'sistema';
+    // Map legacy tab values to new structure
+    const rawTab = searchParams.get('tab') || 'general';
+    const activeTab = rawTab === 'sistema' ? 'general' 
+        : rawTab === 'versiones' || rawTab === 'hosting' ? 'planes'
+        : rawTab === 'backup' || rawTab === 'integrations' ? 'avanzado'
+        : rawTab === 'licencias' || rawTab === 'constantes' || rawTab === 'emails' || rawTab === 'email' ? 'avanzado'
+        : rawTab;
 
     const handleTabChange = (value) => {
         setSearchParams(prev => {
@@ -390,58 +391,31 @@ export default function Configuracion() {
                 <div className="w-64 flex-shrink-0">
                     <TabsList className="flex flex-col h-auto w-full space-y-1 bg-transparent p-0">
                         <TabsTrigger
-                            value="sistema"
+                            value="general"
                             className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Settings className="h-4 w-4" /> Sistema
+                            <Settings className="h-4 w-4" /> General
                         </TabsTrigger>
                         <TabsTrigger
                             value="roles"
                             className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Shield className="h-4 w-4" /> Roles
+                            <Shield className="h-4 w-4" /> Roles & Permisos
                         </TabsTrigger>
                         <TabsTrigger
-                            value="backup"
+                            value="planes"
                             className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Database className="h-4 w-4" /> Backup
+                            <Package className="h-4 w-4" /> Planes & Hosting
                         </TabsTrigger>
                         <TabsTrigger
-                            value="versiones"
+                            value="avanzado"
                             className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Package className="h-4 w-4" /> Versiones de Licencia
+                            <Database className="h-4 w-4" /> Avanzado
                         </TabsTrigger>
-                        <TabsTrigger
-                            value="hosting"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Database className="h-4 w-4" /> Planes de Hosting
-                        </TabsTrigger>
-
-                        <TabsTrigger
-                            value="licencias"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Clock className="h-4 w-4" /> Licencias
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="constantes"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <List className="h-4 w-4" /> Constantes
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="emails"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Mail className="h-4 w-4" /> Plantillas de Email
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="integrations"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Plug className="h-4 w-4" /> Integraciones (API)
-                        </TabsTrigger>
-
                     </TabsList>
                 </div>
 
-                {/* Contenido de tabs con altura estandarizada */}
+                {/* Contenido de tabs */}
                 <div className="flex-1">
-                    <TabsContent value="sistema" className="tab-content-container m-0">
+                    <TabsContent value="general" className="tab-content-container m-0">
                         <SettingsTab />
                     </TabsContent>
 
@@ -449,37 +423,38 @@ export default function Configuracion() {
                         <RolesTab />
                     </TabsContent>
 
-                    <TabsContent value="backup" className="tab-content-container m-0">
-                        <BackupTab />
+                    <TabsContent value="planes" className="tab-content-container m-0">
+                        <AdminPlans />
                     </TabsContent>
 
-                    <TabsContent value="versiones" className="tab-content-container m-0">
-                        <AdminPlans defaultTab="versions" />
+                    <TabsContent value="avanzado" className="tab-content-container m-0">
+                        <div className="space-y-8">
+                            <div>
+                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Database className="h-5 w-5 text-primary" /> Backup y Restauración
+                                </h2>
+                                <BackupTab />
+                            </div>
+                            <div className="border-t pt-8">
+                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Plug className="h-5 w-5 text-primary" /> Integraciones (API)
+                                </h2>
+                                <AdminIntegrations />
+                            </div>
+                            <div className="border-t pt-8">
+                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Settings className="h-5 w-5 text-primary" /> Constantes del Sistema
+                                </h2>
+                                <AdminConstants />
+                            </div>
+                            <div className="border-t pt-8">
+                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Mail className="h-5 w-5 text-primary" /> Plantillas de Email
+                                </h2>
+                                <AdminEmailTemplates />
+                            </div>
+                        </div>
                     </TabsContent>
-
-                    <TabsContent value="hosting" className="tab-content-container m-0">
-                        <AdminPlans defaultTab="hosting" />
-                    </TabsContent>
-
-
-
-                    <TabsContent value="licencias" className="tab-content-container m-0">
-                        <PendingLicensesInbox />
-                    </TabsContent>
-
-                    <TabsContent value="constantes" className="tab-content-container m-0">
-                        <AdminConstants />
-                    </TabsContent>
-
-                    <TabsContent value="emails" className="tab-content-container m-0">
-                        <AdminEmailTemplates />
-                    </TabsContent>
-
-                    <TabsContent value="integrations" className="tab-content-container m-0">
-                        <AdminIntegrations />
-                    </TabsContent>
-
-
                 </div>
             </Tabs>
         </div>

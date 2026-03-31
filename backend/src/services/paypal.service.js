@@ -73,7 +73,6 @@ export async function handlePayPalWebhook(event) {
                     serialKey: serial,
                     organizationId: user.organizationId,
                     status: 'ACTIVE',
-                    hostingType: 'CLOUD_ROTATOR',
                     limitQuestions: 100,
                     limitCases: 1000,
                     limitAdmins: 1,
@@ -121,11 +120,13 @@ export async function processPayPalIPN(ipnData) {
         const transactionId = (txn_id === 'SISTEMA' ? `SYS-${Date.now()}` : txn_id).toUpperCase();
 
         try {
+            const { randomBytes } = await import('crypto');
             await prisma.licenciaEnActivacion.create({
                 data: {
                     id: transactionId,
-                    codigo_licencia: versionLetra,
-                    correo_paypal: payer_email.toUpperCase()
+                    token: randomBytes(32).toString('hex'),
+                    email: payer_email.toUpperCase(),
+                    status: 'PENDING'
                 }
             });
         } catch (e) {

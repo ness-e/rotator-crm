@@ -1,145 +1,140 @@
-/**
- * @file PendingLicensesInbox.jsx
- * @description Componente de página (Vista) para la sección PendingLicensesInbox.
- * @module Frontend Page
- * @path /frontend/src/pages/PendingLicensesInbox.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
- */
-
 import React, { useEffect, useMemo, useState } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell, TableCaption } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useToast } from '@/components/ui/use-toast'
+import { DataTable } from '@/components/DataTable'
+import { AdminGestionLayout } from '@/components/AdminGestionLayout'
+import { Inbox, Trash2, RefreshCw } from 'lucide-react'
+import { api } from '../utils/api'
+import { useDebouncedValue } from '../utils/debounce'
 
 export default function PendingLicensesInbox() {
+  const { toast } = useToast()
   const [items, setItems] = useState([])
-  const [q, setQ] = useState('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
-  const schema = z.object({
-    id: z.string().min(1, 'Requerido').optional(),
-    codigo_licencia: z.string().min(1, 'Requerido'),
-    correo_paypal: z.string().min(1, 'Requerido')
-  })
-  const form = useForm({ resolver: zodResolver(schema), defaultValues: { id: '', codigo_licencia: '', correo_paypal: '' } })
+  const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
 
-  function reload() {
-    const token = localStorage.getItem('token')
+  const debouncedQuery = useDebouncedValue(query, 300)
+
+  async function reload() {
     setLoading(true)
-    fetch('/api/pending-licenses', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' })
-      .then(async r => { if (!r.ok) { const e = await r.json().catch(() => ({ error: 'Error' })); throw new Error(e.error || 'Error') } return r.json() })
-      .then(data => setItems(data))
-      .catch(e => setError(e.message || 'Error'))
-      .finally(() => setLoading(false))
+    try {
+      const res = await api.get('/invitations')
+      const data = await res.json()
+      setItems(Array.isArray(data) ? data : [])
+    } catch (e) {
+      toast({ title: 'Error', description: e.message || 'Error al cargar', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
   }
+
   useEffect(() => { reload() }, [])
+  
+  // Reset page on search change
+  useEffect(() => { setPage(1) }, [debouncedQuery])
 
   const filtered = useMemo(() => {
-    const s = q.toLowerCase().trim()
-    return items.filter(a => !s || (a.id || '').toLowerCase().includes(s) || (a.codigo_licencia || '').toLowerCase().includes(s) || (a.correo_paypal || '').toLowerCase().includes(s))
-  }, [items, q])
+    const q = debouncedQuery.toLowerCase().trim()
+    if (!q) return items
+    return items.filter(a =>
+      (a.email || '').toLowerCase().includes(q) ||
+      (a.status || '').toLowerCase().includes(q) ||
+      (a.productTemplate?.version_nombre || '').toLowerCase().includes(q) ||
+      (a.id || '').toLowerCase().includes(q)
+    )
+  }, [items, debouncedQuery])
+
+  const isAll = String(pageSize) === 'all'
+  const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filtered.length / Number(pageSize)))
+  const currentPage = Math.min(page, totalPages)
+  const start = isAll ? 0 : (currentPage - 1) * Number(pageSize)
+  const pageItems = isAll ? filtered : filtered.slice(start, start + Number(pageSize))
+
+  async function handleDelete(item) {
+    if (!window.confirm(`¿Eliminar la invitación para "${item.email}"?`)) return
+    try {
+      const res = await api.delete(`/invitations/${item.id}`)
+      if (res.ok) {
+        setItems(prev => prev.filter(x => x.id !== item.id))
+        toast({ title: 'Invitación eliminada' })
+      } else {
+        throw new Error('No se pudo eliminar la invitación')
+      }
+    } catch (e) {
+      toast({ title: 'Error al eliminar', description: e.message, variant: 'destructive' })
+    }
+  }
 
   return (
-    <div className="p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Licencias en Activación (Inbox)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', justifyContent: 'space-between' }}>
-            <Input placeholder="Buscar (id, código, correo)" value={q} onChange={e => setQ(e.target.value)} style={{ width: 320 }} />
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); form.reset({ id: '', codigo_licencia: '', correo_paypal: '' }) } }}>
-              <DialogTrigger asChild>
-                <Button onClick={() => { setEditing(null); form.reset({ id: '', codigo_licencia: '', correo_paypal: '' }) }}>Nueva Entrada</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[560px]">
-                <DialogHeader><DialogTitle>{editing ? 'Editar Entrada' : 'Nueva Entrada'}</DialogTitle></DialogHeader>
-                <Form {...form}>
-                  <form className="grid gap-3" onSubmit={form.handleSubmit(async (vals) => {
-                    const token = localStorage.getItem('token')
-                    const method = editing ? 'PUT' : 'POST'
-                    const url = editing ? `/pending-licenses/${editing.id}` : '/pending-licenses'
-                    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...vals, id: String(vals.id || editing?.id) }) })
-                    if (!res.ok) { const e = await res.json().catch(() => ({ error: 'Error' })); setError(e.error || 'Error'); return }
-                    setNotice(editing ? 'Entrada actualizada' : 'Entrada creada'); setTimeout(() => setNotice(''), 2000)
-                    setOpen(false)
-                    reload()
-                  })}>
-                    {!editing && (
-                      <FormField control={form.control} name="id" render={({ field }) => (
-                        <FormItem><FormLabel>ID</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                    )}
-                    <FormField control={form.control} name="codigo_licencia" render={({ field }) => (
-                      <FormItem><FormLabel>Código Licencia</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="correo_paypal" render={({ field }) => (
-                      <FormItem><FormLabel>Correo PayPal</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-                      <Button type="submit">Guardar</Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+    <AdminGestionLayout
+      title="Invitaciones Pendientes"
+      description="Bandeja de invitaciones enviadas y solicitudes pendientes de procesar."
+      icon={Inbox}
+      onRefresh={reload}
+      searchValue={query}
+      onSearchChange={setQuery}
+      searchPlaceholder="Buscar por correo, plan o ID..."
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalItems={filtered.length}
+      pageSize={pageSize}
+      onPageChange={setPage}
+      onPageSizeChange={setPageSize}
+    >
+      <DataTable
+        loading={loading}
+        columns={[
+          { 
+            key: 'status', 
+            label: 'Estado', 
+            render: (v) => (
+              <Badge variant={v === 'PENDING' ? 'outline' : 'secondary'} className="font-mono text-xs px-2 py-0">
+                {v === 'PENDING' ? 'Pendiente' : v}
+              </Badge>
+            )
+          },
+          { key: 'email', label: 'Correo Invitado', render: (v) => <span className="font-medium">{v}</span> },
+          { 
+            key: 'productTemplate', 
+            label: 'Plan Asignado', 
+            render: (v) => (
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                {v?.version_nombre || v?.name || 'N/A'}
+              </span>
+            )
+          },
+          { 
+            key: 'createdAt', 
+            label: 'Fecha Creación', 
+            render: (v) => (
+              <span className="text-xs text-muted-foreground">
+                {v ? new Date(v).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+              </span>
+            )
+          },
+          {
+            key: 'actions',
+            label: '',
+            render: (_, row) => (
+              <div className="flex items-center justify-end gap-2">
+                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(row)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )
+          }
+        ]}
+        data={pageItems}
+        emptyState={
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <Inbox className="h-12 w-12 mb-4 opacity-10" />
+            <p className="font-medium">{debouncedQuery ? 'Sin resultados para la búsqueda.' : 'No hay invitaciones pendientes.'}</p>
           </div>
-          {loading && <div>Cargando...</div>}
-          {error && <div className="text-sm text-red-500">{error}</div>}
-          {!loading && !error && (
-            <Table style={{ fontSize: 13 }}>
-              <TableCaption>Tabla licencias_en_activacion</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Correo PayPal</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 && (<TableRow><TableCell colSpan={4}><div className="text-sm text-muted-foreground">Sin resultados</div></TableCell></TableRow>)}
-                {filtered.map(a => (
-                  <TableRow key={a.id}>
-                    <TableCell>{a.id}</TableCell>
-                    <TableCell>{a.codigo_licencia}</TableCell>
-                    <TableCell>{a.correo_paypal}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => {
-                          setEditing(a)
-                          form.reset({ id: a.id, codigo_licencia: a.codigo_licencia || '', correo_paypal: a.correo_paypal || '' })
-                          setOpen(true)
-                        }}>Editar</Button>
-                        <Button size="sm" variant="destructive" onClick={async () => {
-                          if (!window.confirm('¿Eliminar entrada?')) return
-                          const token = localStorage.getItem('token')
-                          const res = await fetch(`/pending-licenses/${a.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
-                          if (res.ok) { setItems(items.filter(x => x.id !== a.id)) }
-                        }}>Eliminar</Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-      {notice && (
-        <div style={{ position: 'fixed', right: 16, bottom: 16, background: '#0f172a', color: '#fff', border: '1px solid #334155', borderRadius: 8, padding: '10px 12px', boxShadow: '0 10px 20px rgba(0,0,0,.3)' }}>{notice}</div>
-      )}
-    </div>
+        }
+      />
+    </AdminGestionLayout>
   )
 }

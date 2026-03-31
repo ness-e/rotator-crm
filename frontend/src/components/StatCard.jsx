@@ -11,7 +11,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-export function StatCard({ title, value, icon: Icon, trend, trendLabel, className = '' }) {
+export function StatCard({ title, value, icon: Icon, trend, trendLabel, sub, subtext, color, className = '' }) {
     const getTrendIcon = () => {
         if (!trend) return null;
         const numTrend = parseFloat(trend);
@@ -34,7 +34,11 @@ export function StatCard({ title, value, icon: Icon, trend, trendLabel, classNam
                 <div className="flex items-start justify-between">
                     <div className="space-y-2">
                         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        <p className="text-3xl font-bold tracking-tight">{value}</p>
+                        <div className="flex items-baseline gap-2">
+                            <p className="text-3xl font-bold tracking-tight">{value}</p>
+                            {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
+                        </div>
+                        {subtext && <span className="text-xs text-muted-foreground block">{subtext}</span>}
                         {trend && (
                             <div className="flex items-center gap-1">
                                 {getTrendIcon()}
@@ -48,8 +52,8 @@ export function StatCard({ title, value, icon: Icon, trend, trendLabel, classNam
                         )}
                     </div>
                     {Icon && (
-                        <div className="rounded-lg bg-primary/10 p-3">
-                            <Icon className="h-6 w-6 text-primary" />
+                        <div className={`rounded-lg p-3 ${color || 'bg-primary/10'}`}>
+                            <Icon className={`h-6 w-6 ${color ? '' : 'text-primary'}`} />
                         </div>
                     )}
                 </div>

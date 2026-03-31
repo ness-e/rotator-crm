@@ -1,5 +1,5 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { Routes, Route, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { PageLoader } from '@/components/PageLoader';
 import { Toaster } from '@/components/ui/toaster';
 import NavigationProgress from '@/components/navigation-progress';
@@ -9,15 +9,18 @@ import AdminLayout from '@/layouts/AdminLayout';
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const AdminOrganizations = lazy(() => import('./pages/AdminOrganizations.jsx'));
-const GestionPage = lazy(() => import('./pages/GestionPage.jsx'));
-const ClientesPage = lazy(() => import('./pages/ClientesPage.jsx'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers.jsx'));
+const AdminLicenses = lazy(() => import('./pages/AdminLicenses.jsx'));
+const PendingLicensesInbox = lazy(() => import('./pages/PendingLicensesInbox.jsx'));
+const AdminActivations = lazy(() => import('./pages/AdminActivations.jsx'));
+const AdminAudit = lazy(() => import('./pages/AdminAudit.jsx'));
 const CRM = lazy(() => import('./pages/CRM.jsx'));
+const AdminServersAndDomains = lazy(() => import('./pages/AdminServersAndDomains.jsx'));
 const Configuracion = lazy(() => import('./pages/Configuracion.jsx'));
+const Estadisticas = lazy(() => import('./pages/Estadisticas.jsx'));
 const Panel = lazy(() => import('./pages/Panel.jsx'));
-const NewClient = lazy(() => import('./pages/NewClient.jsx'));
 const ClientDetail = lazy(() => import('./pages/CRM/ClientDetail.jsx'));
-const HostingCosts = lazy(() => import('./pages/HostingCosts.jsx'));
-const CalendarPage = lazy(() => import('./pages/CalendarPage.jsx'));
+
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
 const PurchasePage = lazy(() => import('./pages/PurchasePage.jsx'));
@@ -28,7 +31,6 @@ const isAuthenticated = () => {
   if (!token) return false;
   try {
     const decoded = JSON.parse(atob(token.split('.')[1]));
-    // Check if token is expired (optional but recommended)
     const exp = decoded.exp * 1000;
     if (Date.now() > exp) {
       localStorage.removeItem('token');
@@ -49,8 +51,9 @@ const getRedirectPath = () => {
     const decoded = JSON.parse(atob(token.split('.')[1]));
     const isMaster = decoded.isMaster === true || 
                     decoded.tipo === 'MASTER' || 
-                    decoded.role === 'SUPER_ADMIN' || 
-                    decoded.role === 'MASTER';
+                    decoded.role === 'MASTER' ||
+                    decoded.role === 'ANALISTA' ||
+                    decoded.role === 'VISUALIZADOR';
     return isMaster ? '/admin/dashboard' : '/panel';
   } catch (e) {
     return '/';
@@ -104,34 +107,40 @@ export default function App() {
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="gestion" element={<GestionPage />} />
+            <Route path="estadisticas" element={<Estadisticas />} />
+            <Route path="gestion/users" element={<AdminUsers />} />
+            <Route path="gestion/licenses" element={<AdminLicenses />} />
+            <Route path="gestion/pending-licenses" element={<PendingLicensesInbox />} />
+            <Route path="gestion/activations" element={<AdminActivations />} />
+            <Route path="gestion/audit" element={<AdminAudit />} />
             <Route path="organizations" element={<AdminOrganizations />} />
-            <Route path="clientes" element={<ClientesPage />} />
-            <Route path="configuracion" element={<Configuracion />} />
-            
-            {/* Legacy redirects */}
-            <Route path="overview" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="stats" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="settings" element={<Navigate to="/admin/configuracion" replace />} />
-            <Route path="roles" element={<Navigate to="/admin/configuracion" replace />} />
-            <Route path="backup" element={<Navigate to="/admin/configuracion" replace />} />
-            <Route path="new-client-manual" element={<Navigate to="/admin/new-client" replace />} />
-            <Route path="new-client-email" element={<Navigate to="/admin/new-client" replace />} />
-            <Route path="users" element={<Navigate to="/admin/gestion?tab=users" replace />} />
-            <Route path="licenses" element={<Navigate to="/admin/gestion?tab=licenses" replace />} />
-            <Route path="management" element={<Navigate to="/admin/gestion" replace />} />
-            <Route path="default-plans" element={<Navigate to="/admin/configuracion?tab=versiones" replace />} />
-            <Route path="audit" element={<Navigate to="/admin/gestion?tab=audit" replace />} />
-            <Route path="activations" element={<Navigate to="/admin/gestion?tab=activations" replace />} />
-            <Route path="pending-licenses-inbox" element={<Navigate to="/admin/configuracion?tab=licencias" replace />} />
-            <Route path="prospects" element={<Navigate to="/admin/crm?tab=pipeline" replace />} />
-            <Route path="pending-clients" element={<Navigate to="/admin/clientes?tab=pending" replace />} />
-            <Route path="clients" element={<Navigate to="/admin/clientes?tab=active" replace />} />
-
             <Route path="crm" element={<CRM />} />
             <Route path="crm/clients/:id" element={<ClientDetail />} />
-            <Route path="hosting-costs" element={<HostingCosts />} />
-            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="infraestructura" element={<AdminServersAndDomains />} />
+            <Route path="configuracion" element={<Configuracion />} />
+            
+            {/* Legacy redirects — map old routes to new structure */}
+            <Route path="overview" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="stats" element={<Navigate to="/admin/estadisticas" replace />} />
+            <Route path="settings" element={<Navigate to="/admin/configuracion" replace />} />
+            <Route path="roles" element={<Navigate to="/admin/configuracion?tab=roles" replace />} />
+            <Route path="backup" element={<Navigate to="/admin/configuracion?tab=avanzado" replace />} />
+            <Route path="new-client" element={<Navigate to="/admin/organizations" replace />} />
+            <Route path="new-client-manual" element={<Navigate to="/admin/organizations" replace />} />
+            <Route path="new-client-email" element={<Navigate to="/admin/organizations" replace />} />
+            <Route path="users" element={<Navigate to="/admin/gestion/users" replace />} />
+            <Route path="licenses" element={<Navigate to="/admin/gestion/licenses" replace />} />
+            <Route path="management" element={<Navigate to="/admin/gestion/users" replace />} />
+            <Route path="default-plans" element={<Navigate to="/admin/configuracion?tab=planes" replace />} />
+            <Route path="audit" element={<Navigate to="/admin/gestion/audit" replace />} />
+            <Route path="activations" element={<Navigate to="/admin/gestion/activations" replace />} />
+            <Route path="pending-licenses-inbox" element={<Navigate to="/admin/gestion/pending-licenses" replace />} />
+            <Route path="prospects" element={<Navigate to="/admin/crm?tab=pipeline" replace />} />
+            <Route path="pending-clients" element={<Navigate to="/admin/crm?tab=pending" replace />} />
+            <Route path="clients" element={<Navigate to="/admin/crm?tab=active" replace />} />
+            
+            {/* Old Clientes routes redirect to CRM */}
+            <Route path="clientes" element={<Navigate to="/admin/crm" replace />} />
           </Route>
 
           {/* Catch-all redirect */}
@@ -142,4 +151,3 @@ export default function App() {
     </>
   );
 }
-

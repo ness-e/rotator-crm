@@ -44,13 +44,13 @@ export default function ClientDetail() {
                 return <Badge className="bg-emerald-500">{v}</Badge>;
             }
         },
-        { key: 'hostingType', label: 'Hosting', render: v => <Badge variant="outline">{v}</Badge> },
+        { key: 'hostingPlan', label: 'Hosting', render: (v, r) => <Badge variant="outline">{r.hostingPlan?.name || 'Sin Plan'}</Badge> },
         { key: 'limitQuestions', label: 'Preguntas', render: v => v || '∞' },
         { key: 'limitAdmins', label: 'Admins', render: v => v }
     ];
 
     const userCols = [
-        { key: 'fullName', label: 'Nombre' },
+        { key: 'name', label: 'Nombre', render: (_, r) => `${r.firstName || ''} ${r.lastName || ''}`.trim() || r.email },
         { key: 'email', label: 'Email' },
         { key: 'role', label: 'Rol', render: v => <Badge variant="secondary">{v}</Badge> }
     ];

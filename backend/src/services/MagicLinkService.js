@@ -13,12 +13,13 @@ import { sendEmail } from './email.service.js'
 import bcrypt from 'bcryptjs'
 import { createNotification } from './notification.service.js'
 import templates from './emailTemplates.js'
+import { generateSerial } from './licenseSerial.js'
 
 export const MagicLinkService = {
     /**
      * Generates a magic link token and creates a PurchaseIntent.
      */
-    async createIntentAndSendLink({ email, name, productCode, paypalOrderId, paypalSubId, amount }) {
+    async createIntentAndSendLink({ email, name, productCode, paypalOrderId, paypalSubId, amount, licenseTypeCode }) {
         const token = crypto.randomBytes(32).toString('hex')
 
         // Create Intent
@@ -28,6 +29,7 @@ export const MagicLinkService = {
                 payerEmail: email,
                 payerName: name,
                 productCode,
+                licenseTypeCode: licenseTypeCode || productCode,
                 paypalOrderId,
                 paypalSubId,
                 amountPaid: amount,
@@ -76,24 +78,48 @@ export const MagicLinkService = {
                     password: hashedPassword,
                     fullName: fullName || intent.payerName || 'Usuario',
                     organizationId: org.id,
-                    role: 'ADMIN', // First user is Admin
+                    role: 'CLIENTE',
                     isActive: true
                 }
             })
 
-            // 3. Create License
-            const serial = `PAYPAL-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`
+            // 3. Resolve product template for defaults
+            const template = await tx.productTemplate.findFirst({
+                where: { code: intent.licenseTypeCode || intent.productCode }
+            })
+
+            // 4. Generate serial
+            const serial = generateSerial({
+                countryCode: 'XX',
+                versionAbbr: template?.abbreviation || 'ST',
+                hostingAbbr: 'DEF',
+                expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                email: intent.payerEmail,
+                orgName: orgName,
+                activatorName: 'PayPal Auto'
+            })
 
             const license = await tx.license.create({
                 data: {
                     serialKey: serial,
                     organizationId: org.id,
+                    productTemplateId: template?.id || null,
                     status: 'ACTIVE',
                     paypalSubId: intent.paypalSubId,
-                    limitQuestions: 100,
-                    limitCases: 1000,
-                    limitAdmins: 1,
-                    hostingType: 'CLOUD_ROTATOR'
+                    expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                    limitQuestions: template?.defaultQuestions || 100,
+                    limitCases: template?.defaultCases || 1000,
+                    limitAdmins: template?.defaultAdmins || 1,
+                    limitMobileUsers: template?.defaultMobileUsers || 0,
+                    limitPhoneUsers: template?.defaultPhoneUsers || 0,
+                    limitDataEntries: template?.defaultDataEntries || 0,
+                    limitAnalysts: template?.defaultAnalysts || 0,
+                    limitClients: template?.defaultClients || 0,
+                    limitClassifiers: template?.defaultClassifiers || 0,
+                    limitCaptureSupervisors: template?.defaultCaptureSupervisors || 0,
+                    limitKioskSupervisors: template?.defaultKioskSupervisors || 0,
+                    limitParticipants: template?.defaultParticipants || 0,
+                    concurrentQuestionnaires: template?.concurrentQuestionnaires || 0,
                 }
             })
 

@@ -51,18 +51,20 @@
  * @author Sistema
  */
 
-// Simple API client with auth header and basic refresh handling
 export async function apiFetch(path, { method = 'GET', headers = {}, body, cache = 'no-store' } = {}) {
   const token = localStorage.getItem('token')
   const fullPath = path.startsWith('/api') ? path : `/api${path.startsWith('/') ? '' : '/'}${path}`
+  
+  const isFormData = body instanceof FormData;
+  
   const res = await fetch(fullPath, {
     method,
     headers: {
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(!isFormData && body ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
     cache,
   })
   if (res.status === 401) {

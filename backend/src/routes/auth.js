@@ -54,15 +54,29 @@ router.post('/login', validateBody(AuthLoginSchema), async (req, res) => {
         data: { lastLogin: new Date() }
       }).catch(() => {})
 
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+      
       const payload = {
         id: user.id,
         type: 'USER',
-        tipo: user.role === 'SUPER_ADMIN' || user.role === 'MASTER' ? 'MASTER' : 'USER',
+        tipo: user.role === 'MASTER' ? 'MASTER' : 'USER',
         role: user.role,
-        nombre: user.fullName,
+        nombre: fullName,
         email: user.email,
         orgId: user.organizationId
       }
+
+      logAction({
+        userId: user.id,
+        userEmail: user.email,
+        userName: fullName,
+        action: 'LOGIN',
+        entity: 'User',
+        entityId: String(user.id),
+        entityName: fullName,
+        details: 'Inicio de sesión exitoso',
+        ip: req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress
+      })
 
       return res.json({ token: signToken(payload), refreshToken: signRefreshToken(payload) });
     }
@@ -96,7 +110,8 @@ router.post('/register', authRequired, requireMaster, validateBody(AuthRegisterS
       data: {
         email: data.email,
         password: hash,
-        fullName: data.fullName,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
         role: data.role || 'MEMBER',
         isActive: true
       }
@@ -118,7 +133,8 @@ router.post('/register-public', validateBody(PublicRegisterSchema), async (req, 
       data: {
         email: data.email,
         password: hash,
-        fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
         role: 'MEMBER',
         isActive: true,
       }

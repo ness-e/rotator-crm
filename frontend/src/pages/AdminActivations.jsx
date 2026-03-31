@@ -25,6 +25,8 @@ import { Activity, Search, Monitor, Calendar, Key, Trash2, Edit, Plus, Copy } fr
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useActivations } from '@/hooks/useApi';
 import { api } from '@/utils/api'; // Ensure api is imported for CRUD
+import { useDebouncedValue } from '../utils/debounce';
+import AdminGestionLayout from '@/components/AdminGestionLayout';
 
 export default function AdminActivations() {
     const { toast } = useToast();
@@ -32,14 +34,11 @@ export default function AdminActivations() {
     // TanStack Query hook
     const { data: items = [], isLoading: loading, refetch: reload } = useActivations();
 
-    // Custom Filters State
-    const [filters, setFilters] = useState({
-        global: '',
-        licenseId: '',
-        pc: '',
-        dateFrom: '',
-        dateTo: ''
-    });
+    const [searchValue, setSearchValue] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(50);
+    const debouncedSearch = useDebouncedValue(searchValue, 300);
+
 
     // Edit/Create State
     const [open, setOpen] = useState(false);
@@ -50,6 +49,7 @@ export default function AdminActivations() {
     const schema = z.object({
         id: z.coerce.number().int().optional(),
         licenseId: z.coerce.number().int().min(1, 'ID de licencia requerido'),
+        hardwareId: z.string().optional(),
         keyUsed: z.string().min(1, 'Clave requerida'),
         pcName: z.string().min(1, 'Nombre del PC requerido'),
         date: z.string().min(1, 'Fecha requerida')
@@ -57,7 +57,7 @@ export default function AdminActivations() {
 
     const form = useForm({
         resolver: zodResolver(schema),
-        defaultValues: { id: '', licenseId: '', keyUsed: '', pcName: '', date: '' }
+        defaultValues: { id: '', licenseId: '', hardwareId: '', keyUsed: '', pcName: '', date: '' }
     });
 
     // Actions
@@ -111,32 +111,27 @@ export default function AdminActivations() {
     // Filter Logic
     const filteredItems = items.filter(item => {
         // 1. Global Text Search
-        const searchStr = filters.global.toLowerCase()
+        const searchStr = debouncedSearch.toLowerCase()
+
         if (searchStr && ![
             String(item.id),
             String(item.licenseId),
             item.pcName,
+            item.hardwareId,
             item.keyUsed,
             item.date
         ].some(val => String(val || '').toLowerCase().includes(searchStr))) {
             return false
         }
 
-        // 2. Exact License ID
-        if (filters.licenseId && String(item.licenseId) !== filters.licenseId) return false
-
-        // 3. Partial PC Name
-        if (filters.pc && !String(item.pcName || '').toLowerCase().includes(filters.pc.toLowerCase())) return false
-
-        // 4. Date Range
-        if (item.date) {
-            const date = String(item.date).slice(0, 10)
-            if (filters.dateFrom && date < filters.dateFrom) return false
-            if (filters.dateTo && date > filters.dateTo) return false
-        }
-
         return true
     })
+
+    const isAll = String(pageSize) === 'all';
+    const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filteredItems.length / Number(pageSize)));
+    const currentPage = Math.min(page, totalPages);
+    const start = isAll ? 0 : (currentPage - 1) * Number(pageSize);
+    const pageItems = isAll ? filteredItems : filteredItems.slice(start, start + Number(pageSize));
 
     // Columns
     const columns = [
@@ -159,11 +154,16 @@ export default function AdminActivations() {
         },
         {
             key: 'pcName',
-            label: 'PC / Dispositivo',
-            render: (v) => (
-                <div className="flex items-center gap-2">
-                    <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="font-medium text-sm">{v}</span>
+            label: 'PC / Hardware ID',
+            render: (v, row) => (
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="font-medium text-sm">{v}</span>
+                    </div>
+                    {row.hardwareId && (
+                        <span className="text-xs text-muted-foreground ml-5 font-mono">{row.hardwareId}</span>
+                    )}
                 </div>
             )
         },
@@ -196,6 +196,7 @@ export default function AdminActivations() {
                         form.reset({
                             id: row.id,
                             licenseId: row.licenseId,
+                            hardwareId: row.hardwareId || '',
                             keyUsed: row.keyUsed,
                             pcName: row.pcName,
                             date: row.date ? new Date(row.date).toISOString().slice(0, 16) : ''
@@ -213,141 +214,99 @@ export default function AdminActivations() {
     ]
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Monitor de Activaciones</h1>
-                    <p className="text-muted-foreground mt-1 text-lg">Supervisa las sesiones activas y gestiona el inventario de claves.</p>
-                </div>
-                <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); form.reset() } }}>
-                    <DialogTrigger asChild>
-                        <Button size="lg" className="rounded-xl shadow-lg shadow-primary/20">
-                            <Plus className="mr-2 h-5 w-5" /> Nueva Activación
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{editing ? 'Editar Activación' : 'Nueva Activación Manual'}</DialogTitle>
-                        </DialogHeader>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                {!editing && (
-                                    <FormField control={form.control} name="id" render={({ field }) => (
+        <>
+            <AdminGestionLayout
+                title="Monitor de Activaciones"
+                description="Supervisa las sesiones activas y gestiona el inventario de claves."
+                icon={Activity}
+                searchValue={searchValue}
+                onSearchChange={(v) => { setSearchValue(v); setPage(1); }}
+                pageSize={pageSize}
+                onPageSizeChange={(v) => { setPageSize(v); setPage(1); }}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredItems.length}
+                onPageChange={setPage}
+                searchPlaceholder="Buscar por ID, PC, Hardware ID, serial..."
+                actions={
+                    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); form.reset() } }}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>{editing ? 'Editar Activación' : 'Nueva Activación Manual'}</DialogTitle>
+                            </DialogHeader>
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                    {!editing && (
+                                        <FormField control={form.control} name="id" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>ID (Opcional)</FormLabel>
+                                                <FormControl><Input {...field} type="number" placeholder="Automático" /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                    )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <FormField control={form.control} name="licenseId" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>ID Licencia</FormLabel>
+                                                <FormControl><Input {...field} type="number" /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name="pcName" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Nombre PC</FormLabel>
+                                                <FormControl><Input {...field} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                    </div>
+                                    <FormField control={form.control} name="hardwareId" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ID (Opcional)</FormLabel>
-                                            <FormControl><Input {...field} type="number" placeholder="Automático" /></FormControl>
+                                            <FormLabel>Hardware ID (Identificador de máquina)</FormLabel>
+                                            <FormControl><Input {...field} placeholder="Ej: ABC123-DEF456" className="font-mono" /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
-                                )}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField control={form.control} name="licenseId" render={({ field }) => (
+                                    <FormField control={form.control} name="keyUsed" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ID Licencia</FormLabel>
-                                            <FormControl><Input {...field} type="number" /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="pcName" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nombre PC</FormLabel>
+                                            <FormLabel>Clave Amarilla (Serial de PC)</FormLabel>
                                             <FormControl><Input {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
-                                </div>
-                                <FormField control={form.control} name="keyUsed" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Clave Amarilla (Serial de PC)</FormLabel>
-                                        <FormControl><Input {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <FormField control={form.control} name="date" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Fecha y Hora</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} type="datetime-local" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <DialogFooter>
-                                    <Button type="submit">{editing ? 'Guardar Cambios' : 'Crear Activación'}</Button>
-                                </DialogFooter>
-                            </form>
-                        </Form>
-                    </DialogContent>
-                </Dialog>
-            </div>
-
-            {/* Filters Panel */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                <div className="md:col-span-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                    Filtros de Búsqueda
-                </div>
-                <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Buscar global..."
-                        className="pl-9 bg-background"
-                        value={filters.global}
-                        onChange={(e) => setFilters(prev => ({ ...prev, global: e.target.value }))}
-                    />
-                </div>
-                <div className="relative">
-                    <Key className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="ID Licencia"
-                        className="pl-9 bg-background"
-                        type="number"
-                        value={filters.licenseId}
-                        onChange={(e) => setFilters(prev => ({ ...prev, licenseId: e.target.value }))}
-                    />
-                </div>
-                <div className="relative">
-                    <Monitor className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Nombre PC"
-                        className="pl-9 bg-background"
-                        value={filters.pc}
-                        onChange={(e) => setFilters(prev => ({ ...prev, pc: e.target.value }))}
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <Input
-                        type="date"
-                        className="bg-background"
-                        value={filters.dateFrom}
-                        onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                    />
-                    <Input
-                        type="date"
-                        className="bg-background"
-                        value={filters.dateTo}
-                        onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                    />
-                </div>
-            </div>
-
-            {/* Data Table */}
-            <Card className="rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none dark:bg-slate-900/50 overflow-hidden border-none">
-                <CardContent className="p-0">
-                    <DataTable
-                        columns={columns}
-                        data={filteredItems}
-                        rowKey="id"
-                        sortable
-                        emptyState={
-                            <div className="flex flex-col items-center justify-center p-10 text-muted-foreground">
-                                <Activity className="h-10 w-10 mb-2 opacity-20" />
-                                <p>No se encontraron activaciones con los filtros actuales</p>
-                            </div>
-                        }
-                    />
-                </CardContent>
-            </Card>
+                                    <FormField control={form.control} name="date" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Fecha y Hora</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} type="datetime-local" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <DialogFooter>
+                                        <Button type="submit">{editing ? 'Guardar Cambios' : 'Crear Activación'}</Button>
+                                    </DialogFooter>
+                                </form>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
+                }
+            >
+                <DataTable
+                    columns={columns}
+                    data={pageItems}
+                    rowKey="id"
+                    sortable
+                    loading={loading}
+                    emptyState={
+                        <div className="flex flex-col items-center justify-center p-10 text-muted-foreground">
+                            <Activity className="h-10 w-10 mb-2 opacity-20" />
+                            <p>No se encontraron activaciones con los filtros actuales</p>
+                        </div>
+                    }
+                />
+            </AdminGestionLayout>
 
             <ConfirmDialog
                 open={!!deleteItem}
@@ -357,6 +316,6 @@ export default function AdminActivations() {
                 confirmText="Eliminar"
                 onConfirm={confirmDelete}
             />
-        </div>
+        </>
     )
 }

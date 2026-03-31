@@ -24,7 +24,7 @@ export function FilterBar({
     const hasActiveFilters = searchValue || filters.some(f => f.value);
 
     return (
-        <div className={`flex flex-wrap items-center gap-3 p-4 bg-card rounded-xl border ${className}`}>
+        <div className={`flex flex-wrap items-center gap-3 p-4 bg-card rounded-xl border m-3  ${className}`}>
             {/* Search Input */}
             {onSearchChange && (
                 <div className="relative flex-1 min-w-[200px]">
