@@ -6,28 +6,30 @@ frontend/node_modules/
 SistemaOLD/
 
 # Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-backend/logs/
+#logs/
+#*.log
+#npm-debug.log*
+#yarn-debug.log*
+#yarn-error.log*
+#backend/logs/
 
 # Environment files
-.env
-.env.test
-.env.local
-backend/.env
-backend/.env.test
-frontend/.env
-frontend/.env.test
+#.env
+#.env.test
+#.env.local
+#backend/.env
+#backend/.env.test
+#frontend/.env
+#frontend/.env.test
 
 # Databases
-
-*.sqlite
+#*.db
+#*.sqlite
+#backend/legacy.db
 
 # OS generated files
-.DS_Store
+#.DS_Store
+#Thumbs.db
 
 # Build directories
 dist/
