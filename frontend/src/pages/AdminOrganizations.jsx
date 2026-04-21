@@ -36,6 +36,8 @@
 
 import React, { useState } from 'react';
 import { Building2, Plus, Pencil, Trash2, Users, Receipt, Check, ChevronsUpDown, Phone, Globe, Briefcase, Mail, Clock, XCircle, Send, ShoppingCart, CheckCircle2, Sparkles } from 'lucide-react';
+import InfoHint from '@/components/ui/InfoHint';
+import { SYSTEM_HINTS } from '@/utils/hints';
 import { DataTable } from '@/components/DataTable';
 import { AdminGestionLayout } from '@/components/AdminGestionLayout';
 import { useDebouncedValue } from '../utils/debounce';
@@ -672,14 +674,21 @@ export default function AdminOrganizations() {
                                                     <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Receipt className="h-4 w-4" /> Clasificación y Seguimiento</h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <FormField control={form.control} name="clientType" render={({ field }) => (
-                                                            <FormItem><FormLabel>Cod. Clasificación</FormLabel><FormControl>
-                                                                <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3 text-sm">
-                                                                    <option value="A">Tipo A (Corporativo VIP)</option>
-                                                                    <option value="B">Tipo B (Empresa Mediana)</option>
-                                                                    <option value="C">Tipo C (Pyme)</option>
-                                                                    <option value="D">Tipo D (Micro/Otro)</option>
-                                                                </select>
-                                                            </FormControl><FormMessage /></FormItem>
+                                                            <FormItem>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <FormLabel className="mb-0">Cod. Clasificación</FormLabel>
+                                                                    <InfoHint content={SYSTEM_HINTS.ORG_CLASSIFICATION} />
+                                                                </div>
+                                                                <FormControl>
+                                                                    <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3 text-sm">
+                                                                        <option value="A">Tipo A (Corporativo VIP)</option>
+                                                                        <option value="B">Tipo B (Empresa Mediana)</option>
+                                                                        <option value="C">Tipo C (Pyme)</option>
+                                                                        <option value="D">Tipo D (Micro/Otro)</option>
+                                                                    </select>
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="source" render={({ field }) => (
                                                             <FormItem><FormLabel>Origen / Medio</FormLabel><FormControl><Input placeholder="Google, Referido, Feria..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>

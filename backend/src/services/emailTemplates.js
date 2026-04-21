@@ -212,7 +212,25 @@ a, a:hover { color: #FFFFFF; }
 </table>
 </body>
 </html>`;
-    }
+    },
+
+    /**
+     * Reporte de Diagnóstico de Servidor (Fallo)
+     */
+    serverDiagnosticReport: (serverName, errors) => baseLayout(`
+        <h2 style="color: #DC2626;">Alerta de Salud del Servidor</h2>
+        <p>Se han detectado problemas críticos durante el chequeo automático del servidor <strong>${serverName}</strong>.</p>
+        
+        <div class="details" style="border-left-color: #DC2626;">
+            <strong style="color: #DC2626;">Errores detectados:</strong>
+            <ul style="margin-top: 10px; padding-left: 20px;">
+                ${errors.map(err => `<li style="margin-bottom: 5px;">${err}</li>`).join('')}
+            </ul>
+        </div>
+        
+        <p>Por favor, revisa el estado del servidor de inmediato para prevenir interrupciones en el servicio.</p>
+        <a href="${process.env.FRONTEND_URL}/admin/infrastructure" class="button" style="background-color: #DC2626;">Ver Servidores en Dashboard</a>
+    `, 'Alerta de Salud del Servidor'),
 };
 
 export default templates;

@@ -9,7 +9,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,14 +17,28 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Settings, Save, AlertCircle, Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle, Database, Package, Mail, Plug } from 'lucide-react'
+import { Settings, Save, AlertCircle, Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle, Database, Package, Mail, Plug, HelpCircle, X, Info } from 'lucide-react'
 import { api } from '@/utils/api'
 import { useToast } from '@/components/ui/use-toast'
-import { PERMISSION_LABELS, ALL_PERMISSIONS } from '@/constants/permissions'
+import InfoHint from '@/components/ui/InfoHint'
+import { SYSTEM_HINTS } from '@/utils/hints'
+import { PERMISSION_LABELS, PERMISSION_GROUPS, PERMISSION_DESCRIPTIONS } from '@/constants/permissions'
 import AdminPlans from './AdminPlans'
 import AdminConstants from './AdminConstants'
 import AdminEmailTemplates from './AdminEmailTemplates'
 import AdminIntegrations from './AdminIntegrations'
+
+
+// Constants that should not be edited via this UI
+const HIDDEN_SETTINGS = [
+    'DEFAULT_CURRENCY',
+    'APP_NAME',
+    'SITE_NAME',
+    'SITE_DESCRIPTION',
+    'SOFTWARE_VERSION_MAJOR',
+    'SOFTWARE_VERSION_MINOR',
+    'XOR_MAGIC_WORD'
+]
 
 
 // ============ SETTINGS TAB ============
@@ -51,6 +64,17 @@ function SettingsTab() {
     }
 
     const handleSave = async () => {
+        const reportEmails = settings.find(s => s.key === 'REPORT_EMAILS')?.value || '';
+        const invalidEmails = reportEmails.split(',').some(email => email.trim() && !email.trim().endsWith('@rotatorsurvey.com'));
+        
+        if (invalidEmails) {
+            return toast({ 
+                title: 'Error de Validación', 
+                description: 'Todos los correos de reporte deben tener el sufijo @rotatorsurvey.com', 
+                variant: 'destructive' 
+            });
+        }
+
         setSaving(true)
         try {
             const payload = settings.map(s => ({ key: s.key, value: s.value }))
@@ -73,40 +97,94 @@ function SettingsTab() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm">Configuración protegida por perfil MASTER</span>
+                </div>
                 <Button onClick={handleSave} disabled={saving} className="shadow-lg shadow-primary/20">
                     {saving ? 'Guardando...' : <><Save className="mr-2 h-4 w-4" /> Guardar Cambios</>}
                 </Button>
             </div>
 
             <div className="grid gap-6">
-                {Object.keys(grouped).sort().map(group => (
-                    <Card key={group} className="shadow-md">
-                        <CardHeader><CardTitle className="text-lg">{group}</CardTitle></CardHeader>
-                        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {grouped[group].map(setting => (
-                                <div key={setting.key} className="space-y-2">
-                                    <Label>{setting.description || setting.key}</Label>
-                                    {setting.value === 'true' || setting.value === 'false' ? (
-                                        <div className="flex items-center space-x-2 h-10">
-                                            <Switch checked={setting.value === 'true'} onCheckedChange={(checked) => handleChange(setting.key, String(checked))} />
-                                            <span className="text-sm text-muted-foreground">{setting.value === 'true' ? 'Activado' : 'Desactivado'}</span>
+                    {Object.keys(grouped).sort().map(group => (
+                        <Card key={group} className="shadow-sm border-slate-200">
+                            <CardHeader className="pb-3 border-b bg-slate-50/30">
+                                <CardTitle className="text-sm font-bold tracking-wider text-slate-500">{group}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid gap-6 p-6 md:grid-cols-2">
+                                {grouped[group]
+                                    .filter(s => !HIDDEN_SETTINGS.includes(s.key))
+                                    .map(setting => (
+                                    <div key={setting.key} className="space-y-2 group">
+                                        <div className="flex items-center gap-2">
+                                            <Label className="text-sm font-semibold">{setting.description || setting.key}</Label>
+                                            {SYSTEM_HINTS[setting.key] && (
+                                                <InfoHint content={SYSTEM_HINTS[setting.key]} />
+                                            )}
                                         </div>
-                                    ) : (
-                                        <Input value={setting.value} onChange={e => handleChange(setting.key, e.target.value)} />
-                                    )}
-                                    <p className="text-[10px] text-muted-foreground font-mono">{setting.key}</p>
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                ))}
 
-                <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200">
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                    <AlertTitle className="text-amber-800">Atención</AlertTitle>
-                    <AlertDescription className="text-amber-700">
-                        Algunos cambios pueden requerir un reinicio del servidor o recarga del navegador.
+                                        {setting.key === 'REPORT_EMAILS' ? (
+                                            <div className="space-y-2">
+                                                <Input 
+                                                    placeholder="ejemplo@rotatorsurvey.com, otro@rotatorsurvey.com"
+                                                    value={setting.value}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        handleChange(setting.key, val);
+                                                    }}
+                                                    className={`font-mono text-sm ${
+                                                        setting.value.split(',').some(email => email.trim() && !email.trim().endsWith('@rotatorsurvey.com'))
+                                                            ? 'border-red-500 focus-visible:ring-red-500'
+                                                            : ''
+                                                    }`}
+                                                />
+                                                {setting.value.split(',').some(email => email.trim() && !email.trim().endsWith('@rotatorsurvey.com')) && (
+                                                    <p className="text-[10px] text-red-500 font-medium">Todos los correos deben terminar en @rotatorsurvey.com</p>
+                                                )}
+                                            </div>
+                                        ) : setting.key === 'PASSWORD_POLICY' ? (
+                                            <select 
+                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                value={setting.value}
+                                                onChange={e => handleChange(setting.key, e.target.value)}
+                                            >
+                                                <option value="low">Baja (Mín. 8 caracteres)</option>
+                                                <option value="medium">Media (Mayús. y Núm.)</option>
+                                                <option value="high">Alta (Mayús., Núm. y Símb.)</option>
+                                            </select>
+                                        ) : setting.value === 'true' || setting.value === 'false' ? (
+                                            <div className="flex items-center space-x-2 h-10 px-1">
+                                                <Switch 
+                                                    checked={setting.value === 'true'} 
+                                                    onCheckedChange={(checked) => handleChange(setting.key, String(checked))} 
+                                                />
+                                                <span className="text-sm font-medium text-slate-600">
+                                                    {setting.value === 'true' ? 'Activado' : 'Desactivado'}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <Input 
+                                                value={setting.value} 
+                                                onChange={e => handleChange(setting.key, e.target.value)}
+                                                className="focus:border-primary"
+                                            />
+                                        )}
+                                        <p className="text-[10px] text-muted-foreground font-mono opacity-50 group-hover:opacity-100 transition-opacity">
+                                            {setting.key}
+                                        </p>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    ))}
+
+                <Alert className="bg-slate-50 dark:bg-slate-900 border-slate-200">
+                    <Info className="h-4 w-4 text-primary" />
+                    <AlertTitle className="text-slate-900 font-bold">Información de Sistema</AlertTitle>
+                    <AlertDescription className="text-slate-600">
+                        Las constantes técnicas del núcleo (Versiones, XOR, Moneda) han sido bloqueadas para prevenir inconsistencias en el licenciamiento.
                     </AlertDescription>
                 </Alert>
             </div>
@@ -136,6 +214,13 @@ function RolesTab() {
     }
 
     const handleEdit = (role) => {
+        if (role.name === 'MASTER') {
+            return toast({ 
+                title: 'Rol de Sistema Protegido', 
+                description: 'El rol MASTER no puede ser modificado para garantizar la integridad del sistema.',
+                variant: 'destructive' 
+            })
+        }
         setEditing(role)
         setIsNew(false)
         setFormData({ name: role.name, description: role.description || '', permissions: role.permissions || [] })
@@ -177,14 +262,20 @@ function RolesTab() {
     }
 
     const handleDelete = async (role) => {
-        if (!window.confirm(`¿Eliminar rol ${role.name}?`)) return
+        if (role.isSystem || role.name === 'MASTER') return
+        
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar el rol "${role.name}"? Esta acción no se puede deshacer y fallará si hay usuarios asignados.`)) return
+        
         try {
-            const res = await api.del(`/roles/${role.name}`)
-            if (!res.ok) { const err = await res.json(); throw new Error(err.error) }
-            toast({ title: 'Rol eliminado' })
+            const res = await api.delete(`/roles/${role.name}`)
+            if (!res.ok) { 
+                const err = await res.json(); 
+                throw new Error(err.error || 'Error al eliminar') 
+            }
+            toast({ title: 'Rol eliminado con éxito' })
             loadRoles()
         } catch (err) {
-            toast({ title: 'Error', description: err.message, variant: 'destructive' })
+            toast({ title: 'Error al eliminar', description: err.message, variant: 'destructive' })
         }
     }
 
@@ -197,27 +288,75 @@ function RolesTab() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {loading ? <p>Cargando...</p> : roles.map(role => (
-                    <Card key={role.name} className="relative group overflow-hidden border-none shadow-lg hover:-translate-y-1 transition-all duration-300">
-                        <div className={`absolute top-0 left-0 w-1 h-full ${role.isSystem ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                {loading ? (
+                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-muted-foreground">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                        <p>Cargando roles del sistema...</p>
+                    </div>
+                ) : roles.map(role => (
+                    <Card key={role.name} className="relative group overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div className={`absolute top-0 left-0 w-1.5 h-full ${role.isSystem ? 'bg-amber-500' : 'bg-primary'}`} />
                         <CardContent className="p-6">
                             <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="text-xl font-bold">{role.name}</h3>
-                                    <Badge variant="outline" className="mt-1">{role.isSystem ? 'Sistema' : 'Personalizado'}</Badge>
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">{role.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={role.isSystem ? "warning" : "outline"} className="text-[10px] px-2 py-0 h-5">
+                                            {role.isSystem ? 'Sistema' : 'Personalizado'}
+                                        </Badge>
+                                        {role.name === 'MASTER' && (
+                                            <Badge className="bg-slate-900 text-white text-[10px] px-2 py-0 h-5">Root</Badge>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(role)}><Edit className="h-4 w-4" /></Button>
-                                    {!role.isSystem && <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500" onClick={() => handleDelete(role)}><Trash2 className="h-4 w-4" /></Button>}
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button 
+                                        size="icon" 
+                                        variant="ghost" 
+                                        className="h-8 w-8 hover:bg-primary/10 hover:text-primary" 
+                                        onClick={() => handleEdit(role)}
+                                        title={role.name === 'MASTER' ? 'Rol protegido' : 'Editar rol'}
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    {!role.isSystem && role.name !== 'MASTER' && (
+                                        <Button 
+                                            size="icon" 
+                                            variant="ghost" 
+                                            className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600" 
+                                            onClick={() => handleDelete(role)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[40px]">{role.description || 'Sin descripción'}</p>
-                            <div className="space-y-2">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Permisos ({role.permissions.length})</p>
-                                <div className="flex flex-wrap gap-1">
-                                    {role.permissions.slice(0, 5).map(p => <Badge key={p} variant="secondary" className="text-[10px] px-1.5 py-0.5">{PERMISSION_LABELS[p] || p}</Badge>)}
-                                    {role.permissions.length > 5 && <Badge variant="secondary" className="text-[10px] opacity-50">+{role.permissions.length - 5}</Badge>}
-                                    {role.permissions.length === 0 && <span className="text-xs text-muted-foreground italic">Ninguno</span>}
+                            
+                            <p className="text-sm text-muted-foreground mb-6 line-clamp-2 min-h-[40px] leading-relaxed">
+                                {role.description || 'Sin descripción detallada para este rol.'}
+                            </p>
+                            
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Permisos Habilitados</span>
+                                    <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                                        {role.permissions.length}
+                                    </span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {role.permissions.slice(0, 4).map(p => (
+                                        <Badge key={p} variant="secondary" className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] border-none font-normal">
+                                            {PERMISSION_LABELS[p] || p.split('.')[1]}
+                                        </Badge>
+                                    ))}
+                                    {role.permissions.length > 4 && (
+                                        <Badge variant="secondary" className="text-[10px] bg-primary/5 text-primary border-none">
+                                            +{role.permissions.length - 4} más
+                                        </Badge>
+                                    )}
+                                    {role.permissions.length === 0 && (
+                                        <span className="text-xs text-muted-foreground italic opacity-60">Sin permisos asignados</span>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>
@@ -240,13 +379,35 @@ function RolesTab() {
                                 <Input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Descripción del rol..." />
                             </div>
                         </div>
-                        <div className="space-y-3">
-                            <label className="text-sm font-medium">Permisos</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                                {ALL_PERMISSIONS.map(perm => (
-                                    <div key={perm} className="flex items-center space-x-2">
-                                        <Checkbox id={perm} checked={formData.permissions.includes(perm)} onCheckedChange={() => togglePermission(perm)} />
-                                        <label htmlFor={perm} className="text-sm font-medium cursor-pointer">{PERMISSION_LABELS[perm] || perm}</label>
+                        <div className="space-y-4">
+                            <label className="text-sm font-semibold flex items-center gap-2">
+                                <Shield className="h-4 w-4" /> Permisos por Módulo
+                            </label>
+                            
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {Object.entries(PERMISSION_GROUPS).map(([group, perms]) => (
+                                    <div key={group} className="space-y-3 p-4 rounded-xl border bg-slate-50/50 dark:bg-slate-900/20">
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary/70">{group}</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                                            {perms.map(perm => (
+                                                <div key={perm} className="flex items-start space-x-3 group/item">
+                                                    <Checkbox 
+                                                        id={perm} 
+                                                        checked={formData.permissions.includes(perm)} 
+                                                        onCheckedChange={() => togglePermission(perm)}
+                                                        className="mt-0.5"
+                                                    />
+                                                    <div className="grid gap-1 cursor-pointer" onClick={() => togglePermission(perm)}>
+                                                        <label htmlFor={perm} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                                                            {PERMISSION_LABELS[perm] || perm}
+                                                        </label>
+                                                        <p className="text-[11px] text-muted-foreground leading-tight">
+                                                            {PERMISSION_DESCRIPTIONS[perm]}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -360,8 +521,8 @@ export default function Configuracion() {
     const rawTab = searchParams.get('tab') || 'general';
     const activeTab = rawTab === 'sistema' ? 'general' 
         : rawTab === 'versiones' || rawTab === 'hosting' ? 'planes'
-        : rawTab === 'backup' || rawTab === 'integrations' ? 'avanzado'
-        : rawTab === 'licencias' || rawTab === 'constantes' || rawTab === 'emails' || rawTab === 'email' ? 'avanzado'
+        : rawTab === 'integrations' ? 'integraciones'
+        : rawTab === 'emails' ? 'email'
         : rawTab;
 
     const handleTabChange = (value) => {
@@ -381,82 +542,29 @@ export default function Configuracion() {
                 <p className="page-subtitle">Gestiona la configuración del sistema, roles de usuario y copias de seguridad.</p>
             </div>
 
-            {/* Vertical Tabs Layout */}
-            <Tabs
-                value={activeTab}
-                onValueChange={handleTabChange}
-                className="flex gap-6"
-            >
-                {/* Sidebar de tabs vertical */}
-                <div className="w-64 flex-shrink-0">
-                    <TabsList className="flex flex-col h-auto w-full space-y-1 bg-transparent p-0">
-                        <TabsTrigger
-                            value="general"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Settings className="h-4 w-4" /> General
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="roles"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Shield className="h-4 w-4" /> Roles & Permisos
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="planes"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Package className="h-4 w-4" /> Planes & Hosting
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="avanzado"
-                            className="w-full h-10 justify-start gap-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                            <Database className="h-4 w-4" /> Avanzado
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-
-                {/* Contenido de tabs */}
-                <div className="flex-1">
-                    <TabsContent value="general" className="tab-content-container m-0">
-                        <SettingsTab />
-                    </TabsContent>
-
-                    <TabsContent value="roles" className="tab-content-container m-0">
-                        <RolesTab />
-                    </TabsContent>
-
-                    <TabsContent value="planes" className="tab-content-container m-0">
-                        <AdminPlans />
-                    </TabsContent>
-
-                    <TabsContent value="avanzado" className="tab-content-container m-0">
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <Database className="h-5 w-5 text-primary" /> Backup y Restauración
-                                </h2>
-                                <BackupTab />
-                            </div>
-                            <div className="border-t pt-8">
-                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <Plug className="h-5 w-5 text-primary" /> Integraciones (API)
-                                </h2>
-                                <AdminIntegrations />
-                            </div>
-                            <div className="border-t pt-8">
-                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <Settings className="h-5 w-5 text-primary" /> Constantes del Sistema
-                                </h2>
-                                <AdminConstants />
-                            </div>
-                            <div className="border-t pt-8">
-                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <Mail className="h-5 w-5 text-primary" /> Plantillas de Email
-                                </h2>
-                                <AdminEmailTemplates />
-                            </div>
-                        </div>
-                    </TabsContent>
-                </div>
-            </Tabs>
+            {/* Page Content based on sidebar selection */}
+            <div className="mt-4">
+                {activeTab === 'general' && <SettingsTab />}
+                {activeTab === 'roles' && <RolesTab />}
+                {activeTab === 'planes' && <AdminPlans />}
+                {activeTab === 'email' && <AdminEmailTemplates />}
+                {activeTab === 'integraciones' && <AdminIntegrations />}
+                {activeTab === 'backup' && <BackupTab />}
+                {activeTab === 'constantes' && <AdminConstants />}
+                
+                {/* Fallback for legacy advanced tab */}
+                {activeTab === 'avanzado' && (
+                    <div className="space-y-4">
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Secciones Reubicadas</AlertTitle>
+                            <AlertDescription>
+                                Las opciones avanzadas ahora están disponibles directamente en el menú lateral.
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

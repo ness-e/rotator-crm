@@ -22,6 +22,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Package, Server, Plus, Edit, Trash2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { api } from '@/utils/api'
+import InfoHint from '@/components/ui/InfoHint'
+import { SYSTEM_HINTS } from '@/utils/hints'
 
 export default function AdminPlans({ defaultTab = null }) {
   const { toast } = useToast()
@@ -270,7 +272,7 @@ export default function AdminPlans({ defaultTab = null }) {
                 <Form {...vForm}>
                   <form onSubmit={vForm.handleSubmit(onSubmitV)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <FormField control={vForm.control} name="version_nombre" render={({ field }) => <FormItem><FormLabel>Nombre (2 Palabras)</FormLabel><FormControl><Input {...field} placeholder="Ej: Standard Edition" /></FormControl><FormMessage /></FormItem>} />
+                      <FormField control={vForm.control} name="version_nombre" render={({ field }) => <FormItem><div className="flex items-center gap-2"><FormLabel>Nombre (2 Palabras)</FormLabel><InfoHint content="Debe tener exactamente dos palabras, ej: 'Standard Edition'." /></div><FormControl><Input {...field} placeholder="Ej: Standard Edition" /></FormControl><FormMessage /></FormItem>} />
                       <FormField control={vForm.control} name="version_letra" render={({ field }) => <FormItem><FormLabel>Letra (Auto)</FormLabel><FormControl><Input {...field} className="font-mono uppercase bg-muted" readOnly /></FormControl><FormMessage /></FormItem>} />
                     </div>
 
@@ -289,7 +291,7 @@ export default function AdminPlans({ defaultTab = null }) {
                       <FormField control={vForm.control} name="n_supervisores_kiosco" render={({ field }) => <FormItem><FormLabel className="text-xs">Sup. Kiosco</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
                       <FormField control={vForm.control} name="n_participantes" render={({ field }) => <FormItem><FormLabel className="text-xs">Participantes</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
 
-                      <FormField control={vForm.control} name="cuestionarios_concurrentes" render={({ field }) => <FormItem><FormLabel className="text-xs">Cuest. Concurrentes</FormLabel><FormControl><Input type="number" {...field} className="bg-muted" readOnly /></FormControl><FormMessage /></FormItem>} />
+                      <FormField control={vForm.control} name="cuestionarios_concurrentes" render={({ field }) => <FormItem><div className="flex items-center gap-2"><FormLabel className="text-xs">Cuest. Concurrentes</FormLabel><InfoHint content="Límite de cuestionarios que pueden recibir respuestas al mismo tiempo." /></div><FormControl><Input type="number" {...field} className="bg-muted" readOnly /></FormControl><FormMessage /></FormItem>} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

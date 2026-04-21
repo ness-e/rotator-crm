@@ -1,8 +1,8 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../config/prismaClient.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+// Utiliza la instancia global de prisma importada arriba
 
 // =======================
 // PROVIDERS CRUD

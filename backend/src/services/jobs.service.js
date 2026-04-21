@@ -68,12 +68,62 @@
  * @author Sistema
  */
 
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../config/prismaClient.js'
 import { createNotification } from './notification.service.js'
-import { sendLicenseExpiryWarning } from './email.service.js' 
+import { sendLicenseExpiryWarning, sendServerDiagnosticReport } from './email.service.js' 
 import { logAction } from './audit.service.js'
+import { runServerDiagnostics, getDiagnosticErrors } from './servers.service.js'
 
-const prisma = new PrismaClient()
+// Run every 6 hours
+export const checkServerHealth = async () => {
+    console.log('Running Server Health Diagnostics Check...')
+    try {
+        const servers = await prisma.serverNode.findMany({
+            where: { status: 'active' }
+        })
+
+        // Get admin email from settings or default
+        const adminSetting = await prisma.systemSetting.findFirst({ where: { key: 'admin_email' } })
+        const adminEmail = adminSetting?.value || process.env.SMTP_USER || 'admin@rotatorsurvey.com'
+
+        for (const server of servers) {
+            if (!server.primaryDomain) continue
+
+            let errors = []
+            try {
+                const diagData = await runServerDiagnostics(server.id)
+                errors = getDiagnosticErrors(diagData)
+            } catch (err) {
+                console.error(`Failed to run health check for server ${server.name}:`, err.message)
+                errors.push(`Fallo de Conexión: No se pudo contactar al servidor para el diagnóstico. Error: ${err.message}`)
+            }
+
+            if (errors.length > 0) {
+                console.warn(`[HEALTH ALERT] Server ${server.name} has ${errors.length} errors`)
+                
+                // Send Email to Admin
+                await sendServerDiagnosticReport(adminEmail, server.name, errors).catch(e => console.error('Failed to send diagnostic email:', e))
+
+                // Optional: Create in-app notification for all masters/admins
+                const masters = await prisma.user.findMany({
+                    where: { role: 'MASTER' }
+                })
+                for (const master of masters) {
+                    await createNotification(master.id, 'error', `Alerta de Salud: ${server.name}`, 
+                        `Se detectaron ${errors.length} problemas en el servidor.`, { serverId: server.id }).catch(() => {})
+                }
+
+                // Log the failure
+                await logAction(null, 'SERVER_HEALTH_FAILURE', 'serverNode', server.id, {
+                    serverName: server.name,
+                    errors
+                }).catch(() => {})
+            }
+        }
+    } catch (error) {
+        console.error('Error in checkServerHealth:', error)
+    }
+}
 
 // Run daily
 export const checkLicenseExpirations = async () => {
@@ -153,8 +203,11 @@ export const checkLicenseExpirations = async () => {
 export const initJobs = () => {
     // Run once on start with a slight delay 
     setTimeout(checkLicenseExpirations, 10000)
+    setTimeout(checkServerHealth, 30000) // Delay health check a bit more
 
-    // Schedule every 24 hours (86400000 ms)
-    setInterval(checkLicenseExpirations, 86400000)
-    console.log('✅ Scheduled Jobs Initialized')
+    // Schedule recurring
+    setInterval(checkLicenseExpirations, 86400000) // 24 hours
+    setInterval(checkServerHealth, 6 * 60 * 60 * 1000) // 6 hours
+
+    console.log('✅ Scheduled Jobs Initialized (License & Health)')
 }

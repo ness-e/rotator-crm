@@ -346,11 +346,11 @@ export default function Estadisticas() {
                             <CardDescription>Planes contratados actualmente</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-64">
+                            <div className="h-[300px] w-full min-h-[300px]">
                                 {licenseTypeData.length === 0 ? (
                                     <div className="h-full flex items-center justify-center text-muted-foreground">Sin datos</div>
                                 ) : (
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                                    <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={100}>
                                         <PieChart>
                                             <Pie data={licenseTypeData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
                                                 {licenseTypeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
@@ -370,11 +370,11 @@ export default function Estadisticas() {
                             <CardDescription>Organizaciones por País</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-64">
+                            <div className="h-[300px] w-full min-h-[300px]">
                                 {geoData.length === 0 ? (
                                     <div className="h-full flex items-center justify-center text-muted-foreground">Sin datos</div>
                                 ) : (
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                                    <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={100}>
                                         <BarChart data={geoData.slice(0, 10)}>
                                             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                                             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -399,11 +399,11 @@ export default function Estadisticas() {
                             <CardDescription>Uso de infraestructura técnica global</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-64">
+                            <div className="h-[300px] w-full min-h-[300px]">
                                 {hostingData.length === 0 ? (
                                     <div className="h-full flex items-center justify-center text-muted-foreground">Sin datos</div>
                                 ) : (
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={100}>
                                         <BarChart data={hostingData.slice(0, 15)} layout="vertical">
                                             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                                             <XAxis type="number" />
@@ -428,11 +428,11 @@ export default function Estadisticas() {
                             <CardDescription>Mercados de usuarios inactivos / cancelados</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-64">
+                            <div className="h-[300px]">
                                 {churnByCountry.length === 0 ? (
                                     <div className="h-full flex items-center justify-center text-muted-foreground">Sin datos</div>
                                 ) : (
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
                                         <BarChart data={churnByCountry.slice(0, 15)} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                                             <XAxis type="number" />
@@ -525,7 +525,7 @@ export default function Estadisticas() {
                                 {providerData.length === 0 ? (
                                     <div className="h-full flex items-center justify-center text-muted-foreground">Sin datos</div>
                                 ) : (
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
                                         <PieChart>
                                             <Pie
                                                 data={providerData}

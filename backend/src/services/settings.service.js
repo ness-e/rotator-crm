@@ -70,9 +70,9 @@
  * @author Sistema
  */
 
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../config/prismaClient.js'
 
-const prisma = new PrismaClient()
+// Utiliza la instancia global de prisma importada arriba
 
 const DEFAULT_SETTINGS = [
     { key: 'site_name', value: 'Rotator Survey', description: 'Nombre del sitio', group: 'GENERAL' },
@@ -81,6 +81,7 @@ const DEFAULT_SETTINGS = [
     { key: 'maintenance_mode', value: 'false', description: 'Modo mantenimiento (true/false)', group: 'SECURITY' },
     { key: 'password_policy', value: 'medium', description: 'Política de contraseñas (low, medium, high)', group: 'SECURITY' },
     { key: 'session_timeout', value: '3600', description: 'Tiempo de sesión en segundos', group: 'SECURITY' },
+    { key: 'admin_email', value: 'admin@rotatorsurvey.com', description: 'Email para recibir reportes de sistema', group: 'GENERAL' },
 ]
 
 export const initSettings = async () => {

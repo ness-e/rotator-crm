@@ -17,7 +17,7 @@ include_once(dirname(__FILE__) . "/../../rotator_masters/masters.php");
 
 
 // -------------------------------------------------------------------------------------------------------------------------------------
-$version='6.69';
+$version = '6.69';
 // -------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -32,56 +32,60 @@ $sessionFiles = glob("$sessionPath/sess_*");
 $activeSessionCount = 0;
 $maxLifetime = ini_get('session.gc_maxlifetime');
 
-foreach ($sessionFiles as $file) {if (filemtime($file) + $maxLifetime > time()) {$activeSessionCount++;}}
+foreach ($sessionFiles as $file) {
+    if (filemtime($file) + $maxLifetime > time()) {
+        $activeSessionCount++;
+    }
+}
 
-switch( $GLOBALS['master_size_of_server']) {	
+switch ($GLOBALS['master_size_of_server']) {
 
-	case 'ULTRA-LARGE':
-        if($activeSessionCount < 1500){
-            $activeSessionColor='white';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
-        }else{
-            $activeSessionColor='red';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
-        }    
-    	break;
-	case 'LARGE':		
-        if($activeSessionCount < 800){
-            $activeSessionColor='white';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
-        }else{
-            $activeSessionColor='red';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
-        }    
+    case 'ULTRA-LARGE':
+        if ($activeSessionCount < 1500) {
+            $activeSessionColor = 'white';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
+        } else {
+            $activeSessionColor = 'red';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
+        }
         break;
-		
-	case 'MEDIUM':
-        if($activeSessionCount < 500){
-            $activeSessionColor='white';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
-        }else{
-            $activeSessionColor='red';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
-        }    
+    case 'LARGE':
+        if ($activeSessionCount < 800) {
+            $activeSessionColor = 'white';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
+        } else {
+            $activeSessionColor = 'red';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
+        }
         break;
-		
-	default:
-        if($activeSessionCount < 100){
-            $activeSessionColor='white';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
-        }else{
-            $activeSessionColor='red';
-            $activeSessionImg='https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
-        }    
-        break;    
-                            
+
+    case 'MEDIUM':
+        if ($activeSessionCount < 500) {
+            $activeSessionColor = 'white';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
+        } else {
+            $activeSessionColor = 'red';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
+        }
+        break;
+
+    default:
+        if ($activeSessionCount < 100) {
+            $activeSessionColor = 'white';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/390/390973.png'; //ok verde
+        } else {
+            $activeSessionColor = 'red';
+            $activeSessionImg = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';// rojo
+        }
+        break;
+
 }
 
 
 
 
 
- 
+
 
 
 
@@ -109,31 +113,35 @@ $IP_Auto_USA = "000.99.99.99";
 //    #    SET TYPE_OF_SERVER=1 (PRIVATE)	IF THIS A ROTATOR PRIVATE SERVER	     (ADMINISTERED, AND MONITORED BY ROTATOR)
 //    #    SET TYPE_OF_SERVER=2 (OWN)		IF THIS YOUR PARTICULAR PRIVATE SERVER 	     (NOT ADMINISTERED, NOT MONITORED BY ROTATOR)
 //    #    SET TYPE_OF_SERVER=3 (POOL)	IF THIS SERVER IS SHARED BY A POOL OF USERS  (ADMINISTERED, AND MONITORED BY ROTATOR)
-    
- 
 
-switch($GLOBALS['master_type_of_server']){
-	case '0': $tipoDeServer='ROTATOR CLOUD';
-		break;
-	case '1': $tipoDeServer='PRIVATE';
-		break;
-	case '2': $tipoDeServer='OWN';
-		break;
-	case '3': $tipoDeServer='POOL';
-		break;
-	default:
-		$tipoDeServer='UNDEFINED ???????????????????????????';
+
+
+switch ($GLOBALS['master_type_of_server']) {
+    case '0':
+        $tipoDeServer = 'ROTATOR CLOUD';
+        break;
+    case '1':
+        $tipoDeServer = 'PRIVATE';
+        break;
+    case '2':
+        $tipoDeServer = 'OWN';
+        break;
+    case '3':
+        $tipoDeServer = 'POOL';
+        break;
+    default:
+        $tipoDeServer = 'UNDEFINED ???????????????????????????';
 }
 
 
 $carpetaDeEstudioPosible = ['vertea', 'versta', 'verpro', 'verind', 'verent', 'veremp', 'verdon', 'veracp', 'veracm', 'private'];
-$NoEstudios_totales=0;
-$NoEstudios_mobile=0;
-$EstudiosTocados=0;
+$NoEstudios_totales = 0;
+$NoEstudios_mobile = 0;
+$EstudiosTocados = 0;
 
 
 
-$Ip=getClientIp();
+$Ip = getClientIp();
 
 $host = $_SERVER['HTTP_HOST'];
 $subdominio = explode(".", $host);
@@ -145,31 +153,31 @@ $CarpetasAlteradas = 0;
 $charSetEnHtcacsessAlterado = false;
 
 $imagenbuena = "'height: 25px; width: 25px;' src='https://cdn-icons-png.flaticon.com/512/390/390973.png'";
-$imagenmala =  "'height: 25px; width: 25px;' src='https://cdn-icons-png.flaticon.com/512/594/594864.png'";
+$imagenmala = "'height: 25px; width: 25px;' src='https://cdn-icons-png.flaticon.com/512/594/594864.png'";
 
 $MySQLActivo = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
-$MySQExistenTablas  = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
+$MySQExistenTablas = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
 
 
 
 $colorBD = 'yellow';
-$colorTablas= 'yellow';
+$colorTablas = 'yellow';
 
 
 
-$CurlActivo ='https://cdn-icons-png.flaticon.com/512/594/594864.png';
+$CurlActivo = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
 $GeoActivo = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
 $colorCurl = 'yellow';
 $colorGeo = 'yellow';
 
 
-    if(file_exists("../favicon.ico")){
-        $FavIcon= 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
-        $FavIconColor = 'white';
-    } else {
-        $FavIcon= 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
-        $FavIconColor = 'red';
-    }
+if (file_exists("../favicon.ico")) {
+    $FavIcon = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
+    $FavIconColor = 'white';
+} else {
+    $FavIcon = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
+    $FavIconColor = 'red';
+}
 
 
 
@@ -182,175 +190,312 @@ $usuario = '';
 $disco = 0;
 $discoImg = '';
 
-$AcumFilesTocados_Count=0;
-$AcumFilesTocados_Bytes=0;
+$AcumFilesTocados_Count = 0;
+$AcumFilesTocados_Bytes = 0;
 
 // TESTS PARA BUSCAR ARCHIVOS QUE NO SON DE ROTATOR
-function show_files($start){
+function show_files($start)
+{
 
-    global $Sospechosos, $Infectados, $CarpetasAlteradas, $disco, $discoImg, $carpetaDeEstudioPosible,$NoEstudios_totales,$NoEstudios_mobile,$AcumFilesTocados_Bytes,$AcumFilesTocados_Count, $EstudiosTocados;
-        
+    global $Sospechosos, $Infectados, $CarpetasAlteradas, $disco, $discoImg, $carpetaDeEstudioPosible, $NoEstudios_totales, $NoEstudios_mobile, $AcumFilesTocados_Bytes, $AcumFilesTocados_Count, $EstudiosTocados;
+
     $discoImg = "<div class='loader'></div>";
     $contents = scandir($start);
     array_splice($contents, 0, 2);
     echo "<ul>";
-    $contFiles=0;
-    $tamanoFile=0;
-    
+    $contFiles = 0;
+    $tamanoFile = 0;
 
-       
+
+
     foreach ($contents as $item) {
-        $contFiles++;        
-        $fullPath = "$start/$item";                
-        $tamanoFile=filesize($fullPath);
-	
+        $contFiles++;
+        $fullPath = "$start/$item";
+        $tamanoFile = filesize($fullPath);
+
 
 
         // ULTIMAS 2 HORAS
-    if (filemtime($fullPath) >= time() - 7200) {
-        $AcumFilesTocados_Count++;
-        $AcumFilesTocados_Bytes += $tamanoFile;
-    }
-	
+        if (filemtime($fullPath) >= time() - 7200) {
+            $AcumFilesTocados_Count++;
+            $AcumFilesTocados_Bytes += $tamanoFile;
+        }
+
 
         $disco += $tamanoFile;
-       // $contFiles++;
+        // $contFiles++;
 
-       
+
         if (
-        (substr($item, -3) == ".js" or
-        substr($item, -4) == ".php" or
-        substr($item, -4) == ".txt" or
-        substr($item, -9) == ".htaccess" or
-        substr($item, -5) == ".htc_" or
-        substr($item, -5) == ".html" or
-        substr($item, -4) == ".htm") &&
-        ($item != "estructura.php" && $item != "cawi_monitor.php")
+            (substr($item, -3) == ".js" or
+                substr($item, -4) == ".php" or
+                substr($item, -4) == ".txt" or
+                substr($item, -9) == ".htaccess" or
+                substr($item, -5) == ".htc_" or
+                substr($item, -5) == ".html" or
+                substr($item, -4) == ".htm") &&
+            ($item != "estructura.php" && $item != "cawi_monitor.php")
         ) {
             // excluye estos arcvhivos porque alli adentro tambien etsteo estos caracteres
-            
+
             $hayVirus = false;
             $leo = file_get_contents($fullPath);
-            
+
             // AGREGADOS 1ER ATAQUE
-            if (stripos($leo, "Sitemap:http:") != false) {$hayVirus = true;}
-            if (stripos($leo, 'function echo_json($') != false) {$hayVirus = true;}
-            if (stripos($leo, "===undefined){function") != false) {$hayVirus = true;}
-            if (stripos($leo, "+'Of'](") != false) {$hayVirus = true;}
-            if (stripos($leo, ")+-parseInt(") != false) {$hayVirus = true;}
-            if (stripos($leo, "['push'](") != false) {$hayVirus = true;}
-            if (stripos($leo, "['shift']())") != false) {$hayVirus = true;}
-            if (stripos($leo, "']());}}}(") != false) {$hayVirus = true;}
-            if (stripos($leo, "if(ndsw===undefined){") != false) {$hayVirus = true;}
-            
+            if (stripos($leo, "Sitemap:http:") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'function echo_json($') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "===undefined){function") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "+'Of'](") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ")+-parseInt(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "['push'](") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "['shift']())") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "']());}}}(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "if(ndsw===undefined){") != false) {
+                $hayVirus = true;
+            }
+
             // AGREGADOS EN 2DO ATAQUE 02 11 2022
-            if (stripos($leo, ";if(nds") != false) {$hayVirus = true;}
-            if (stripos($leo, "token=function(){return") != false) {$hayVirus = true;}
-            if (stripos($leo, "*(-parseInt(") != false) {$hayVirus = true;}
-            if (stripos($leo, "urlencode(base64_encode(json_encode(") != false) {$hayVirus = true;}
-            if (stripos($leo, "if (is_callable(") != false) {$hayVirus = true;}
-            
+            if (stripos($leo, ";if(nds") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "token=function(){return") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "*(-parseInt(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "urlencode(base64_encode(json_encode(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "if (is_callable(") != false) {
+                $hayVirus = true;
+            }
+
             // AGREGADOS EN 3R ATAQUE 10 12 2022
-            if (stripos($leo, "function mode()") != false) {$hayVirus = true;}
-            if (stripos($leo, "= $_COOKIE;") != false) {$hayVirus = true;}
-            if (stripos($leo, "return self::$") != false) {$hayVirus = true;}
-            
-            
+            if (stripos($leo, "function mode()") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "= $_COOKIE;") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "return self::$") != false) {
+                $hayVirus = true;
+            }
+
+
             // -----------------------------------------------------------------------------------------------------
             // BUSCA LA MARCA DE FIN DE ARCHIVO: RotatorEOFforMalwareDetect
             // -----------------------------------------------------------------------------------------------------
             $faltaMarcaRotator = false;
-            
+
             switch ($item) {
                 case "funciones_comunes.js":
                 case "funciones_comunes.php":
                 case "download.js":
                 case "compartido.js":
                 case "sesiones.js":
-                if (stripos(substr($leo, -35), "RotatorEOFforMalwareDetect") == false) {
-                    $faltaMarcaRotator = true;
-                }
-                break;
+                    if (stripos(substr($leo, -35), "RotatorEOFforMalwareDetect") == false) {
+                        $faltaMarcaRotator = true;
+                    }
+                    break;
             }
 
-            
-            // AQUI CADENAS DE ARCHIVOS ENCONTRADOS EN 3R ATAQUE
-            if (stripos($leo, 'Jackpot') != false) {$hayVirus = true;}
-            if (stripos($leo, 'POWERGAMING') != false) {$hayVirus = true;}
-            if (stripos($leo, 'Game Online') != false) {$hayVirus = true;}
-            if (stripos($leo, 'google-site-verification') != false) {$hayVirus = true;}
-            if (stripos($leo, 'h=h[d]=h[d]||{q:[]') != false) {$hayVirus = true;}
 
-            if (stripos($leo, 'product:price:amount') != false) {$hayVirus = true;}
-            if (stripos($leo, 'Hey siriusly') != false) {$hayVirus = true;}
-            if (stripos($leo, 'product-preview__glider') != false) {$hayVirus = true;}
-            if (stripos($leo, 'TeePublic.Utility.unveil_image') != false) {$hayVirus = true;}
-            
+            // AQUI CADENAS DE ARCHIVOS ENCONTRADOS EN 3R ATAQUE
+            if (stripos($leo, 'Jackpot') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'POWERGAMING') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'Game Online') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'google-site-verification') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'h=h[d]=h[d]||{q:[]') != false) {
+                $hayVirus = true;
+            }
+
+            if (stripos($leo, 'product:price:amount') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'Hey siriusly') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'product-preview__glider') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'TeePublic.Utility.unveil_image') != false) {
+                $hayVirus = true;
+            }
+
 
 
 
 
             // -----------------------------------------------------------------------------------------------------
             // AQUI TROZOS DE CODIGOS DE VIRUS QUE HE ECONTRADO EN STACKOVERFLOW
-            if (stripos($leo, "$_REQUEST\[") != false) {$hayVirus = true;}
-            if (stripos($leo, '$license($') != false) {$hayVirus = true;}
-            if (stripos($leo, ".send()}}(window);") != false) {$hayVirus = true;}
-            if (stripos($leo, "instanceof Array)){") != false) {$hayVirus = true;}
-            if (stripos($leo, '"undefined"!=typeof Symbol') != false) {$hayVirus = true;}
-            if (stripos($leo, "eval(function(") != false) {$hayVirus = true;}
-            if (stripos($leo, 'function packToHex($inputToPack)') != false) {$hayVirus = true;}
-            if (stripos($leo, 'function fun3($exploded)') != false) {$hayVirus = true;}
-            if (stripos($leo, '$bitwiseXor') != false) {$hayVirus = true;}
-            if (stripos($leo, 'eval(base64_decode("') != false) {$hayVirus = true;}
-            if (stripos($leo, "eval(base64_decode('") != false) {$hayVirus = true;}
-            if (stripos($leo, "eval(base64_decode(str_replace(") != false) {$hayVirus = true;}
-            if (stripos($leo, '@$_SERVER["HTTP_HOST"].@$_SERVER["REQUEST_URI"];') != false) {$hayVirus = true;}
-            if (stripos($leo, '=openssl_decrypt($') != false) {$hayVirus = true;}
-            if (stripos($leo, '){global $_') != false) {$hayVirus = true;}
-            if (stripos($leo, "(){window[") != false) {$hayVirus = true;}
-            if (stripos($leo, "= new Date();var") != false) {$hayVirus = true;}
-            if (stripos($leo, "){return null};var") != false) {$hayVirus = true;}
-            if (stripos($leo, "=function(){return'\\") != false) {$hayVirus = true;}
-            if (stripos($leo, "=true;break;case") != false) {$hayVirus = true;}
-            if (stripos($leo, "(sys_get_temp_dir(),time());if(file_put_contents($") != false) {$hayVirus = true;}
-            if (stripos($leo, ", NULL); $") != false) {$hayVirus = true;}
-            if (stripos($leo, "]); } return $") != false) {$hayVirus = true;}
-            if (stripos($leo, ")); if (!function_exists('") != false) {$hayVirus = true;}
-            if (stripos($leo, "; if (!function_exists('") != false) {$hayVirus = true;}
-            if (stripos($leo, "=explode(chr((") != false) {$hayVirus = true;}
-            if (stripos($leo, "){return chr(") != false) {$hayVirus = true;}
-            if (stripos($leo, "'openssl_private_decrypt','openssl_decrypt',") != false) {$hayVirus = true;}
-            if (stripos($leo, ";if(navigator[appVersion_var].indexOf(") != false) {$hayVirus = true;}
-            if (stripos($leo, 'var appVersion_var="') != false) {$hayVirus = true;}
-            if (stripos($leo, '\x63\x65";function') != false) {$hayVirus = true;}
-            if (stripos($leo, 'window[unescape("') != false) {$hayVirus = true;}
-            if (stripos($leo, '($GLOBALS["') != false) {$hayVirus = true;}
-            if (stripos($leo, '=["\x') != false) {$hayVirus = true;}
-            if (stripos($leo, ',$$_:') != false) {$hayVirus = true;}
-            if (stripos($leo, '_$$:') != false) {$hayVirus = true;}
-            
+            if (stripos($leo, "$_REQUEST\[") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '$license($') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ".send()}}(window);") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "instanceof Array)){") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '"undefined"!=typeof Symbol') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "eval(function(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'function packToHex($inputToPack)') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'function fun3($exploded)') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '$bitwiseXor') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'eval(base64_decode("') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "eval(base64_decode('") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "eval(base64_decode(str_replace(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '@$_SERVER["HTTP_HOST"].@$_SERVER["REQUEST_URI"];') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '=openssl_decrypt($') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '){global $_') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "(){window[") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "= new Date();var") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "){return null};var") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "=function(){return'\\") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "=true;break;case") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "(sys_get_temp_dir(),time());if(file_put_contents($") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ", NULL); $") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "]); } return $") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ")); if (!function_exists('") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "; if (!function_exists('") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "=explode(chr((") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "){return chr(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "'openssl_private_decrypt','openssl_decrypt',") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ";if(navigator[appVersion_var].indexOf(") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'var appVersion_var="') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '\x63\x65";function') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, 'window[unescape("') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '($GLOBALS["') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '=["\x') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ',$$_:') != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, '_$$:') != false) {
+                $hayVirus = true;
+            }
+
             // DESCUBIERTO EN ARTEMIS ESTUDIO DE ALEXANDRE BR RADAR
-            if (stripos($leo, "'send','inde'") != false) {$hayVirus = true;}
-            if (stripos($leo, "+'tr'](") != false) {$hayVirus = true;}
-            if (stripos($leo, "=new HttpClient(),") != false) {$hayVirus = true;}
-            if (stripos($leo, ")!==-0") != false) {$hayVirus = true;}
-            if (stripos($leo, "=screen,") != false) {$hayVirus = true;}
-            if (stripos($leo, "='+token();") != false) {$hayVirus = true;}
-            
+            if (stripos($leo, "'send','inde'") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "+'tr'](") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "=new HttpClient(),") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, ")!==-0") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "=screen,") != false) {
+                $hayVirus = true;
+            }
+            if (stripos($leo, "='+token();") != false) {
+                $hayVirus = true;
+            }
+
             // SI ES UN .HTCACCESS QUE NO ES DE ROTATOR
-            if (stripos($item, "htaccess") != false &&trim($leo) != "" && stripos($leo, "_docs/trigger_wait.php") == false) {
-            
-            
+            if (stripos($item, "htaccess") != false && trim($leo) != "" && stripos($leo, "_docs/trigger_wait.php") == false) {
+
+
                 if (stripos($leo, "ROTATORSOFTWARE") == false) {
                     $hayVirus = true;
                 }
-                
-                $MARCA_VERSION_HTACESS="HTACESS BASE"; // HTACESS BASE PARA TODOS LOS SERVIDORES DE LA NUBE VERSION 1.1
-                                
-                if(!isset($versionHtaccess)){
+
+                $MARCA_VERSION_HTACESS = "HTACESS BASE"; // HTACESS BASE PARA TODOS LOS SERVIDORES DE LA NUBE VERSION 1.1
+
+                if (!isset($versionHtaccess)) {
                     if (stripos($leo, $MARCA_VERSION_HTACESS) != false) {
-                        preg_match('/VERSION (\d+\.\d+)/',$leo, $matches);// copilot: This code uses a regular expression to find the pattern "VERSION x.x" in the string and captures the version number.
-                        $versionHtaccess=$matches[1];
+                        preg_match('/VERSION (\d+\.\d+)/', $leo, $matches);// copilot: This code uses a regular expression to find the pattern "VERSION x.x" in the string and captures the version number.
+                        $versionHtaccess = $matches[1];
                     }
                 }
 
@@ -360,242 +505,275 @@ function show_files($start){
 
 
 
-if($start == '../'){// revisa htcacess de public
-	if (stripos($leo, 'php_value default_charset "UTF-8"') == false) {// 31 10 2025
-	    $charSetEnHtcacsessAlterado = true;
-	}
-}
-                
+                if ($start == '../') {// revisa htcacess de public
+                    if (stripos($leo, 'php_value default_charset "UTF-8"') == false) {// 31 10 2025
+                        $charSetEnHtcacsessAlterado = true;
+                    }
+                }
+
             }
-                        
+
             if ($hayVirus) {
                 echo "<li style='color:red;'><b>" . "Possible malware  was detected in " . $item . "!!!</b></li>";
-                $Infectados++;                
+                $Infectados++;
             } else {
                 if ($faltaMarcaRotator) {
                     echo "<li style='color:blue;'><b>" . "Rotator watermark not found, possibly and old Modeler was used? in " . $item . "!!!</b></li>";
-                                       
+
                     $Sospechosos++;
-                
-                }elseif ($charSetEnHtcacsessAlterado){                            
-                    echo "<li style='color:red;'><b>Public htcaccess modified: The setting php_value default_charset=UTF-8 was not found " . $item . "!</b></li>"; $charSetEnHtcacsessAlterado=false;                    
-                    $Sospechosos++;            
+
+                } elseif ($charSetEnHtcacsessAlterado) {
+                    echo "<li style='color:red;'><b>Public htcaccess modified: The setting php_value default_charset=UTF-8 was not found " . $item . "!</b></li>";
+                    $charSetEnHtcacsessAlterado = false;
+                    $Sospechosos++;
                 }
             }
         }
-        
-        
 
 
 
 
 
-if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstudioPosible)) {
-    if ( strpos($fullPath, '_docs') === false && strpos($fullPath, 'shr_') === false) {
-        	
-        $NoEstudios_totales++;
-        if (strpos($fullPath, 'off_') !== false) {
-            $NoEstudios_mobile++;
-            
+
+
+        if (is_dir($fullPath) && in_array(basename(dirname($fullPath)), $carpetaDeEstudioPosible)) {
+            if (strpos($fullPath, '_docs') === false && strpos($fullPath, 'shr_') === false) {
+
+                $NoEstudios_totales++;
+                if (strpos($fullPath, 'off_') !== false) {
+                    $NoEstudios_mobile++;
+
+                }
+            }
         }
-    }
-}
-	
-	
-
-        
-	if (is_dir($fullPath) && substr($item, 0, 1) != ".") {
-	    switch ($item) {
-
-		// ELIMINAR BORRAR DIC 2026 PUES FUE MIGRADO A VERSION 3.3
-		case "PhpSpreadsheet":
-		if (folderSize($fullPath) != 5859582) {echo '<li style="color:red;"><b>' .$item ." (Modified folder) </b></li>";$CarpetasAlteradas++;}
-		break;
-		// ELIMINAR BORRAR DIC 2026 PUES FUE MIGRADO A VERSION 3.3
-
-		case "jquery-ui.min-v1.14.0-sin-slider":
-		if (folderSize($fullPath) != 259555) {echo '<li style="color:red;"><b>' .$item ." (Modified folder) </b></li>";$CarpetasAlteradas++;}
-                
-                break;
-        
-        case "PhpSpreadsheet-v3.3":
-                if (folderSize($fullPath) != 13125118) {echo '<li style="color:red;"><b>' .$item ." (Modified folder) </b></li>";$CarpetasAlteradas++;}                
-                break;
-      	
-      	case "phpqrcode":
-                if (folderSize($fullPath) != 420420) {
-                    echo '<li style="color:red;"><b>' .$item ." (Modified folder) </b></li>";
-                    $CarpetasAlteradas++;
-                }
-                break;
-        case "fpdf":
-                if (folderSize($fullPath) != 450348) {
-                    echo '<li style="color:red;"><b>' .
-                    $item ." (Modified folder) </b></li>";                        $CarpetasAlteradas++;
-                }
-                break;
-                
-        default:
-                switch ($item) {
 
 
-                
-                
-                    case "cacheShortLink":
-                    case "audios_importados":                                        
-                    case "clonar":
-                    case "web":
-                    case "CUARENTENA":
-                    case "RESPALDOS":
-                    case "web_BACKUPS_ult_cinco_dias":
-                    case "tablet":
-                    case "web":
-                    case "tests":
-                    case "ejemplos":
-                    case "framework7":
-                    case "f7":
-                    case "assets": // de framework7
-                    case "fonts": // de framework7
-                    case "icons": // de framework7
-                    case "private":
-                    case "varias":
-                    case "veracm":
-                    case "veracp":
-                    case "verdon":
-                    case "veremp":
-                    case "verent":
-                    case "verind":
-                    case "verpro":
-                    case "versta":
-                    case "vertea":
-                    case "css":
-                    case "imagenes":
-                    case "jquery":
-                    case "jquery-confirm":
-                    case "js":
-                    case "jsignature":
-                    case "mascaras":
-                    case "email-autocomplete":
-                    case "framework7":
-                    case "ejemplos":
-                    case "varias":
-                    case "en":
-                    case "es":
-                    case "po":
-                    case "fr":
-                    case "GoogleMapsMarkers":
-                    case "TagCloud":
-                    case "ejemplo_CAWI":
-                    case "estrellas":
-                    case "fav-icons":
-                    case "jquery-timepicker":
-                    case "mails":
-                    case "maska-master-v1.1.4":
-                    case "maska-master-v1.4.1":
-                    case "materializecss-v1.0.0":
-                    case "numeral":
-                    case "rateYo_ver232":
-                    case "estrellas":
-                    case "splashAndroid":
-                    case "iconosAndroid":
-                    case "mobile_145":
-                    case "dist":
-                    case "docs":
-                    case "src":
-                    case "test":
-                    case "types":
-                    case "Imgs_QR_temp":
-                    case "images":
-                    case "es6":
-                    case "icons-png":
-                    case "icons-svg":
-                    case "cgi-bin":
-                    case "capi":
-                    case "mobile":
-                    case "mobile_capi":
-                    case "UrlShort":
-                    
-                    case "api":
-                    
 
-                    echo "<li>$item</li>";
-                    show_files($fullPath);
+
+        if (is_dir($fullPath) && substr($item, 0, 1) != ".") {
+            switch ($item) {
+
+                // ELIMINAR BORRAR DIC 2026 PUES FUE MIGRADO A VERSION 3.3
+                case "PhpSpreadsheet":
+                    if (folderSize($fullPath) != 5859582) {
+                        echo '<li style="color:red;"><b>' . $item . " (Modified folder) </b></li>";
+                        $CarpetasAlteradas++;
+                    }
                     break;
-                    default:
-                    $EstaOK = 0; // DETECTA SI TERMINA EN _1
-                    switch (substr($item, -2)) {
-                        case "_1":
-                        case "_2":
-                        case "_3":
-                        case "_4":
-                        case "_5":
-                        case "_6":
-                        case "_7":
-                        case "_8":
-                        case "_9":
-                        $EstaOK = 1;
-                        break;
+                // ELIMINAR BORRAR DIC 2026 PUES FUE MIGRADO A VERSION 3.3
+
+                case "jquery-ui.min-v1.14.0-sin-slider":
+                    if (folderSize($fullPath) != 259555) {
+                        echo '<li style="color:red;"><b>' . $item . " (Modified folder) </b></li>";
+                        $CarpetasAlteradas++;
                     }
-                    if (is_numeric(substr($item, -2))) {$EstaOK = 1;}
-                    if (substr($item, -5) == "_docs") {$EstaOK = 1;}
-                    if (strpos($start, "audios_importados") > 0) {$EstaOK = 1;}
-                    if ($EstaOK == 1) {
-                        
-			if (file_exists($fullPath.'/actividad.txt') &&  date('Y-m-d', filemtime($fullPath.'/actividad.txt'  )) === date('Y-m-d')) { 
-                            $EstudiosTocados++;
-			
-	                        echo "<li style='color:blue;'>$item</li>";
-                        }else{
-                        	echo "<li style='color:gray;'>$item</li>";
-                        }
-                        
-                        
-                        
-                        
-                        show_files($fullPath);
-                    } else {
-                        echo "<li style='color:red;'><b>" .$start ." / " .$item ." (Unrecognized folder)" ."</b></li>";
-                        $Sospechosos++;
+
+                    break;
+
+                case "PhpSpreadsheet-v3.3":
+                    if (folderSize($fullPath) != 13125118) {
+                        echo '<li style="color:red;"><b>' . $item . " (Modified folder) </b></li>";
+                        $CarpetasAlteradas++;
                     }
-                }
+                    break;
+
+                case "phpqrcode":
+                    if (folderSize($fullPath) != 420420) {
+                        echo '<li style="color:red;"><b>' . $item . " (Modified folder) </b></li>";
+                        $CarpetasAlteradas++;
+                    }
+                    break;
+                case "fpdf":
+                    if (folderSize($fullPath) != 450348) {
+                        echo '<li style="color:red;"><b>' .
+                            $item . " (Modified folder) </b></li>";
+                        $CarpetasAlteradas++;
+                    }
+                    break;
+
+                default:
+                    switch ($item) {
+                        case "cacheShortLink":
+                        case "audios_importados":
+                        case "clonar":
+                        case "web":
+                        case "CUARENTENA":
+                        case "RESPALDOS":
+                        case "web_BACKUPS_ult_cinco_dias":
+                        case "tablet":
+                        case "web":
+                        case "tests":
+                        case "ejemplos":
+                        case "framework7":
+                        case "f7":
+                        case "assets": // de framework7
+                        case "fonts": // de framework7
+                        case "icons": // de framework7
+                        case "private":
+                        case "varias":
+                        case "veracm":
+                        case "veracp":
+                        case "verdon":
+                        case "veremp":
+                        case "verent":
+                        case "verind":
+                        case "verpro":
+                        case "versta":
+                        case "vertea":
+                        case "css":
+                        case "imagenes":
+                        case "jquery":
+                        case "jquery-confirm":
+                        case "js":
+                        case "jsignature":
+                        case "mascaras":
+                        case "email-autocomplete":
+                        case "framework7":
+                        case "ejemplos":
+                        case "varias":
+                        case "en":
+                        case "es":
+                        case "po":
+                        case "fr":
+                        case "GoogleMapsMarkers":
+                        case "TagCloud":
+                        case "ejemplo_CAWI":
+                        case "estrellas":
+                        case "fav-icons":
+                        case "jquery-timepicker":
+                        case "mails":
+                        case "maska-master-v1.1.4":
+                        case "maska-master-v1.4.1":
+                        case "materializecss-v1.0.0":
+                        case "numeral":
+                        case "rateYo_ver232":
+                        case "estrellas":
+                        case "splashAndroid":
+                        case "iconosAndroid":
+                        case "mobile_145":
+                        case "dist":
+                        case "docs":
+                        case "src":
+                        case "test":
+                        case "types":
+                        case "Imgs_QR_temp":
+                        case "images":
+                        case "es6":
+                        case "icons-png":
+                        case "icons-svg":
+                        case "cgi-bin":
+                        case "capi":
+                        case "mobile":
+                        case "mobile_capi":
+                        case "UrlShort":
+
+                        case "api":
+
+
+                            echo "<li>$item</li>";
+                            show_files($fullPath);
+                            break;
+                        default:
+                            $EstaOK = 0; // DETECTA SI TERMINA EN _1
+                            switch (substr($item, -2)) {
+                                case "_1":
+                                case "_2":
+                                case "_3":
+                                case "_4":
+                                case "_5":
+                                case "_6":
+                                case "_7":
+                                case "_8":
+                                case "_9":
+                                    $EstaOK = 1;
+                                    break;
+                            }
+                            if (is_numeric(substr($item, -2))) {
+                                $EstaOK = 1;
+                            }
+                            if (substr($item, -5) == "_docs") {
+                                $EstaOK = 1;
+                            }
+                            if (strpos($start, "audios_importados") > 0) {
+                                $EstaOK = 1;
+                            }
+                            if ($EstaOK == 1) {
+
+                                if (file_exists($fullPath . '/actividad.txt') && date('Y-m-d', filemtime($fullPath . '/actividad.txt')) === date('Y-m-d')) {
+                                    $EstudiosTocados++;
+
+                                    echo "<li style='color:blue;'>$item</li>";
+                                } else {
+                                    echo "<li style='color:gray;'>$item</li>";
+                                }
+
+
+
+
+                                show_files($fullPath);
+                            } else {
+                                echo "<li style='color:red;'><b>" . $start . " / " . $item . " (Unrecognized folder)" . "</b></li>";
+                                $Sospechosos++;
+                            }
+                    }
             }
         } else {
             // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             if (substr($item, -3) == ".png" or substr($item, -4) == ".jpg") {
-                $size = getimagesize($fullPath);                
+                $size = getimagesize($fullPath);
                 switch ($size["mime"]) {
                     case "image/gif": // echo "Image is a gif";
                     case "image/jpeg": // echo "Image is a jpeg";
                     case "image/png": // echo "Image is a png";
                     case "image/bmp": // echo "Image is a bmp";
                     case "image/webp": // echo "Image is a .webp";
-                    break;
+                        break;
                     default:
-                    if (filesize($fullPath) === 0) {
-                        unlink($fullPath);
-                    } else {
-                        echo "<li style='color:red;'><b>$item</b></li>";
-                        $Infectados++;
-                    }
+                        if (filesize($fullPath) === 0) {
+                            unlink($fullPath);
+                        } else {
+                            echo "<li style='color:red;'><b>$item</b></li>";
+                            $Infectados++;
+                        }
                 }
-                
+
                 $EsCarpetaDeEstudios = false;
-                
-                if (strpos($start, "/private/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/veracm/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/veracp/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/verdon/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/veremp/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/verent/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/verind/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/verpro/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/versta/") == false) {$EsCarpetaDeEstudios = true;}
-                if (strpos($start, "/vertea/") == false) {$EsCarpetaDeEstudios = true;}
+
+                if (strpos($start, "/private/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/veracm/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/veracp/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/verdon/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/veremp/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/verent/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/verind/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/verpro/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/versta/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
+                if (strpos($start, "/vertea/") == false) {
+                    $EsCarpetaDeEstudios = true;
+                }
 
 
-		
-                
-                
+
+
+
                 if ($EsCarpetaDeEstudios == false) {
                     switch ($item) {
                         case "felicita.jpg":
@@ -615,44 +793,44 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                         case "instructivo_1.jpg":
                         case "instructivo_2.jpg":
                         case "instructivo_3.jpg":
-                        break;
+                            break;
                         default:
-                        echo "<li style='color:red;'><b>" .$start ."/" .$item ."</b></li>";
-                        $Infectados++;
+                            echo "<li style='color:red;'><b>" . $start . "/" . $item . "</b></li>";
+                            $Infectados++;
                     }
                 }
             }
             // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            
-            
-            
+
+
+
             if ($item == "error_log") {
                 if (filesize($start . "/" . "error_log") > 500000) {
-                    echo "<li style='color:red;'><b>" .$item ." (Too large !!!)" ."</b></li>";
+                    echo "<li style='color:red;'><b>" . $item . " (Too large !!!)" . "</b></li>";
                     $Sospechosos++;
                 }
             }
             if (substr($item, -4) == ".php" or substr($item, -5) == ".htc_") {
-                
+
                 switch (strtolower($item)) {
                     case "index.php":
-                    $fh = fopen($start . "/" . "index.php", "r");
-                    $linea = fgets($fh);
-                    if (strpos($linea, "ROTATOR") == false) {
-                        echo "<li style='color:red;'><b>" .$item ." (Modified !!!)" ."</b></li>";
-                        $Sospechosos++;
-                    }
-                    fclose($fh);
-                    break;
+                        $fh = fopen($start . "/" . "index.php", "r");
+                        $linea = fgets($fh);
+                        if (strpos($linea, "ROTATOR") == false) {
+                            echo "<li style='color:red;'><b>" . $item . " (Modified !!!)" . "</b></li>";
+                            $Sospechosos++;
+                        }
+                        fclose($fh);
+                        break;
 
 
-                    
+
                     case "ai_pregunta_deepseek-v3.php":
 
-                
+
 
                     case "capiwebmenu.php":
-                    case "loginopermobile.php":                                          
+                    case "loginopermobile.php":
                     case "ai_pregunta_gemini.php":
                     case "ajax_asignatfsel.php":
                     case "ajax_dameconteosstatusdata.php":
@@ -715,9 +893,9 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "cargamanual.php":
                     case "cati_esteidestaencursooyahecho.php":
                     case "cati_revisaen_in_process_file_siestecasolollevaotrooperador.php":
-															    // eliminar borrar enero 2027
-															    case "cati_casoloatiendeotrooper.php":
-															    // eliminar borrar enero 2027
+                    // eliminar borrar enero 2027
+                    case "cati_casoloatiendeotrooper.php":
+                    // eliminar borrar enero 2027
                     case "cati_casoloatiendeotrooperador.php":
                     case "cawi_ajax_unzip.php":
                     case "cawi_descarga.php":
@@ -726,27 +904,27 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "cawi_monitor_mataestudio.php":
                     case "cawi_monitor_remuevesolodebd.php":
                     case "cawi_monitor_zipeaestudio.php":
-                                            
-                    case "ajax_chism.php":
-                    
 
-                                                                    // eliminar borrar enero 2027
-                                                                    case "chismear.php":         
-                                                                    case "ajax_chismear.php":         
-                                                                    // eliminar borrar enero 2027                       
-                    
-                    
+                    case "ajax_chism.php":
+
+
+                    // eliminar borrar enero 2027
+                    case "chismear.php":
+                    case "ajax_chismear.php":
+                    // eliminar borrar enero 2027                       
+
+
                     case "ajax_chism.php":
                     case "ajax_tabladecuotas.php":
                     case "ajaxcheck.php":
                     case "testsfor247":
                     case "mailtest.php":
-                    
-                    
+
+
                     case "largeposttest_part1.html":
                     case "largeposttest_part2.php":
 
-                        
+
 
                     case "phpsessionstest_page1.php":
                     case "phpsessionstest_page2.php":
@@ -758,15 +936,15 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "confirmacasosllegaron.php":
                     case "cuantosestudiosfrescos.php":
                     case "cuantosestudioshapublicado.php":
-                    
-													    // ELIMINAR BORRAR ENERO 2030
-													    case "cuotas_damediferencia.php":
-													    // ELIMINAR BORRAR ENERO 2030
-                    
+
+                    // ELIMINAR BORRAR ENERO 2030
+                    case "cuotas_damediferencia.php":
+                    // ELIMINAR BORRAR ENERO 2030
+
                     case "ajax_damediferenciascuotasparamovil.php":
-                    
-                    
-                    
+
+
+
                     case "cuenta_casos.php":
                     case "damearraymodsconteodata.php":
                     case "damecodigosqrdeequipohumano.php":
@@ -774,10 +952,10 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "dameconteosvarscontrol.php":
                     case "damedisparos_bdp.php":
                     case "dameqrfichaequipo.php":
-													    // eliminar borrar enero 2027
-													    case "dametabladecuotas.php":
-													    case "damedisparos.php":
-													    // eliminar borrar enero 2027
+                    // eliminar borrar enero 2027
+                    case "dametabladecuotas.php":
+                    case "damedisparos.php":
+                    // eliminar borrar enero 2027
                     case "dataweb_damedatadestickers.php":
                     case "dataweb_damedatadevercasos.php":
                     case "dataweb_dametextosdenubedepalabras.php":
@@ -794,14 +972,14 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "cawi_genera_disparosmaxdif.php":
                     case "grabaciones_borraarchivo.php":
                     case "grabaciones_damearchivos.php":
-                    
-                    
-												    // ELIMINAR BORRAR ENERO 2027
-												    case "grabaciones_damefechasdearchivos.php":
-												    // ELIMINAR BORRAR ENERO 2027
-                    
+
+
+                    // ELIMINAR BORRAR ENERO 2027
+                    case "grabaciones_damefechasdearchivos.php":
+                    // ELIMINAR BORRAR ENERO 2027
+
                     case "grabaciones_damefechas_y_operadores.php":
-                    
+
                     case "grabaciones_zipfiles.php":
                     case "inboundsearch.php":
                     case "inicio.php":
@@ -878,10 +1056,10 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "passsaste.php":
                     case "perfil.php":
                     case "perfildatasujeto.php":
-                                                                    
-                                                                        // eliminar borrar enero 2028
-                                                                        case "php_inyecta_tblbarridodebdp.php":
-                                                                            // eliminar borrar enero 2028
+
+                    // eliminar borrar enero 2028
+                    case "php_inyecta_tblbarridodebdp.php":
+                    // eliminar borrar enero 2028
 
                     case "ajax_inyecta_tblbarridodebdp.php":
 
@@ -2079,69 +2257,70 @@ if (is_dir($fullPath)  && in_array(basename(dirname($fullPath)), $carpetaDeEstud
                     case "ajax_password_ar.php":
                     case "ajax_alterargeolocadesdemapa.php":
                     case "revisarssl.php":
-                    
-                    
 
 
-case "3cwebhook_call_was_connected.php":
-case "3cwebhook_history_was_created.php":
-case "3cwebhook_start_call_end.php":
-case "3cwebhook_start_call_start.php":
-case "3c_hay_llamadas_paraesteagente.php":
 
-                    
-                    
-                    break;
+
+                    case "3cwebhook_call_was_connected.php":
+                    case "3cwebhook_history_was_created.php":
+                    case "3cwebhook_start_call_end.php":
+                    case "3cwebhook_start_call_start.php":
+                    case "3c_hay_llamadas_paraesteagente.php":
+
+
+
+                        break;
                     default:
-                    if (strpos($item, "ecibeFileAdjunto") == false) {
-                        if (strpos($item,"ameHijosDeEsteTextoAcum_EnJer")>0) {                            
-                        }elseif(strpos($item,"jax_Jerarquia_DameHijosDeEsteTextoAcum")>0) {
-                            
-                        }elseif(strpos($item,"jax_Jerarquia_DameHijosDeEsteTextoAcum")>0) {
-                            
-                        }elseif(strpos($item,"jax_Jerarquia_ValidaLineaDeTextos")>0) {
-                            
-                        }elseif(strpos($item,"ameDisparos_rotacion_secuencial_")>0) {
-                            
-                        }elseif(strpos($item,"axDif_Dame")>0) {
-                            
-                        }elseif(strpos($item,"urfAnalysis_")>0) {
-                            
-                        }elseif(strpos($item,"urf_chart_")>0) {
-                        
-                            
-                        }else{
-                            echo "<li style='color:red;'><b>$item</b></li>";
-                            $Sospechosos++;
+                        if (strpos($item, "ecibeFileAdjunto") == false) {
+                            if (strpos($item, "ameHijosDeEsteTextoAcum_EnJer") > 0) {
+                            } elseif (strpos($item, "jax_Jerarquia_DameHijosDeEsteTextoAcum") > 0) {
+
+                            } elseif (strpos($item, "jax_Jerarquia_DameHijosDeEsteTextoAcum") > 0) {
+
+                            } elseif (strpos($item, "jax_Jerarquia_ValidaLineaDeTextos") > 0) {
+
+                            } elseif (strpos($item, "ameDisparos_rotacion_secuencial_") > 0) {
+
+                            } elseif (strpos($item, "axDif_Dame") > 0) {
+
+                            } elseif (strpos($item, "urfAnalysis_") > 0) {
+
+                            } elseif (strpos($item, "urf_chart_") > 0) {
+
+
+                            } else {
+                                echo "<li style='color:red;'><b>$item</b></li>";
+                                $Sospechosos++;
+                            }
                         }
-                    }
                 }
             }
-            
-            if(isset($versionHtaccess)){
-                echo "<script>versionHtaccess='".$versionHtaccess."';</script>";
+
+            if (isset($versionHtaccess)) {
+                echo "<script>versionHtaccess='" . $versionHtaccess . "';</script>";
             }
-            
+
             // archivos de mas de 300 MB QUE ES ESO?
             if (filesize($start . '/' . $item) > 300000000) {
                 echo "<li style='color:red;'><b>$item" . " (LARGE FILE: " . round(filesize($start . '/' . $item) / (1024 * 1024), 1) . " MB.)</b></li>";
                 $Sospechosos++;
-            }            
+            }
         }
-        
+
     } // cierro for each
-    if ($contFiles>20000) {
-        echo "<li style='color:red;'><b> (TOO MANY FILES: ".$contFiles.")" ."</b></li>";
+    if ($contFiles > 20000) {
+        echo "<li style='color:red;'><b> (TOO MANY FILES: " . $contFiles . ")" . "</b></li>";
         $Sospechosos++;
     }
     echo "</ul> ";
 }
 // TEST VALIDA FTP
 //----------------------------------------------------------------------------------------------------------------------------------------
-function pingFTP($ftp_server) {
+function pingFTP($ftp_server)
+{
     $conn_id = ftp_connect($ftp_server);
     if ($conn_id) {
-        $login_result = ftp_login($conn_id, 'usrftpversta@'.$_SERVER['HTTP_HOST'], 'Rotator123!');
+        $login_result = ftp_login($conn_id, 'usrftpversta@' . $_SERVER['HTTP_HOST'], 'Rotator123!');
         if ($login_result) {
             return 1; // FTP server is reachable and login was successful
         } else {
@@ -2154,7 +2333,8 @@ function pingFTP($ftp_server) {
 }
 //----------------------------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------------------------
-function folderSize($dir){
+function folderSize($dir)
+{
     $size = 0;
     foreach (glob(rtrim($dir, "/") . "/*", GLOB_NOSORT) as $each) {
         $size += is_file($each) ? filesize($each) : folderSize($each);
@@ -2176,7 +2356,8 @@ try {
     $db = new PDO($conectarPDO, $user, $pass);
     $MySQLActivo = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
     $colorBD = 'white';
-} catch (Exception $e) {}
+} catch (Exception $e) {
+}
 
 
 
@@ -2188,10 +2369,10 @@ $colorTablas = 'red';
 
 
 try {
-    $host   = $GLOBALS['master_host'];
+    $host = $GLOBALS['master_host'];
     $dbName = $GLOBALS['master_db'];
-    $user   = $GLOBALS['master_user'];
-    $pass   = $GLOBALS['master_pass'];
+    $user = $GLOBALS['master_user'];
+    $pass = $GLOBALS['master_pass'];
 
     $pdo = new PDO("mysql:host=$host;dbname=$dbName;charset=utf8", $user, $pass);
 
@@ -2200,15 +2381,15 @@ try {
     if ($stmt && $stmt->rowCount() > 0) {
         // Table exists
         $MySQExistenTablas = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
-        $colorTablas = 'lightgreen';        
-    }else{
+        $colorTablas = 'lightgreen';
+    } else {
 
-    
+
 
     }
 
-} catch (Exception $e) {    
-    
+} catch (Exception $e) {
+
 }
 
 
@@ -2229,10 +2410,14 @@ if (unzipfile('TestZipNoMatar.zip')) {
 //----------------------------------------------------------------------------------------------------------------------------------------
 // VALIDACION DE CREDENCIALES
 //----------------------------------------------------------------------------------------------------------------------------------------
-if (!isset($_SESSION['EntroAdmin'])) $_SESSION['EntroAdmin'] = false;
-if (!isset($_SESSION['EntroAnalyst'])) $_SESSION['EntroAnalyst'] = false;
-if (!isset($_SESSION['EntroAssistant'])) $_SESSION['EntroAssistant'] = false;
-if (!isset($_SESSION['UsuarioActivo'])) $_SESSION['UsuarioActivo'] = '';
+if (!isset($_SESSION['EntroAdmin']))
+    $_SESSION['EntroAdmin'] = false;
+if (!isset($_SESSION['EntroAnalyst']))
+    $_SESSION['EntroAnalyst'] = false;
+if (!isset($_SESSION['EntroAssistant']))
+    $_SESSION['EntroAssistant'] = false;
+if (!isset($_SESSION['UsuarioActivo']))
+    $_SESSION['UsuarioActivo'] = '';
 $_POST['EnviaLoginPass'] = !isset($_POST['EnviaLoginPass']) ? '' : $_POST['EnviaLoginPass'];
 
 
@@ -2241,23 +2426,23 @@ $_POST['EnviaLoginPass'] = !isset($_POST['EnviaLoginPass']) ? '' : $_POST['Envia
 
 
 
-$entraDirecto=false;
+$entraDirecto = false;
 
-if ($Ip==$IP_Auto_CHACAO OR $Ip==$IP_Auto_PARAISO  OR $Ip==$IP_Auto_USA OR $Ip==$IP_Auto_CHACAO_ABA ){
-	$_SESSION['EntroAdmin']=true;
-	$_SESSION['UsuarioActivo'] = 'Auto by ip';
-	$login_success = true;
-	$entraDirecto=true;
+if ($Ip == $IP_Auto_CHACAO OR $Ip == $IP_Auto_PARAISO OR $Ip == $IP_Auto_USA OR $Ip == $IP_Auto_CHACAO_ABA) {
+    $_SESSION['EntroAdmin'] = true;
+    $_SESSION['UsuarioActivo'] = 'Auto by ip';
+    $login_success = true;
+    $entraDirecto = true;
 }
 
 
 
 
-if ($_POST['EnviaLoginPass'] or $entraDirecto ) {
+if ($_POST['EnviaLoginPass'] or $entraDirecto) {
     $clave = $_POST['input_clave'];
     $usuario = $_POST['input_usuario'];
     $login_success = false;
-    
+
     // REVISA TODOS LOS ADMINS DECLARADOS EN ARCHIVO .ADMINS (maestro_admin_login/pass)
     if (isset($GLOBALS['master_admin_login']) && is_array($GLOBALS['master_admin_login'])) {
         for ($u = 0; $u < count($GLOBALS['master_admin_login']); $u++) {
@@ -2268,7 +2453,7 @@ if ($_POST['EnviaLoginPass'] or $entraDirecto ) {
                 break;
             }
         }
-    }        
+    }
     if (!$login_success) { // Solo si no se ha logueado como admin    
         if (isset($GLOBALS['master_analyst_login']) && is_array($GLOBALS['master_analyst_login'])) {
             for ($u = 0; $u < count($GLOBALS['master_analyst_login']); $u++) {
@@ -2312,7 +2497,7 @@ if (isset($_GET['Close'])) {
 
 
 if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAssistant'])) {
-    echo'
+    echo '
     <!DOCTYPE html>
     <html>
         <head>
@@ -2352,9 +2537,10 @@ if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAs
             <div class="login-container">
                 <h2>Credentials</h2>
             ';
-            if (!empty($mensaje_error_login));
-    echo' 
-                <p class="error-message">'.$mensaje_error_login.'</p>
+    if (!empty($mensaje_error_login))
+        ;
+    echo ' 
+                <p class="error-message">' . $mensaje_error_login . '</p>
                 <form action="" method="post">
                     <input type="text" name="input_usuario" placeholder="User" required>
                     <input type="password" name="input_clave" placeholder="Password" required>
@@ -2365,7 +2551,7 @@ if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAs
             </div>
             
                         
-            <p style="font-size:10px;color:#999999">VIP:'. $IP_Auto_CHACAO .'  -  '. $IP_Auto_PARAISO .'  -  '.  $IP_Auto_USA  .' (Vs. current: '.$Ip.')</p>
+            <p style="font-size:10px;color:#999999">VIP:' . $IP_Auto_CHACAO . '  -  ' . $IP_Auto_PARAISO . '  -  ' . $IP_Auto_USA . ' (Vs. current: ' . $Ip . ')</p>
             
             
             
@@ -2380,21 +2566,26 @@ if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAs
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $response = curl_exec($ch);
-    if ($response !== false) { {$colorCurl = 'white';$CurlActivo = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';}}
+    if ($response !== false) { {
+            $colorCurl = 'white';
+            $CurlActivo = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
+        }
+    }
     curl_close($ch);
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // TEST DE SERVICIO DE GEOLOCALIZACION MEDIANTE IP USANDO CURL
     // ---------------------------------------------------------------------------------------------------------------------------------------
-    if($lugar==''){
-        $ip='51.15.0.0'; // IP RANDOM EN FRANCIA
-        $api='https://get.geojs.io/v1/ip/geo/'.$ip.'.json';
-        $ch=curl_init();
-        curl_setopt($ch,CURLOPT_URL,$api);
+    if ($lugar == '') {
+        $ip = '51.15.0.0'; // IP RANDOM EN FRANCIA
+        $api = 'https://get.geojs.io/v1/ip/geo/' . $ip . '.json';
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $api);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $json = curl_exec($ch);
-        $obj=json_decode($json,true);
-        if(is_array($obj)){
-            $colorGeo='white';$GeoActivo= 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
+        $obj = json_decode($json, true);
+        if (is_array($obj)) {
+            $colorGeo = 'white';
+            $GeoActivo = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
         }
         curl_close($ch);
     }
@@ -2404,7 +2595,9 @@ if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAs
     $colorLinuxCommands = 'yellow';
     try {
         $testLinuxFile = 'TestLinux.txt';
-        if (file_exists($testLinuxFile)) {unlink($testLinuxFile);}
+        if (file_exists($testLinuxFile)) {
+            unlink($testLinuxFile);
+        }
         $cmd = 'echo 1 > ' . $testLinuxFile;
         system($cmd);
         if (file_exists($testLinuxFile)) {
@@ -2413,7 +2606,7 @@ if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAs
         }
     } catch (Exception $e) {
     }
-    
+
     if (session_status() == PHP_SESSION_ACTIVE) {
         $sessionTest = 'https://cdn-icons-png.flaticon.com/512/390/390973.png';
         $sessionTestColor = 'white';
@@ -2421,112 +2614,117 @@ if (!($_SESSION['EntroAdmin'] || $_SESSION['EntroAnalyst'] || $_SESSION['EntroAs
         $sessionTest = 'https://cdn-icons-png.flaticon.com/512/594/594864.png';
         $sessionTestColor = 'yellow';
     }
-    
-    
+
+
     $fileDump = 'testCache_DUMP.php';
     file_put_contents($fileDump, '1');
     $LeoFile1 = file_get_contents($fileDump);
     file_put_contents($fileDump, '2');
     $LeoFile2 = file_get_contents($fileDump);
-    if ($LeoFile1 == $LeoFile2) $CacheDeFilesPHP = 1;
+    if ($LeoFile1 == $LeoFile2)
+        $CacheDeFilesPHP = 1;
     $LeoFComunesJS = file_get_contents("../web/varias/funciones_comunes.js");
     $LeoFComunesPHP = file_get_contents("../web/varias/funciones_comunes.php");
     $posVersion = strpos($LeoFComunesJS, 'VERSION:');
     $VersionFComunesJS = substr($LeoFComunesJS, $posVersion + 8, 6);
     $posVersion = strpos($LeoFComunesPHP, 'VERSION:');
     $VersionFComunesPHP = substr($LeoFComunesPHP, $posVersion + 8, 6);
-    $VersionPHP = phpversion(); 
+    $VersionPHP = phpversion();
     $VersionPHP = explode('.', $VersionPHP); // Obtiene la versión de PHP actual
     if (version_compare(phpversion(), '8.1', '<')) {
-    
-    
-    $VersionPHP = phpversion().' '.'<img style=' . $imagenmala . '>';
-    $VersionPHPColor = 'red';
-    
-    
-    
-    }else{
-    	$VersionPHP = phpversion().'<img style=' . $imagenbuena . '>';
-    	$VersionPHPColor = '#9fa7afff' ;
-    }
-    
 
-// Definición de íconos según el requerimiento del usuario.
-$ICONO_EXITO = '<img style="height: 25px; width: 25px;" src="https://cdn-icons-png.flaticon.com/512/390/390973.png">';
-$ICONO_FALLO = '<img style="height: 25px; width: 25px;" src="https://cdn-icons-png.flaticon.com/512/594/594864.png">';
 
-// Inicialización de la variable de resultado.
-$URL_CORTA = "";
-$pathToFile = "../.htaccess";
+        $VersionPHP = phpversion() . ' ' . '<img style=' . $imagenmala . '>';
+        $VersionPHPColor = 'red';
 
-// Banderas de estado para los 4 componentes críticos
-$engine_on_found = false;
-$cond_f_found = false; // RewriteCond %{REQUEST_FILENAME} !-f
-$cond_d_found = false; // RewriteCond %{REQUEST_FILENAME} !-d
-$rule_target_found = false;
 
-$error_acceso_lectura = false;
 
-// 1. Bloque de verificación y manejo de errores de acceso.
-if (!file_exists($pathToFile) || !is_readable($pathToFile)) {
-    $URL_CORTA = $ICONO_FALLO . " Error: No se pudo acceder o leer el archivo '{$pathToFile}'.";
-    $error_acceso_lectura = true;
-}
-
-// 2. Proceso de lectura y análisis.
-if (!$error_acceso_lectura) {
-    // Leer el archivo en un array, línea por línea.
-    $lineas = @file($pathToFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-    if ($lineas === false) {
-        $URL_CORTA = $ICONO_FALLO . " Error: Falló la lectura del archivo '{$pathToFile}'.";
     } else {
-        // Expresiones regulares para la búsqueda línea por línea
-        $cond_f_pattern = '/^RewriteCond\s+\%\{REQUEST_FILENAME\}\s+!\-f/i';
-        $cond_d_pattern = '/^RewriteCond\s+\%\{REQUEST_FILENAME\}\s+!\-d/i';
-        $rule_target_pattern = '/^RewriteRule\s+.*redireccionarShortLink\.php\?cod\=\$1\s+\[L\]/i';
+        $VersionPHP = phpversion() . '<img style=' . $imagenbuena . '>';
+        $VersionPHPColor = '#9fa7afff';
+    }
 
-        foreach ($lineas as $linea) {
-            $linea_limpia = trim($linea);
 
-            // 1. Verificar RewriteEngine On
-            if (strcasecmp($linea_limpia, 'RewriteEngine On') === 0) {
-                $engine_on_found = true;
-                continue;
-            }
+    // Definición de íconos según el requerimiento del usuario.
+    $ICONO_EXITO = '<img style="height: 25px; width: 25px;" src="https://cdn-icons-png.flaticon.com/512/390/390973.png">';
+    $ICONO_FALLO = '<img style="height: 25px; width: 25px;" src="https://cdn-icons-png.flaticon.com/512/594/594864.png">';
 
-            // 2. Verificar las dos RewriteCond críticas
-            if (preg_match($cond_f_pattern, $linea_limpia)) {
-                $cond_f_found = true;
-                continue;
-            }
-            if (preg_match($cond_d_pattern, $linea_limpia)) {
-                $cond_d_found = true;
-                continue;
-            }
+    // Inicialización de la variable de resultado.
+    $URL_CORTA = "";
+    $pathToFile = "../.htaccess";
 
-            // 3. Verificar la RewriteRule con el target simplificado
-            if (preg_match($rule_target_pattern, $linea_limpia)) {
-                $rule_target_found = true;
-            }
-        }
+    // Banderas de estado para los 4 componentes críticos
+    $engine_on_found = false;
+    $cond_f_found = false; // RewriteCond %{REQUEST_FILENAME} !-f
+    $cond_d_found = false; // RewriteCond %{REQUEST_FILENAME} !-d
+    $rule_target_found = false;
 
-        // 3. Asignar el resultado final basado en todas las banderas.
-        $completo = $engine_on_found && $cond_f_found && $cond_d_found && $rule_target_found;
+    $error_acceso_lectura = false;
 
-        if ($completo) {
-            $URL_CORTA = $ICONO_EXITO ;
+    // 1. Bloque de verificación y manejo de errores de acceso.
+    if (!file_exists($pathToFile) || !is_readable($pathToFile)) {
+        $URL_CORTA = $ICONO_FALLO . " Error: No se pudo acceder o leer el archivo '{$pathToFile}'.";
+        $error_acceso_lectura = true;
+    }
+
+    // 2. Proceso de lectura y análisis.
+    if (!$error_acceso_lectura) {
+        // Leer el archivo en un array, línea por línea.
+        $lineas = @file($pathToFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        if ($lineas === false) {
+            $URL_CORTA = $ICONO_FALLO . " Error: Falló la lectura del archivo '{$pathToFile}'.";
         } else {
-            $errores = [];
-            if (!$engine_on_found) $errores[] = "RewriteEngine On";
-            if (!$cond_f_found) $errores[] = "RewriteCond !-f";
-            if (!$cond_d_found) $errores[] = "RewriteCond !-d";
-            if (!$rule_target_found) $errores[] = "RewriteRule con target 'redireccionarShortLink.php?cod=$1'";
-            
-            $URL_CORTA = $ICONO_FALLO;
+            // Expresiones regulares para la búsqueda línea por línea
+            $cond_f_pattern = '/^RewriteCond\s+\%\{REQUEST_FILENAME\}\s+!\-f/i';
+            $cond_d_pattern = '/^RewriteCond\s+\%\{REQUEST_FILENAME\}\s+!\-d/i';
+            $rule_target_pattern = '/^RewriteRule\s+.*redireccionarShortLink\.php\?cod\=\$1\s+\[L\]/i';
+
+            foreach ($lineas as $linea) {
+                $linea_limpia = trim($linea);
+
+                // 1. Verificar RewriteEngine On
+                if (strcasecmp($linea_limpia, 'RewriteEngine On') === 0) {
+                    $engine_on_found = true;
+                    continue;
+                }
+
+                // 2. Verificar las dos RewriteCond críticas
+                if (preg_match($cond_f_pattern, $linea_limpia)) {
+                    $cond_f_found = true;
+                    continue;
+                }
+                if (preg_match($cond_d_pattern, $linea_limpia)) {
+                    $cond_d_found = true;
+                    continue;
+                }
+
+                // 3. Verificar la RewriteRule con el target simplificado
+                if (preg_match($rule_target_pattern, $linea_limpia)) {
+                    $rule_target_found = true;
+                }
+            }
+
+            // 3. Asignar el resultado final basado en todas las banderas.
+            $completo = $engine_on_found && $cond_f_found && $cond_d_found && $rule_target_found;
+
+            if ($completo) {
+                $URL_CORTA = $ICONO_EXITO;
+            } else {
+                $errores = [];
+                if (!$engine_on_found)
+                    $errores[] = "RewriteEngine On";
+                if (!$cond_f_found)
+                    $errores[] = "RewriteCond !-f";
+                if (!$cond_d_found)
+                    $errores[] = "RewriteCond !-d";
+                if (!$rule_target_found)
+                    $errores[] = "RewriteRule con target 'redireccionarShortLink.php?cod=$1'";
+
+                $URL_CORTA = $ICONO_FALLO;
+            }
         }
     }
-}
 
     echo '
     <html>
@@ -2860,45 +3058,45 @@ if (!$error_acceso_lectura) {
         function PonIconoAmarillo(){icono.href= "https://cdn-icons-png.flaticon.com/512/1041/1041891.png"; }
         
         $(document).ready(function() { 
-		';            
-
-         
-
-
-                if($colorTablas == 'red'){
-
-                    echo 'PonIconoRojo();';
-                }
+		';
 
 
 
 
+    if ($colorTablas == 'red') {
+
+        echo 'PonIconoRojo();';
+    }
 
 
-            	if(!file_exists('../.htaccess')){
-            		echo '
+
+
+
+
+    if (!file_exists('../.htaccess')) {
+        echo '
 			    document.getElementById("spanhtacess").innerText="HTCACCESS NOT FOUND";
 			    document.getElementById("spanhtacess").style.color="red";  			    			    
 			    PonIconoRojo();
             		';
-            	}else{
-            	
-			if (strpos(file_get_contents('../.htaccess'), 'ROTATORSOFTWARE marca') !== false) {						
-				echo '
+    } else {
+
+        if (strpos(file_get_contents('../.htaccess'), 'ROTATORSOFTWARE marca') !== false) {
+            echo '
 				    document.getElementById("spanhtacess").innerText = versionHtaccess;  
 				    document.getElementById("spanhtacess").style.color="blue";            		
 				';
-            		}else{
-            		
-            			echo '
+        } else {
+
+            echo '
 				    document.getElementById("spanhtacess").innerText="HTCACCESS ALTERED";
 				    document.getElementById("spanhtacess").style.color="red";            		
 				    PonIconoRojo();
 				';
-            		}
-            	}
-            
-            echo '
+        }
+    }
+
+    echo '
         
         
         
@@ -2952,8 +3150,8 @@ if (!$error_acceso_lectura) {
     <div class="personal-contenido-principal">
     <div class="personal-header">
         <button style="color:LightGray;" class="personal-toggle-btn btn" onclick="window.location.replace(window.location.href + \'?Close=1\');">LOG OFF</button>
-        <h3>' . $NombreServidor . ' DIAGNOSTICS <span style="color:cornflowerblue;">('. $tipoDeServer . ' - ' . $GLOBALS['master_size_of_server'] . ')</span></h3>
-        <h3 style="color:LightGray;">VERSION '.$version.'</h3>
+        <h3>' . $NombreServidor . ' DIAGNOSTICS <span style="color:cornflowerblue;">(' . $tipoDeServer . ' - ' . $GLOBALS['master_size_of_server'] . ')</span></h3>
+        <h3 style="color:LightGray;">VERSION ' . $version . '</h3>
     </div>
 
  
@@ -2970,22 +3168,22 @@ if (!$error_acceso_lectura) {
    
         <div class="info-card" style="text-align: center; display: block;">
             <h4>PHP SESSION VARIABLES</h4>
-            <span class="status-indicator" style="background:'.$sessionTestColor.'; ">
-                <img style="height: 25px; width: 25px;" src="'.$sessionTest.'">
+            <span class="status-indicator" style="background:' . $sessionTestColor . '; ">
+                <img style="height: 25px; width: 25px;" src="' . $sessionTest . '">
             </span>
         </div>
         <div class="info-card" style=" text-align: center; display: block;"> 
             <h4>DATABASE CONNECTION</h4>
-            <span class="status-indicator" style="background:'.$colorBD.';">
-                <img style="height: 25px; width: 25px;" src="'.$MySQLActivo.'">
+            <span class="status-indicator" style="background:' . $colorBD . ';">
+                <img style="height: 25px; width: 25px;" src="' . $MySQLActivo . '">
             </span>
         </div>
 
     
         <div class="info-card" style=" text-align: center; display: block;"> 
             <h4>DATABASE TABLES</h4>
-            <span class="status-indicator" style="background:'.$colorBD.';">
-                <img style="height: 25px; width: 25px;" src="'.$MySQExistenTablas.'">
+            <span class="status-indicator" style="background:' . $colorBD . ';">
+                <img style="height: 25px; width: 25px;" src="' . $MySQExistenTablas . '">
             </span>
         </div>
 
@@ -2995,22 +3193,22 @@ if (!$error_acceso_lectura) {
             <h4>FTP SERVER</h4>
             <span class="status-indicator" id="usoFtp"><div class="loader"></div></span>
         </div>        
-        <div class="info-card" style=" text-align: center; display: block; border-color:'.$activeSessionColor.'">
+        <div class="info-card" style=" text-align: center; display: block; border-color:' . $activeSessionColor . '">
             <h4>NUMBER OF PHP SESSIONS</h4>
-            <span class="status-indicator" style="color:blue">'.$activeSessionCount.'</span>
-            <img style="height: 25px; width: 25px;" src="'.$activeSessionImg.'">
+            <span class="status-indicator" style="color:blue">' . $activeSessionCount . '</span>
+            <img style="height: 25px; width: 25px;" src="' . $activeSessionImg . '">
         </div>        
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>PHP ZIP EXTENSION</h4>
             <span class="status-indicator" style="background:white;">
-                <img style="height: 25px; width: 25px;" src="'.$zipExtension.'">
+                <img style="height: 25px; width: 25px;" src="' . $zipExtension . '">
             </span>
         </div>        
 
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>PHP LINUX COMMANDS</h4>
-            <span class="status-indicator" style="background:'.$colorLinuxCommands.';">
-                <img style="height: 25px; width: 25px;" src="'.$LinuxCommands.'">
+            <span class="status-indicator" style="background:' . $colorLinuxCommands . ';">
+                <img style="height: 25px; width: 25px;" src="' . $LinuxCommands . '">
             </span>
         </div>
         
@@ -3025,18 +3223,18 @@ if (!$error_acceso_lectura) {
         </div>        
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>SHORTEN URL SYSTEM:</h4>            
-            <span class="status-indicator" >'.$URL_CORTA.'</span>
+            <span class="status-indicator" >' . $URL_CORTA . '</span>
         </div>
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>CURL LIBRARY</h4>
-            <span class="status-indicator" style="background:'.$colorCurl.';">
-                <img style="height: 25px; width: 25px;" src="'.$CurlActivo.'">
+            <span class="status-indicator" style="background:' . $colorCurl . ';">
+                <img style="height: 25px; width: 25px;" src="' . $CurlActivo . '">
             </span>
         </div>        
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>GET GEOLOCATION VIA CURL</h4>            
-            <span class="status-indicator" style="background:'.$colorGeo.';">
-                <img style="height: 25px; width: 25px;" src="'.$GeoActivo.'">
+            <span class="status-indicator" style="background:' . $colorGeo . ';">
+                <img style="height: 25px; width: 25px;" src="' . $GeoActivo . '">
             </span>
         </div>
 
@@ -3046,8 +3244,8 @@ if (!$error_acceso_lectura) {
         </div>
         <div class="info-card" style="text-align: center; display: block;">
             <h4>FAV ICON</h4>
-            <span class="status-indicator" style="background:'.$FavIconColor.'; ">
-                <img style="height: 25px; width: 25px;" src="'.$FavIcon.'">
+            <span class="status-indicator" style="background:' . $FavIconColor . '; ">
+                <img style="height: 25px; width: 25px;" src="' . $FavIcon . '">
             </span>
         </div>  
         <div class="info-card" style=" text-align: center; display: block;">
@@ -3070,17 +3268,17 @@ if (!$error_acceso_lectura) {
 
 
 <div class="dashboard-grid">                 
-        <div class="info-card" style=" text-align: center; display: block; border-color:'.$VersionPHPColor.'">
+        <div class="info-card" style=" text-align: center; display: block; border-color:' . $VersionPHPColor . '">
             <h4>PHP VERSION</h4>
-            <span class="status-indicator" style="color:blue">'.$VersionPHP.'</span>
+            <span class="status-indicator" style="color:blue">' . $VersionPHP . '</span>
         </div>        
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>PHP COMMON FUNCTIONS</h4>
-            <span class="status-indicator" style="color:blue">'.$VersionFComunesPHP.'</span>
+            <span class="status-indicator" style="color:blue">' . $VersionFComunesPHP . '</span>
         </div>
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>JS COMMON FUNCTIONS</h4>            
-            <span class="status-indicator" style="color:blue">'.$VersionFComunesJS.'</span>
+            <span class="status-indicator" style="color:blue">' . $VersionFComunesJS . '</span>
         </div>
         <div class="info-card" style=" text-align: center; display: block;">
             <h4>PUBLIC HTACCESS FILE:</h4>
@@ -3150,10 +3348,10 @@ if (!$error_acceso_lectura) {
 <div class="info-card">    
 	<h4>CRITICAL FILE SYSTEM</h4><p>';
 
-	show_files("../");	  
+    show_files("../");
 
 
-echo '</p></div>
+    echo '</p></div>
 
 
 
@@ -3165,143 +3363,159 @@ echo '</p></div>
 
 
 
-	
-	
-
-//  (*) EN REALIDAD NO ES VERSION SON 2 CARACTERES DEL TAMANO ES PARA CONTROLAR QUE TODOS SEAN LOS MISMOS EN LOS DIFERENTES SERVERS
-
-
-echo "&nbsp;SUPECTED: " . $Sospechosos . "<br>";
-echo "&nbsp;INFECTED: " . $Infectados . "<br>";
-echo "&nbsp;MODIFIED FOLDERS: " . $CarpetasAlteradas . "<br>";
 
 
 
-
-if ($Sospechosos != 0) {echo '<script>  PonIconoAmarillo(); </script>';}
-if ($Infectados != 0 || $CarpetasAlteradas != 0) {echo '<script> PonIconoRojo(); </script>';}
-if ($Infectados == 0) {
-    echo '<script> document.getElementById("spanVirus").innerHTML="<img style=' . $imagenbuena . '>";</script>';
-} else {
-    echo '<script> document.getElementById("spanVirus").innerHTML="<img style=' . $imagenmala . '>";</script>';
-}
-if ($CacheDeFilesPHP == 0) {
-    echo '<script> document.getElementById("spanCache").innerHTML="<img style=' . $imagenbuena . '>";</script>';
-} else {
-    echo '<script> document.getElementById("spanCache").innerHTML="<img style=' . $imagenmala . '>";</script>';
-}
-if ($MySQLActivo != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {echo '<script> PonIconoRojo(); </script>';}
-if ($CurlActivo != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {echo '<script> PonIconoRojo(); </script>';}
-if ($GeolActivo != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {
-    echo $GeolActivo.'';
-}else {
-    echo '<script> PonIconoRojo(); </script>';
-}
-if ($LinuxCommands != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {echo '<script> PonIconoRojo(); </script>';}
-if ($sessionTest != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {echo '<script> PonIconoRojo(); </script>';}
+    //  (*) EN REALIDAD NO ES VERSION SON 2 CARACTERES DEL TAMANO ES PARA CONTROLAR QUE TODOS SEAN LOS MISMOS EN LOS DIFERENTES SERVERS
 
 
-
-if ($VersionPHPColor == 'red') {echo '<script> PonIconoRojo(); </script>';}
-if ($FavIconColor == 'red') {echo '<script> PonIconoRojo(); </script>';}
-
-
-$disco = round($disco / 1073741824, 2);
-
-
-if ($disco >= $MaxDiskAllowedGB) {
-    $discoImg = $imagenmala;
-}else{
-    $discoImg = $imagenbuena;
-}
+    echo "&nbsp;SUPECTED: " . $Sospechosos . "<br>";
+    echo "&nbsp;INFECTED: " . $Infectados . "<br>";
+    echo "&nbsp;MODIFIED FOLDERS: " . $CarpetasAlteradas . "<br>";
 
 
 
 
+    if ($Sospechosos != 0) {
+        echo '<script>  PonIconoAmarillo(); </script>';
+    }
+    if ($Infectados != 0 || $CarpetasAlteradas != 0) {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+    if ($Infectados == 0) {
+        echo '<script> document.getElementById("spanVirus").innerHTML="<img style=' . $imagenbuena . '>";</script>';
+    } else {
+        echo '<script> document.getElementById("spanVirus").innerHTML="<img style=' . $imagenmala . '>";</script>';
+    }
+    if ($CacheDeFilesPHP == 0) {
+        echo '<script> document.getElementById("spanCache").innerHTML="<img style=' . $imagenbuena . '>";</script>';
+    } else {
+        echo '<script> document.getElementById("spanCache").innerHTML="<img style=' . $imagenmala . '>";</script>';
+    }
+    if ($MySQLActivo != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+    if ($CurlActivo != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+    if ($GeolActivo != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {
+        echo $GeolActivo . '';
+    } else {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+    if ($LinuxCommands != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+    if ($sessionTest != 'https://cdn-icons-png.flaticon.com/512/390/390973.png') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
 
-switch( $GLOBALS['master_size_of_server']) {	
-	case 'ULTRA-LARGE':
-        $FactorAguante=2;
-		if ($GLOBALS['master_type_of_server']=='0'){
-			$limite_estudios_amarillo=130;
-			$limite_estudios_rojo=160;
-		}else{
-			$limite_estudios_amarillo=150;
-			$limite_estudios_rojo=180;		
-		}        
-		break;
-	case 'LARGE':		
-        $FactorAguante=1.5;
-		if ($GLOBALS['master_type_of_server']=='0'){
-			$limite_estudios_amarillo=110;
-			$limite_estudios_rojo=130;
-		}else{
-			$limite_estudios_amarillo=120;
-			$limite_estudios_rojo=140;
-		}
-        break;		
-		
-	case 'MEDIUM':
-        $FactorAguante=1;
-		if ($GLOBALS['master_type_of_server']=='0'){
-			$limite_estudios_amarillo=90;
-			$limite_estudios_rojo=110;			
-		}else{
-			$limite_estudios_amarillo=100;
-			$limite_estudios_rojo=130;		
-		}    
-        break;
-		
-	case 'SMALL':
-        $FactorAguante=0.5;
-		$limite_estudios_amarillo=0;
-		$limite_estudios_rojo=0;                
-        break;
-	default:
-		$limite_estudios_amarillo=9999999;
-		$limite_estudios_rojo=9999999;
-        $FactorAguante=0.1;
-                            
-}
+
+
+    if ($VersionPHPColor == 'red') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+    if ($FavIconColor == 'red') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
+
+
+    $disco = round($disco / 1073741824, 2);
+
+
+    if ($disco >= $MaxDiskAllowedGB) {
+        $discoImg = $imagenmala;
+    } else {
+        $discoImg = $imagenbuena;
+    }
 
 
 
 
 
+    switch ($GLOBALS['master_size_of_server']) {
+        case 'ULTRA-LARGE':
+            $FactorAguante = 2;
+            if ($GLOBALS['master_type_of_server'] == '0') {
+                $limite_estudios_amarillo = 130;
+                $limite_estudios_rojo = 160;
+            } else {
+                $limite_estudios_amarillo = 150;
+                $limite_estudios_rojo = 180;
+            }
+            break;
+        case 'LARGE':
+            $FactorAguante = 1.5;
+            if ($GLOBALS['master_type_of_server'] == '0') {
+                $limite_estudios_amarillo = 110;
+                $limite_estudios_rojo = 130;
+            } else {
+                $limite_estudios_amarillo = 120;
+                $limite_estudios_rojo = 140;
+            }
+            break;
 
-if($NoEstudios_totales >$limite_estudios_rojo){
-	$iconoEstudiosTotales=$imagenmala;	
-	echo '<script> PonIconoRojo(); </script>';
+        case 'MEDIUM':
+            $FactorAguante = 1;
+            if ($GLOBALS['master_type_of_server'] == '0') {
+                $limite_estudios_amarillo = 90;
+                $limite_estudios_rojo = 110;
+            } else {
+                $limite_estudios_amarillo = 100;
+                $limite_estudios_rojo = 130;
+            }
+            break;
 
-}elseif($NoEstudios_totales >$limite_estudios_amarillo){
-	$iconoEstudiosTotales=$imagenmala;	
-	echo '<script> PonIconoAmarillo(); </script>';
-}else{
-	$iconoEstudiosTotales=$imagenbuena;
-}
+        case 'SMALL':
+            $FactorAguante = 0.5;
+            $limite_estudios_amarillo = 0;
+            $limite_estudios_rojo = 0;
+            break;
+        default:
+            $limite_estudios_amarillo = 9999999;
+            $limite_estudios_rojo = 9999999;
+            $FactorAguante = 0.1;
+
+    }
 
 
 
 
 
 
-echo '<script>document.getElementById("usoDisco").innerHTML = "' . $disco . ' GB.<img style=' . $discoImg . '>";
+    if ($NoEstudios_totales > $limite_estudios_rojo) {
+        $iconoEstudiosTotales = $imagenmala;
+        echo '<script> PonIconoRojo(); </script>';
+
+    } elseif ($NoEstudios_totales > $limite_estudios_amarillo) {
+        $iconoEstudiosTotales = $imagenmala;
+        echo '<script> PonIconoAmarillo(); </script>';
+    } else {
+        $iconoEstudiosTotales = $imagenbuena;
+    }
 
 
-document.getElementById("totalStudies").innerHTML="<b>'.$NoEstudios_totales.'&nbsp;<img style=' . $iconoEstudiosTotales . '></b>";
-document.getElementById("mobileStudies").innerHTML="<b>'.$NoEstudios_mobile.'&nbsp;</b>";
 
 
 
 
-document.getElementById("msgIntensidad").innerHTML="'.$AcumFilesTocados_Count.' files used ('. round($AcumFilesTocados_Bytes/(1024*1024),0).  ' MB)";
+    echo '<script>document.getElementById("usoDisco").innerHTML = "' . $disco . ' GB.<img style=' . $discoImg . '>";
+
+
+document.getElementById("totalStudies").innerHTML="<b>' . $NoEstudios_totales . '&nbsp;<img style=' . $iconoEstudiosTotales . '></b>";
+document.getElementById("mobileStudies").innerHTML="<b>' . $NoEstudios_mobile . '&nbsp;</b>";
+
+
+
+
+document.getElementById("msgIntensidad").innerHTML="' . $AcumFilesTocados_Count . ' files used (' . round($AcumFilesTocados_Bytes / (1024 * 1024), 0) . ' MB)";
 
 
 const circle = document.querySelector(".circle");
 
 
-var archivoTocados="'.$AcumFilesTocados_Count.'";
-var EstudioTocados="'.$EstudiosTocados.'";
+var archivoTocados="' . $AcumFilesTocados_Count . '";
+var EstudioTocados="' . $EstudiosTocados . '";
 
 
 
@@ -3309,16 +3523,16 @@ var EstudioTocados="'.$EstudiosTocados.'";
 if(EstudioTocados==0){
     // se queda gris
 }else{
-        if (archivoTocados < '. (10 * $FactorAguante) .' ){
+        if (archivoTocados < ' . (10 * $FactorAguante) . ' ){
         // se queda gris
         
-    }else if(archivoTocados< '. (500 * $FactorAguante) .' ){
+    }else if(archivoTocados< ' . (500 * $FactorAguante) . ' ){
         circle.classList.remove("gray"); circle.classList.add("green");	
 
-    }else if(archivoTocados< '. (1000 * $FactorAguante) .' ){
+    }else if(archivoTocados< ' . (1000 * $FactorAguante) . ' ){
         circle.classList.remove("gray"); circle.classList.add("yellow");
 
-    }else if(archivoTocados< '. (2000 * $FactorAguante) .' ){
+    }else if(archivoTocados< ' . (2000 * $FactorAguante) . ' ){
         circle.classList.remove("gray"); circle.classList.add("orange");
         
     }else{
@@ -3333,31 +3547,35 @@ if(EstudioTocados==0){
 
 
 
-// 15 07 2024
-$ftp = pingFTP($_SERVER['HTTP_HOST']);
-if ($ftp == 1) {
-    $ftpImg = $imagenbuena;
-    $ftpMSG='';
-}else if ($ftp == 2) {
-    $ftpImg = $imagenmala;
-    $ftpMSG='FTP SERVER ACTIVE, BUT LOGIN FAILS';
-} else {
-    $ftpImg  = $imagenmala;
-    $ftpMSG='FTP INACTIVE?';
-}
-echo '<script>document.getElementById("usoFtp").innerHTML = "' . $ftpMSG . '<img style=' . $ftpImg  . '>";</script>';
+    // 15 07 2024
+    $ftp = pingFTP($_SERVER['HTTP_HOST']);
+    if ($ftp == 1) {
+        $ftpImg = $imagenbuena;
+        $ftpMSG = '';
+    } else if ($ftp == 2) {
+        $ftpImg = $imagenmala;
+        $ftpMSG = 'FTP SERVER ACTIVE, BUT LOGIN FAILS';
+    } else {
+        $ftpImg = $imagenmala;
+        $ftpMSG = 'FTP INACTIVE?';
+    }
+    echo '<script>document.getElementById("usoFtp").innerHTML = "' . $ftpMSG . '<img style=' . $ftpImg . '>";</script>';
 
-if ($ftp == 2) {echo '<script> PonIconoRojo(); </script>';}
-
-
-if ($activeSessionColor=='red') {echo '<script> PonIconoRojo(); </script>';}
-
-
-//if ($URL_CORTA === $ICONO_FALLO || true ) {echo '<script> PonIconoRojo(); </script>';}
+    if ($ftp == 2) {
+        echo '<script> PonIconoRojo(); </script>';
+    }
 
 
+    if ($activeSessionColor == 'red') {
+        echo '<script> PonIconoRojo(); </script>';
+    }
 
-echo '</div><br></body>
+
+    //if ($URL_CORTA === $ICONO_FALLO || true ) {echo '<script> PonIconoRojo(); </script>';}
+
+
+
+    echo '</div><br></body>
     </html>';
 }
 ?>

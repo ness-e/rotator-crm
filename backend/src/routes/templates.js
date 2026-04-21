@@ -3,8 +3,6 @@
  * @description Definición de rutas API para el módulo templates.
  * @module Backend Route
  * @path /backend/src/routes/templates.js
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
  */
 
 import { Router } from 'express'
@@ -17,25 +15,30 @@ const router = Router()
 
 // GET /templates
 router.get('/', authRequired, requireMaster, async (req, res) => {
-    const templates = await prisma.emailTemplate.findMany({ orderBy: { name: 'asc' } })
-    res.json(templates)
+    try {
+        const templates = await prisma.emailTemplate.findMany({ 
+            orderBy: { code: 'asc' } 
+        })
+        res.json(templates)
+    } catch (e) {
+        console.error('Error fetching templates:', e)
+        res.status(500).json({ error: 'Error al obtener plantillas' })
+    }
 })
 
 // POST /templates (Create or Update by Code)
-// Useful for seeding or creating custom templates
 router.post('/', authRequired, requireMaster, async (req, res) => {
     try {
-        const data = {
-            code: req.body.code,
-            name: req.body.name,
-            subject: req.body.subject,
-            body: req.body.body,
-            variables: req.body.variables // Expecting string or we stringify it
-        }
+        const { code, name, subject, body, variables } = req.body
+        
+        if (!code) return res.status(400).json({ error: 'El código es requerido' })
 
-        // Ensure variables is string
-        if (typeof data.variables !== 'string' && data.variables) {
-            data.variables = JSON.stringify(data.variables)
+        const data = {
+            code: code.toUpperCase(),
+            name: name || code,
+            subject: subject || 'Sin asunto',
+            body: body || '',
+            variables: typeof variables === 'string' ? variables : JSON.stringify(variables || [])
         }
 
         const template = await prisma.emailTemplate.upsert({
@@ -48,13 +51,14 @@ router.post('/', authRequired, requireMaster, async (req, res) => {
             req,
             action: 'UPDATE',
             entity: 'EmailTemplate',
-            entityId: template.id,
+            entityId: String(template.id),
             entityName: template.code,
-            details: `Plantilla ${template.code} creada/actualizada`
+            details: `Plantilla ${template.code} gestionada via POST`
         })
 
         res.json(template)
     } catch (e) {
+        console.error('Error in POST /templates:', e)
         res.status(400).json({ error: e.message })
     }
 })
@@ -62,39 +66,36 @@ router.post('/', authRequired, requireMaster, async (req, res) => {
 // PUT /templates/:id
 router.put('/:id', authRequired, requireMaster, async (req, res) => {
     try {
-        const id = Number(req.params.id)
-        const data = {
-            name: req.body.name,
-            subject: req.body.subject,
-            body: req.body.body,
-            variables: req.body.variables
-        }
+        const id = parseInt(req.params.id)
+        if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' })
 
-        if (typeof data.variables !== 'string' && data.variables) {
-            data.variables = JSON.stringify(data.variables)
+        const { name, subject, body, variables } = req.body
+        
+        const updateData = {}
+        if (name !== undefined) updateData.name = name
+        if (subject !== undefined) updateData.subject = subject
+        if (body !== undefined) updateData.body = body
+        if (variables !== undefined) {
+            updateData.variables = typeof variables === 'string' ? variables : JSON.stringify(variables)
         }
 
         const template = await prisma.emailTemplate.update({
             where: { id },
-            data: {
-                name: data.name ?? undefined,
-                subject: data.subject ?? undefined,
-                body: data.body ?? undefined,
-                variables: data.variables ?? undefined
-            }
+            data: updateData
         })
 
         logAction({
             req,
             action: 'UPDATE',
             entity: 'EmailTemplate',
-            entityId: template.id,
+            entityId: String(template.id),
             entityName: template.code,
             details: `Plantilla ${template.code} actualizada`
         })
 
         res.json(template)
     } catch (e) {
+        console.error('Error in PUT /templates/:id:', e)
         res.status(400).json({ error: e.message })
     }
 })
@@ -102,10 +103,14 @@ router.put('/:id', authRequired, requireMaster, async (req, res) => {
 // DELETE /templates/:id
 router.delete('/:id', authRequired, requireMaster, async (req, res) => {
     try {
-        const id = Number(req.params.id)
+        const id = parseInt(req.params.id)
+        if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' })
+
         await prisma.emailTemplate.delete({ where: { id } })
+        
         res.json({ ok: true })
     } catch (e) {
+        console.error('Error in DELETE /templates/:id:', e)
         res.status(400).json({ error: e.message })
     }
 })

@@ -7,8 +7,8 @@
  * @author Sistema (Auto-Generated)
  */
 
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { prisma } from '../config/prismaClient.js'
+// Utiliza la instancia global de prisma importada arriba
 
 class CRMMetricsService {
 

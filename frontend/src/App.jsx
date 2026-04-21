@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from 'react';
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { PageLoader } from '@/components/PageLoader';
 import { Toaster } from '@/components/ui/toaster';
@@ -79,6 +80,7 @@ const PublicRoute = ({ children }) => {
 export default function App() {
   return (
     <>
+    <TooltipProvider>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
@@ -148,6 +150,7 @@ export default function App() {
         </Routes>
       </Suspense>
       <Toaster />
+    </TooltipProvider>
     </>
   );
 }

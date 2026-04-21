@@ -108,11 +108,20 @@ export const sendInvitationEmail = async (email, link) => {
     return sendEmail(email, 'Invitación a Rotator Survey', html);
 };
 
+/**
+ * Enviar reporte de fallo de diagnóstico
+ */
+export const sendServerDiagnosticReport = async (email, serverName, errors) => {
+    const html = templates.serverDiagnosticReport(serverName, errors);
+    return sendEmail(email, `ALERTA: Fallo de Salud en Servidor ${serverName}`, html);
+};
+
 export default {
     sendEmail,
     sendWelcomeEmail,
     sendPasswordResetEmail,
     sendLicenseExpiryWarning,
     sendPurchaseConfirmation,
-    sendInvitationEmail
+    sendInvitationEmail,
+    sendServerDiagnosticReport
 };

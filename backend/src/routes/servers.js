@@ -117,47 +117,92 @@ router.get('/expiring', authRequired, requireMaster, async (req, res) => {
     }
 })
 
+import { runServerDiagnostics } from '../services/servers.service.js'
+
 // GET /servers/:id/diagnostics
 // Proxies the request to the remote monitorServer.php and returns its JSON
 router.get('/:id/diagnostics', authRequired, requireMaster, validateParams(ParamIdSchema), async (req, res) => {
     const id = Number(req.validated.params.id)
     try {
-        const server = await prisma.serverNode.findUnique({ where: { id } })
-        if (!server) return res.status(404).json({ error: 'Server not found' })
-        if (!server.primaryDomain) {
-            return res.status(400).json({ error: 'Server has no primaryDomain configured. Please set a primary domain to enable diagnostics.' })
-        }
+        const data = await runServerDiagnostics(id)
+        return res.json(data)
+    } catch (e) {
+        if (e.message === 'Server not found') return res.status(404).json({ error: e.message })
+        if (e.message.includes('HTTP')) return res.status(502).json({ error: e.message })
+        if (e.message.includes('timeout')) return res.status(504).json({ error: e.message })
+        res.status(500).json({ error: e.message })
+    }
+})
 
-        // Build the monitor URL
-        const domain = server.primaryDomain.replace(/\/+$/, '') // strip trailing slash
-        const monitorUrl = `https://${domain}/tests/monitorServer.php?token=${encodeURIComponent(MONITOR_SECRET_TOKEN)}`
+// GET /servers/:id/test-ajax
+// Tests if the remote ajaxCheck.php is reachable and working
+router.get('/:id/test-ajax', authRequired, requireMaster, validateParams(ParamIdSchema), async (req, res) => {
+    const id = Number(req.validated.params.id)
+    try {
+        const server = await prisma.serverNode.findUnique({ where: { id } })
+        if (!server || !server.primaryDomain) return res.status(404).json({ error: 'Server or domain not found' })
+
+        const domain = server.primaryDomain.replace(/\/+$/, '')
+        const ajaxUrl = `https://${domain}/tests/ajaxCheck.php?t=${Date.now()}`
 
         const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+        const timeout = setTimeout(() => controller.abort(), 10000)
 
         try {
-            const response = await fetch(monitorUrl, {
-                signal: controller.signal,
-                headers: { 'Accept': 'application/json' }
+            const response = await fetch(ajaxUrl, { signal: controller.signal })
+            const text = await response.text()
+            clearTimeout(timeout)
+            res.json({ 
+                ok: response.ok, 
+                status: response.status,
+                response: text.substring(0, 100).trim()
+            })
+        } catch (e) {
+            res.status(502).json({ error: 'No se pudo contactar con ajaxCheck.php', detail: e.message })
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message })
+    }
+})
+
+// POST /servers/:id/test-mail
+router.post('/:id/test-mail', authRequired, requireMaster, validateParams(ParamIdSchema), async (req, res) => {
+    const id = Number(req.validated.params.id)
+    try {
+        const { email } = req.body
+        if (!email) return res.status(400).json({ error: 'Email is required' })
+
+        const server = await prisma.serverNode.findUnique({ where: { id } })
+        if (!server || !server.primaryDomain) return res.status(404).json({ error: 'Server or domain not found' })
+
+        const domain = server.primaryDomain.replace(/\/+$/, '')
+        const mailTestUrl = `https://${domain}/tests/ajaxMailtest.php`
+        
+        const formData = new URLSearchParams()
+        formData.append('correo', email)
+
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 15000)
+
+        try {
+            const response = await fetch(mailTestUrl, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
             })
             clearTimeout(timeout)
+            
+            const text = await response.text()
+            const ok = text.toLowerCase().includes('mail was sent')
 
-            if (!response.ok) {
-                const text = await response.text()
-                return res.status(502).json({
-                    error: `Monitor script responded with HTTP ${response.status}`,
-                    detail: text.substring(0, 500)
-                })
-            }
-
-            const data = await response.json()
-            return res.json(data)
-        } catch (fetchErr) {
+            res.json({ 
+                ok, 
+                status: response.status,
+                response: text.substring(0, 200).trim()
+            })
+        } catch (e) {
             clearTimeout(timeout)
-            if (fetchErr.name === 'AbortError') {
-                return res.status(504).json({ error: 'Diagnostics request timed out after 30 seconds' })
-            }
-            return res.status(502).json({ error: `Cannot reach monitor script: ${fetchErr.message}` })
+            res.status(502).json({ error: 'No se pudo contactar con ajaxMailtest.php', detail: e.message })
         }
     } catch (e) {
         res.status(500).json({ error: e.message })

@@ -11,10 +11,10 @@ async function main() {
     // ─────────────────────────────────────────────────────────
     console.log('📋 Seeding Roles...');
     const roles = [
-        { name: 'MASTER', description: 'Administrador maestro de Rotator Software — acceso total', permissions: '*', isSystem: true },
-        { name: 'ANALISTA', description: 'Analista interno de Rotator Software', permissions: 'read,write,licenses,activations,prospects,crm', isSystem: true },
-        { name: 'VISUALIZADOR', description: 'Visualizador interno de Rotator Software — solo lectura', permissions: 'read', isSystem: true },
-        { name: 'CLIENTE', description: 'Usuario de organización cliente', permissions: 'read,own_license,own_activations', isSystem: true }
+        { name: 'MASTER', description: 'Administrador maestro de Rotator Software — acceso total', permissions: JSON.stringify(['*']), isSystem: true },
+        { name: 'ANALISTA', description: 'Analista interno de Rotator Software', permissions: JSON.stringify(['users.view','users.create','users.edit','licenses.view','licenses.create','licenses.edit','crm.view','crm.manage','prospects.view','prospects.manage','stats.view','servers.view','domains.view']), isSystem: true },
+        { name: 'VISUALIZADOR', description: 'Visualizador interno de Rotator Software — solo lectura', permissions: JSON.stringify(['users.view','licenses.view','crm.view','prospects.view','stats.view','servers.view','domains.view']), isSystem: true },
+        { name: 'CLIENTE', description: 'Usuario de organización cliente', permissions: JSON.stringify(['licenses.view','stats.view']), isSystem: true }
     ];
 
     for (const role of roles) {
@@ -260,6 +260,11 @@ async function main() {
         { key: 'XOR_MAGIC_WORD', value: 'yiyo', description: 'Palabra mágica para encriptación XOR de licencias', group: 'LICENSES' },
         { key: 'SOFTWARE_VERSION_MAJOR', value: '4', description: 'Versión major del software desktop', group: 'LICENSES' },
         { key: 'SOFTWARE_VERSION_MINOR', value: '3', description: 'Versión minor del software desktop', group: 'LICENSES' },
+        { key: 'MAINTENANCE_MODE', value: 'false', description: 'Activar modo mantenimiento (bloquea acceso no administrativo)', group: 'ADVANCED' },
+        { key: 'SESSION_TIMEOUT', value: '3600', description: 'Tiempo de sesión en segundos (inactividad)', group: 'ADVANCED' },
+        { key: 'PASSWORD_POLICY', value: 'medium', description: 'Política de complejidad de contraseñas (low, medium, high)', group: 'ADVANCED' },
+        { key: 'ADMIN_EMAIL', value: 'admin@rotatorsurvey.com', description: 'Correo del administrador', group: 'ADVANCED' },
+        { key: 'REPORT_EMAILS', value: 'admin@rotatorsurvey.com, soporte@rotatorsurvey.com', description: 'Correos para reportes (separados por coma, sufijo @rotatorsurvey.com)', group: 'ADVANCED' },
     ];
 
     for (const setting of settings) {
@@ -272,25 +277,82 @@ async function main() {
     console.log(`✅ System Settings ready (${settings.length})`);
 
     // ─────────────────────────────────────────────────────────
-    // 7. SERVER NODES (3 tipos base del legacy maestro_servidores)
+    // 7. PROVIDERS
     // ─────────────────────────────────────────────────────────
-    console.log('\n📋 Seeding Server Nodes...');
-    const serverNodes = [
-        { name: 'Nube de Rotator', type: 'CLOUD', status: 'active', provider: 'Rotator Software', capacity: 500 },
-        { name: 'Servidor Privado', type: 'PRIVATE', status: 'active', provider: 'Cliente', capacity: 100 },
-        { name: 'Servidor Propio', type: 'OWN', status: 'active', provider: 'Cliente', capacity: 50 },
+    console.log('\n📋 Seeding Providers...');
+    const providers = [
+        { name: '247-host' },
+        { name: 'Mocha Host' },
+        { name: 'Rotator Software' }
     ];
 
-    for (const s of serverNodes) {
+    for (const p of providers) {
+        await prisma.provider.upsert({
+            where: { name: p.name },
+            update: { name: p.name },
+            create: p
+        });
+    }
+    console.log(`✅ Providers ready (${providers.length})`);
+
+    // ─────────────────────────────────────────────────────────
+    // 8. SERVER NODES (Cloud & Legacy)
+    // ─────────────────────────────────────────────────────────
+    console.log('\n📋 Seeding Server Nodes...');
+    
+    // Default cloud names
+    const cloudNames = ['ZEUS', 'ARTEMIS', 'HERMES', 'PERSEUS', 'EROS', 'HERA'];
+    
+    for (const name of cloudNames) {
+        const lowerName = name.toLowerCase();
+        const primaryDomain = `${lowerName}.rotatorserver.com`;
+        const additionalDomain = `${lowerName}.rotatorcapi.com`;
+
+        const server = await prisma.serverNode.upsert({
+            where: { primaryDomain },
+            update: {
+                name: name,
+                type: 'CLOUD',
+                status: 'active'
+            },
+            create: {
+                name: name,
+                type: 'CLOUD',
+                status: 'active',
+                primaryDomain: primaryDomain
+            }
+        });
+
+        // Add additional domains
+        const domainsToAdd = [additionalDomain];
+        if (name === 'ZEUS') domainsToAdd.push('rotatorserver.com');
+        if (name === 'HERA') domainsToAdd.push('rotatorcapi.com');
+
+        for (const d of domainsToAdd) {
+            await prisma.domain.upsert({
+                where: { domainName: d },
+                update: { serverId: server.id },
+                create: { domainName: d, serverId: server.id, isPropio: false, status: 'active' }
+            });
+        }
+    }
+
+    // Add legacy types if not present
+    const extraNodes = [
+        { name: 'Servidor Privado', type: 'PRIVATE', status: 'active' },
+        { name: 'Servidor Propio', type: 'OWN', status: 'active' },
+    ];
+
+    for (const s of extraNodes) {
         const existing = await prisma.serverNode.findFirst({ where: { name: s.name } });
         if (!existing) {
             await prisma.serverNode.create({ data: s });
         }
     }
-    console.log(`✅ Server Nodes ready (${serverNodes.length})`);
+    console.log(`✅ Server Nodes ready (${cloudNames.length + 2})`);
 
     // ─────────────────────────────────────────────────────────
-    // 8. MASTER ORG + ADMIN USER
+    // 9. MASTER ORG + ADMIN USER
     // ─────────────────────────────────────────────────────────
     console.log('\n📋 Seeding Master Organization & Admin...');
     const rotatorOrg = await prisma.organization.upsert({
@@ -328,7 +390,7 @@ async function main() {
     console.log(`✅ Master Admin ready: ${masterAdmin.email}`);
 
     // ─────────────────────────────────────────────────────────
-    // 9. DEMO DATA (Organizations + CLIENTE Users)
+    // 10. DEMO DATA (Organizations + CLIENTE Users)
     // ─────────────────────────────────────────────────────────
     console.log('\n📋 Seeding Demo Data...');
     const demoOrgs = [
@@ -370,6 +432,73 @@ async function main() {
         });
     }
     console.log('✅ Demo Organizations & Clients ready');
+    
+    // ─────────────────────────────────────────────────────────
+    // 11. EMAIL TEMPLATES
+    // ─────────────────────────────────────────────────────────
+    console.log('\n📋 Seeding Email Templates...');
+    const emailTemplates = [
+        {
+            code: 'WELCOME_USER',
+            name: 'Bienvenida a Usuario',
+            subject: '¡Bienvenido a Rotator Survey!',
+            body: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2 style="color: #3b82f6;">Hola {{firstName}}</h2>
+                    <p>Tu cuenta ha sido creada exitosamente en <strong>Rotator Survey</strong>.</p>
+                    <p>Puedes acceder con tu correo: {{email}}</p>
+                    <br/>
+                    <a href="{{loginUrl}}" style="background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Acceder al Sistema</a>
+                </div>
+            `,
+            variables: '["firstName", "email", "loginUrl"]'
+        },
+        {
+            code: 'PASSWORD_RESET',
+            name: 'Recuperación de Contraseña',
+            subject: 'Instrucciones para restablecer tu contraseña',
+            body: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2 style="color: #3b82f6;">Restablecer Contraseña</h2>
+                    <p>Hemos recibido una solicitud para cambiar tu contraseña.</p>
+                    <p>Haz clic en el siguiente botón para continuar:</p>
+                    <br/>
+                    <a href="{{resetUrl}}" style="background: #ef4444; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Restablecer ahora</a>
+                    <p style="margin-top: 20px; font-size: 12px; color: #666;">Si no solicitaste esto, puedes ignorar este correo.</p>
+                </div>
+            `,
+            variables: '["resetUrl"]'
+        },
+        {
+            code: 'LICENSE_EXPIRING',
+            name: 'Aviso de Expiración de Licencia',
+            subject: 'Tu licencia de Rotator Survey está por expirar',
+            body: `
+                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #f59e0b; border-radius: 10px;">
+                    <h2 style="color: #f59e0b;">Aviso de Expiración</h2>
+                    <p>Tu licencia <strong>{{licenseCode}}</strong> expirará el <strong>{{expiryDate}}</strong>.</p>
+                    <p>Te recomendamos renovarla pronto para evitar interrupciones en el servicio.</p>
+                    <br/>
+                    <a href="{{renewalUrl}}" style="background: #f59e0b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Renovar Licencia</a>
+                </div>
+            `,
+            variables: '["licenseCode", "expiryDate", "renewalUrl"]'
+        }
+    ];
+
+    for (const t of emailTemplates) {
+        await prisma.emailTemplate.upsert({
+            where: { code: t.code },
+            update: {
+                name: t.name,
+                subject: t.subject,
+                body: t.body,
+                variables: t.variables
+            },
+            create: t
+        });
+    }
+    console.log(`✅ Email Templates ready (${emailTemplates.length})`);
 
     console.log('\n🏁 Full seeding completed successfully.');
 }

@@ -8,12 +8,12 @@
  */
 
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../config/prismaClient.js';
 import { authRequired } from '../middleware/auth.js';
 import { requireMaster } from '../middleware/roles.js';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Utiliza la instancia global de prisma importada arriba
 
 // Get all logs (paginated)
 router.get('/', authRequired, requireMaster, async (req, res) => {

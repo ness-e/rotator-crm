@@ -3,31 +3,20 @@
  * @description Componente de página (Vista) para la sección AdminIntegrations.
  * @module Frontend Page
  * @path /frontend/src/pages/AdminIntegrations.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
  */
 
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { api } from '@/utils/api'
 import { useToast } from '@/components/ui/use-toast'
-import { Plug, Save, Eye, EyeOff, Bot } from 'lucide-react'
+import { Save, Eye, EyeOff, Mail } from 'lucide-react'
+import InfoHint from '@/components/ui/InfoHint'
+import { SYSTEM_HINTS } from '@/utils/hints'
 
-// Define known integrations to structure the UI
 const INTEGRATION_GROUPS = [
-    {
-        id: 'openai',
-        name: 'OpenAI (Inteligencia Artificial)',
-        icon: <Bot className="h-5 w-5" />,
-        fields: [
-            { key: 'OPENAI_API_KEY', label: 'API Key', type: 'password' },
-            { key: 'OPENAI_MODEL', label: 'Modelo por defecto', type: 'text', default: 'gpt-4' }
-        ]
-    },
     {
         id: 'paypal',
         name: 'PayPal (Pasarela de Pagos)',
@@ -40,7 +29,7 @@ const INTEGRATION_GROUPS = [
     {
         id: 'smtp',
         name: 'SMTP (Envío de Correos)',
-        icon: <MailIcon />,
+        icon: <Mail className="h-5 w-5" />,
         fields: [
             { key: 'SMTP_HOST', label: 'Host', type: 'text' },
             { key: 'SMTP_PORT', label: 'Puerto', type: 'number' },
@@ -49,8 +38,6 @@ const INTEGRATION_GROUPS = [
         ]
     }
 ]
-
-function MailIcon() { return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg> }
 
 export default function AdminIntegrations() {
     const { toast } = useToast()
@@ -66,10 +53,9 @@ export default function AdminIntegrations() {
     const loadSettings = async () => {
         setLoading(true)
         try {
-            const res = await api.get('/settings') // Returns array
+            const res = await api.get('/settings')
             if (res.ok) {
                 const data = await res.json()
-                // Convert array to object key:value
                 const map = data.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {})
                 setSettings(map)
             }
@@ -83,9 +69,7 @@ export default function AdminIntegrations() {
     const handleSave = async () => {
         setSaving(true)
         try {
-            // Prepare array for bulk update
             const updatePayload = []
-
             INTEGRATION_GROUPS.forEach(group => {
                 group.fields.forEach(field => {
                     const value = settings[field.key]
@@ -96,7 +80,6 @@ export default function AdminIntegrations() {
             })
 
             const res = await api.put('/settings', updatePayload)
-
             if (res.ok) {
                 toast({ title: 'Integraciones actualizadas' })
             } else {
@@ -146,9 +129,10 @@ export default function AdminIntegrations() {
                         <CardContent className="p-6 grid gap-4">
                             {group.fields.map(field => (
                                 <div key={field.key} className="grid sm:grid-cols-[200px_1fr] items-center gap-4">
-                                    <Label className="sm:text-right text-muted-foreground">
-                                        {field.label}
-                                    </Label>
+                                    <div className="flex items-center sm:justify-end gap-2 text-muted-foreground">
+                                        <Label className="cursor-pointer">{field.label}</Label>
+                                        {SYSTEM_HINTS[field.key] && <InfoHint content={SYSTEM_HINTS[field.key]} />}
+                                    </div>
                                     <div className="relative">
                                         <Input
                                             type={field.type === 'password' && !visibleKeys[field.key] ? 'password' : 'text'}

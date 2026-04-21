@@ -203,7 +203,18 @@ router.get('/:id', authRequired, requireMaster, validateParams(ParamIdSchema), a
         where: { id },
         include: {
             users: true,
-            licenses: { include: { serverNode: true, activations: true } }
+            licenses: { 
+                include: { 
+                    hostingPlan: true,
+                    licenseServers: {
+                        include: {
+                            server: true,
+                            domain: true
+                        }
+                    },
+                    activations: true 
+                } 
+            }
         }
     })
     if (!org) return res.status(404).json({ error: 'Organization not found' })

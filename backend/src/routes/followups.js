@@ -8,12 +8,12 @@
  */
 
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../config/prismaClient.js'
 import { authRequired as requireAuth } from '../middleware/auth.js'
 import { requireMaster } from '../middleware/roles.js'
 
 const router = Router()
-const prisma = new PrismaClient()
+// Utiliza la instancia global de prisma importada arriba
 
 // GET /followups - Get all follow-ups
 router.get('/', requireAuth, requireMaster, async (req, res) => {
@@ -54,7 +54,7 @@ router.get('/upcoming', requireAuth, requireMaster, async (req, res) => {
 router.get('/user/:id', requireAuth, requireMaster, async (req, res) => {
     try {
         const followUps = await prisma.followUp.findMany({
-            where: { user_id: Number(req.params.id) },
+            where: { userId: Number(req.params.id) },
             include: { user: true },
             orderBy: { fecha: 'desc' }
         })
@@ -69,7 +69,7 @@ router.get('/user/:id', requireAuth, requireMaster, async (req, res) => {
 router.get('/prospect/:id', requireAuth, requireMaster, async (req, res) => {
     try {
         const followUps = await prisma.followUp.findMany({
-            where: { prospect_id: Number(req.params.id) },
+            where: { prospectId: Number(req.params.id) },
             include: { user: true },
             orderBy: { fecha: 'desc' }
         })
@@ -90,7 +90,7 @@ router.post('/', requireAuth, requireMaster, async (req, res) => {
 
         const followUp = await prisma.followUp.create({
             data,
-            include: { ejecutivo: true }
+            include: { user: true }
         })
 
         res.status(201).json(followUp)
@@ -113,7 +113,7 @@ router.put('/:id', requireAuth, requireMaster, async (req, res) => {
         const followUp = await prisma.followUp.update({
             where: { id: Number(req.params.id) },
             data,
-            include: { ejecutivo: true }
+            include: { user: true }
         })
 
         res.json(followUp)

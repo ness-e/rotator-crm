@@ -118,7 +118,10 @@ export function AppSidebar({ user }) {
                 { title: 'General', path: '/admin/configuracion?tab=general' },
                 { title: 'Roles & Permisos', path: '/admin/configuracion?tab=roles' },
                 { title: 'Planes & Hosting', path: '/admin/configuracion?tab=planes' },
-                { title: 'Avanzado', path: '/admin/configuracion?tab=avanzado' }
+                { title: 'Plantillas de Email', path: '/admin/configuracion?tab=email' },
+                { title: 'Integraciones', path: '/admin/configuracion?tab=integraciones' },
+                { title: 'Backup & Restauración', path: '/admin/configuracion?tab=backup' },
+                { title: 'Constantes Técnicas', path: '/admin/configuracion?tab=constantes' }
             ]
         },
     ].filter(item => item.visible);

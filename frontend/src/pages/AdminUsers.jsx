@@ -7,6 +7,8 @@
 
 import React, { useState } from 'react';
 import { Users, UserPlus, Pencil, Trash2, Building2 } from 'lucide-react';
+import InfoHint from '@/components/ui/InfoHint';
+import { SYSTEM_HINTS } from '@/utils/hints';
 import { DataTable } from '@/components/DataTable';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -225,14 +227,21 @@ export default function AdminUsers() {
                       </FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="role" render={({ field }) => (
-                      <FormItem><FormLabel>Rol</FormLabel><FormControl>
-                        <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
-                          <option value="CLIENTE">CLIENTE</option>
-                          <option value="ANALISTA">ANALISTA</option>
-                          <option value="VISUALIZADOR">VISUALIZADOR</option>
-                          <option value="MASTER">MASTER</option>
-                        </select>
-                      </FormControl><FormMessage /></FormItem>
+                      <FormItem>
+                        <div className="flex items-center gap-2 mb-1">
+                          <FormLabel className="mb-0">Rol</FormLabel>
+                          <InfoHint content={SYSTEM_HINTS.USER_ROLE} />
+                        </div>
+                        <FormControl>
+                          <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
+                            <option value="CLIENTE">CLIENTE</option>
+                            <option value="ANALISTA">ANALISTA</option>
+                            <option value="VISUALIZADOR">VISUALIZADOR</option>
+                            <option value="MASTER">MASTER</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )} />
                   </div>
                   <FormField control={form.control} name="phone" render={({ field }) => (
