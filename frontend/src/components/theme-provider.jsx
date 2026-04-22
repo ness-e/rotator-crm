@@ -3,7 +3,7 @@
  * @description Componente reutilizable de UI: theme-provider.
  * @module Frontend Component
  * @path /frontend/src/components/theme-provider.jsx
- * @lastUpdated 2026-01-27
+ * @lastUpdated 2026-04-22
  * @author Sistema (Auto-Generated)
  */
 
@@ -36,10 +36,12 @@ export function ThemeProvider({
                 : "light"
 
             root.classList.add(systemTheme)
-            return
+        } else {
+            root.classList.add(theme)
         }
 
-        root.classList.add(theme)
+
+
     }, [theme])
 
     const value = {

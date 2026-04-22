@@ -48,16 +48,18 @@ import { Search, Plus, Globe,  Edit,  Phone, GitMerge } from 'lucide-react';
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect } from '@/hooks/useApi';
 import { useToast } from '@/components/ui/use-toast';
 import { GlobalPhoneInput } from '@/components/GlobalSelects';
+import { useTranslation } from 'react-i18next';
 
 const PIPELINE_STAGES = [
-    { id: 'NUEVO', label: 'Nuevo', color: 'bg-slate-100 dark:bg-slate-900' },
-    { id: 'CONTACTADO', label: 'Contactado', color: 'bg-blue-100 dark:bg-blue-900' },
-    { id: 'INTERESADO', label: 'Interesado', color: 'bg-amber-100 dark:bg-amber-900' },
-    { id: 'CLIENTE', label: 'Cliente', color: 'bg-green-100 dark:bg-green-900' },
-    { id: 'PERDIDO', label: 'Perdido', color: 'bg-red-100 dark:bg-red-900' }
+    { id: 'NUEVO', labelKey: 'prospects.stages.new', color: 'bg-slate-100 dark:bg-slate-900' },
+    { id: 'CONTACTADO', labelKey: 'prospects.stages.contacted', color: 'bg-blue-100 dark:bg-blue-900' },
+    { id: 'INTERESADO', labelKey: 'prospects.stages.interested', color: 'bg-amber-100 dark:bg-amber-900' },
+    { id: 'CLIENTE', labelKey: 'prospects.stages.client', color: 'bg-green-100 dark:bg-green-900' },
+    { id: 'PERDIDO', labelKey: 'prospects.stages.lost', color: 'bg-red-100 dark:bg-red-900' }
 ];
 
 function ProspectCard({ prospect, onClick, onEdit }) {
+    const { t } = useTranslation();
     // Interest Level: 0-33 Low, 34-66 Medium, 67-100 High
     const level = prospect.interestLevel || 50;
     const interesColor = level > 66 ? 'bg-red-500' : level > 33 ? 'bg-amber-500' : 'bg-green-500';
@@ -78,10 +80,10 @@ function ProspectCard({ prospect, onClick, onEdit }) {
                 <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 pr-6">
                         <h4 className="font-semibold text-sm line-clamp-2" title={prospect.company}>{prospect.company}</h4>
-                        <p className="text-xs text-muted-foreground">{prospect.contactName || 'Sin contacto'}</p>
+                        <p className="text-xs text-muted-foreground">{prospect.contactName || t('prospects.card.noContact')}</p>
                     </div>
                     <div className={`w-2 h-2 rounded-full ${interesColor} flex-shrink-0`}
-                        title={`Interés: ${level}%`} />
+                        title={`${t('prospects.card.interest')}: ${level}%`} />
                 </div>
 
                 <div className="space-y-1 mt-2">
@@ -105,6 +107,7 @@ function ProspectCard({ prospect, onClick, onEdit }) {
 }
 
 function PipelineColumn({ stage, prospects, onProspectClick, onEdit }) {
+    const { t } = useTranslation();
     const count = prospects.length;
 
     return (
@@ -112,7 +115,7 @@ function PipelineColumn({ stage, prospects, onProspectClick, onEdit }) {
             <Card className={`h-full flex flex-col border-t-4 ${stage.color} border-t-primary/20`}>
                 <CardHeader className="pb-3 flex-shrink-0">
                     <CardTitle className="text-sm font-medium flex items-center justify-between">
-                        <span>{stage.label}</span>
+                        <span>{stage.labelKey ? t(stage.labelKey) : stage.label}</span>
                         <Badge variant="secondary" className="ml-2">{count}</Badge>
                     </CardTitle>
                 </CardHeader>
@@ -134,6 +137,7 @@ function PipelineColumn({ stage, prospects, onProspectClick, onEdit }) {
 }
 
 export default function AdminProspects() {
+    const { t } = useTranslation();
     const { toast } = useToast();
 
     // Hooks
@@ -157,11 +161,16 @@ export default function AdminProspects() {
                     const data = await res.json();
                     if (data && data.length > 0) {
                         // Map backend format to frontend format
-                        const mapped = data.sort((a, b) => a.orderIndex - b.orderIndex).map(s => ({
-                            id: s.value,
-                            label: s.label,
-                            color: s.color || 'bg-gray-100 dark:bg-gray-800'
-                        }));
+                        const mapped = data.sort((a, b) => a.orderIndex - b.orderIndex).map(s => {
+                            // Check if it matches a known stage for translation
+                            const defaultStage = PIPELINE_STAGES.find(ds => ds.id === s.value);
+                            return {
+                                id: s.value,
+                                label: s.label,
+                                labelKey: defaultStage ? defaultStage.labelKey : null,
+                                color: s.color || 'bg-gray-100 dark:bg-gray-800'
+                            };
+                        });
                         setPipelineStages(mapped);
                     }
                 }
@@ -182,23 +191,23 @@ export default function AdminProspects() {
         try {
             if (editingId) {
                 await updateProspect.mutateAsync({ id: editingId, data: formData });
-                toast({ title: 'Prospecto actualizado' });
+                toast({ title: t('prospects.toast.updated') });
             } else {
                 await createProspect.mutateAsync(formData);
-                toast({ title: 'Prospecto creado' });
+                toast({ title: t('prospects.toast.created') });
             }
             setIsDialogOpen(false);
         } catch (e) {
             console.error(e);
-            toast({ title: 'Error', description: 'No se pudo guardar el prospecto', variant: 'destructive' });
+            toast({ title: t('common.error'), description: t('prospects.toast.saveError'), variant: 'destructive' });
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('¿Seguro que deseas eliminar este prospecto?')) return;
+        if (!confirm(t('prospects.deleteConfirm'))) return;
         try {
             await deleteProspect.mutateAsync(id);
-            toast({ title: 'Prospecto eliminado' });
+            toast({ title: t('prospects.toast.deleted') });
             setSelectedProspect(null);
         } catch (e) {
             console.error(e);
@@ -234,7 +243,7 @@ export default function AdminProspects() {
         return acc;
     }, {});
 
-    if (loading) return <div className="p-8 text-center animate-pulse">Cargando pipeline...</div>;
+    if (loading) return <div className="p-8 text-center animate-pulse">{t('prospects.loading')}</div>;
 
     return (
         <div className="space-y-4 h-[calc(100vh-100px)] flex flex-col animate-fade-in">
@@ -243,16 +252,16 @@ export default function AdminProspects() {
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
                         <GitMerge className="h-8 w-8 text-primary" />
-                        Pipeline de Prospectos
+                        {t('prospects.title')}
                     </h1>
-                    <p className="text-muted-foreground mt-1">Gestión de potenciales clientes y seguimiento de ventas.</p>
+                    <p className="text-muted-foreground mt-1">{t('prospects.description')}</p>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-1 sm:flex-none">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input 
-                            placeholder="Buscar prospecto..." 
+                            placeholder={t('prospects.searchPlaceholder')}
                             className="pl-9 w-full sm:w-[260px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 transition-all focus:ring-primary"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
@@ -261,7 +270,7 @@ export default function AdminProspects() {
 
                     <Button onClick={openNew} className="rounded-xl shadow-lg shadow-primary/20">
                         <Plus className="h-4 w-4 mr-2" />
-                        Nuevo Prospecto
+                        {t('prospects.new')}
                     </Button>
                 </div>
             </div>
@@ -293,33 +302,33 @@ export default function AdminProspects() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="text-muted-foreground block text-xs uppercase">Contacto</span>
+                                    <span className="text-muted-foreground block text-xs uppercase">{t('prospects.form.contactName')}</span>
                                     {selectedProspect.contactName || '-'}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs uppercase">Email</span>
+                                    <span className="text-muted-foreground block text-xs uppercase">{t('common.email')}</span>
                                     {selectedProspect.email || '-'}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs uppercase">Teléfono</span>
+                                    <span className="text-muted-foreground block text-xs uppercase">{t('common.phone')}</span>
                                     {selectedProspect.phone || '-'}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs uppercase">País</span>
+                                    <span className="text-muted-foreground block text-xs uppercase">{t('common.country')}</span>
                                     {selectedProspect.country || '-'}
                                 </div>
                             </div>
 
                             <div>
-                                <span className="text-muted-foreground block text-xs uppercase mb-1">Notas</span>
+                                <span className="text-muted-foreground block text-xs uppercase mb-1">{t('common.notes')}</span>
                                 <div className="bg-muted p-3 rounded text-sm min-h-[60px]">
-                                    {selectedProspect.notes || 'Sin notas.'}
+                                    {selectedProspect.notes || t('prospects.card.noNotes')}
                                 </div>
                             </div>
 
                             <div className="flex justify-between pt-4">
-                                <Button variant="destructive" size="sm" onClick={() => handleDelete(selectedProspect.id)}>Eliminar</Button>
-                                <Button onClick={() => { setSelectedProspect(null); openEdit(selectedProspect); }}>Editar</Button>
+                                <Button variant="destructive" size="sm" onClick={() => handleDelete(selectedProspect.id)}>{t('common.delete')}</Button>
+                                <Button onClick={() => { setSelectedProspect(null); openEdit(selectedProspect); }}>{t('common.edit')}</Button>
                             </div>
                         </CardContent>
                     </Card>
@@ -330,49 +339,49 @@ export default function AdminProspects() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{editingId ? 'Editar Prospecto' : 'Nuevo Prospecto'}</DialogTitle>
-                        <DialogDescription>Información del cliente potencial.</DialogDescription>
+                        <DialogTitle>{editingId ? t('prospects.edit') : t('prospects.new')}</DialogTitle>
+                        <DialogDescription>{t('prospects.editDescription')}</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Empresa</Label>
+                                <Label>{t('prospects.form.company')}</Label>
                                 <Input value={formData.company || ''} onChange={e => setFormData({ ...formData, company: e.target.value })} />
                             </div>
                             <div className="space-y-2">
-                                <Label>Contacto</Label>
+                                <Label>{t('prospects.form.contactName')}</Label>
                                 <Input value={formData.contactName || ''} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Email</Label>
+                                <Label>{t('common.email')}</Label>
                                 <Input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                             </div>
                             <div className="space-y-2">
-                                <Label>Teléfono</Label>
+                                <Label>{t('common.phone')}</Label>
                                 <GlobalPhoneInput value={formData.phone || ''} onChange={val => setFormData({ ...formData, phone: val })} />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>País</Label>
+                                <Label>{t('common.country')}</Label>
                                 <Input value={formData.country || ''} onChange={e => setFormData({ ...formData, country: e.target.value })} />
                             </div>
                             <div className="space-y-2">
-                                <Label>Status</Label>
+                                <Label>{t('common.status')}</Label>
                                 <Select value={formData.status || 'NUEVO'} onValueChange={v => setFormData({ ...formData, status: v })}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         {pipelineStages.map(s => (
-                                            <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                                            <SelectItem key={s.id} value={s.id}>{s.labelKey ? t(s.labelKey) : s.label}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>Nivel de Interés (0-100)</Label>
+                            <Label>{t('prospects.form.interestLevel')}</Label>
                             <Input
                                 type="number"
                                 min="0"
@@ -382,16 +391,16 @@ export default function AdminProspects() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Notas</Label>
+                            <Label>{t('common.notes')}</Label>
                             <Textarea value={formData.notes || ''} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleSave}>Guardar</Button>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button onClick={handleSave}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
     );
-}
+}

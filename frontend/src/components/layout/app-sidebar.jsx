@@ -120,6 +120,7 @@ export function AppSidebar({ user }) {
                 { title: t('navigation.plans'), path: '/admin/configuracion?tab=planes' },
                 { title: t('navigation.emails'), path: '/admin/configuracion?tab=email' },
                 { title: t('navigation.integrations'), path: '/admin/configuracion?tab=integraciones' },
+
                 { title: t('navigation.backup'), path: '/admin/configuracion?tab=backup' },
                 { title: t('navigation.constants'), path: '/admin/configuracion?tab=constantes' }
             ]

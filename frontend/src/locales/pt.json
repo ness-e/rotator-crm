@@ -46,7 +46,10 @@
     "markAllRead": "Marcar todas como lidas",
     "deleteAll": "Excluir todas",
     "viewAll": "Ver todas",
-    "noNotifications": "Não há notificações"
+    "noNotifications": "Não há notificações",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "country": "País"
   },
   "navigation": {
     "summary": "Resumo",
@@ -67,6 +70,7 @@
     "plans": "Planos & Hosting",
     "emails": "Modelos de E-mail",
     "integrations": "Integrações",
+    "appearance": "Aparência",
     "backup": "Backup & Restauração",
     "constants": "Constantes Técnicas",
     "logout": "Sair",
@@ -168,14 +172,23 @@
     },
     "card": {
       "noContact": "Sem contato",
-      "interest": "Interesse"
+      "interest": "Interesse",
+      "noNotes": "Sem notas."
     },
     "form": {
       "company": "Empresa",
       "contactName": "Nome de Contato",
       "country": "País",
       "phone": "Telefone",
-      "interestLevel": "Nível de Interesse"
+      "interestLevel": "Nível de Interesse",
+      "notes": "Notas"
+    },
+    "editDescription": "Informações do cliente potencial.",
+    "toast": {
+      "updated": "Prospecto atualizado",
+      "created": "Prospecto criado",
+      "deleted": "Prospecto excluído",
+      "saveError": "Não foi possível salvar o prospecto"
     }
   },
   "users": {
@@ -417,6 +430,44 @@
           "concurrent": "Questionários Concurrentes"
         }
       }
+    }
+  },
+  "activations": {
+    "title": "Monitor de Ativações",
+    "description": "Monitore sessões ativas e gerencie o inventário de chaves.",
+    "searchPlaceholder": "Buscar por ID, PC, Hardware ID, serial...",
+    "new": "Nova Ativação Manual",
+    "edit": "Editar Ativação",
+    "deleteTitle": "Excluir ativação?",
+    "deleteDescription": "Você está prestes a excluir a ativação {{id}} do PC \"{{pcName}}\". Esta ação não pode ser desfeita.",
+    "form": {
+      "idOptional": "ID (Opcional)",
+      "automatic": "Automático",
+      "licenseId": "ID da Licença",
+      "pcName": "Nome do PC",
+      "hardwareId": "Hardware ID (Identificador da máquina)",
+      "hardwarePlaceholder": "Ex: ABC123-DEF456",
+      "yellowKey": "Chave Amarela (Serial do PC)",
+      "dateTime": "Data e Hora"
+    },
+    "table": {
+      "licenseOrg": "Licença / Organização",
+      "pcHardware": "PC / Hardware ID",
+      "activationKey": "Chave de Ativação"
+    },
+    "emptyState": "Nenhuma ativação encontrada com os filtros atuais",
+    "toast": {
+      "updated": "Ativação atualizada",
+      "created": "Ativação criada",
+      "deleted": "Ativação excluída",
+      "deleteError": "Não foi possível excluir",
+      "saveError": "Não foi possível salvar a ativação"
+    },
+    "errors": {
+      "licenseRequired": "ID da licença obrigatório",
+      "keyRequired": "Chave obrigatória",
+      "pcRequired": "Nome do PC obrigatório",
+      "dateRequired": "Data obrigatória"
     }
   },
   "audit": {

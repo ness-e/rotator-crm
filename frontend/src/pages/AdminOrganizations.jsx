@@ -34,6 +34,7 @@
  * @author Sistema
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Building2, Plus, Pencil, Trash2, Users, Receipt, Check, ChevronsUpDown,  Globe, Briefcase, Mail, Clock, XCircle, Send, ShoppingCart, CheckCircle2, Sparkles } from 'lucide-react';
 import InfoHint from '@/components/ui/InfoHint';
 import { SYSTEM_HINTS } from '@/utils/hints';

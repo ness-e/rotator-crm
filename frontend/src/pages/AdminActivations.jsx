@@ -1,13 +1,5 @@
-/**
- * @file AdminActivations.jsx
- * @description Componente de página (Vista) para la sección AdminActivations.
- * @module Frontend Page
- * @path /frontend/src/pages/AdminActivations.jsx
- * @lastUpdated 2026-01-27
- * @author Sistema (Auto-Generated)
- */
-
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle,  DialogFooter } from '@/components/ui/dialog';
@@ -27,6 +19,7 @@ import { useDebouncedValue } from '../utils/debounce';
 import AdminGestionLayout from '@/components/AdminGestionLayout';
 
 export default function AdminActivations() {
+    const { t } = useTranslation();
     const { toast } = useToast();
 
     // TanStack Query hook
@@ -37,7 +30,6 @@ export default function AdminActivations() {
     const [pageSize, setPageSize] = useState(50);
     const debouncedSearch = useDebouncedValue(searchValue, 300);
 
-
     // Edit/Create State
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState(null);
@@ -46,11 +38,11 @@ export default function AdminActivations() {
     // Schema
     const schema = z.object({
         id: z.coerce.number().int().optional(),
-        licenseId: z.coerce.number().int().min(1, 'ID de licencia requerido'),
+        licenseId: z.coerce.number().int().min(1, t('activations.errors.licenseRequired')),
         hardwareId: z.string().optional(),
-        keyUsed: z.string().min(1, 'Clave requerida'),
-        pcName: z.string().min(1, 'Nombre del PC requerido'),
-        date: z.string().min(1, 'Fecha requerida')
+        keyUsed: z.string().min(1, t('activations.errors.keyRequired')),
+        pcName: z.string().min(1, t('activations.errors.pcRequired')),
+        date: z.string().min(1, t('activations.errors.dateRequired'))
     });
 
     const form = useForm({
@@ -72,12 +64,12 @@ export default function AdminActivations() {
         const res = await (method === 'PUT' ? api.put(url, payload) : api.post(url, payload))
 
         if (!res.ok) {
-            const e = await res.json().catch(() => ({ error: 'Error desconocido' }))
-            toast({ title: 'Error', description: e.error, variant: 'destructive' })
+            const e = await res.json().catch(() => ({ error: t('common.error') }))
+            toast({ title: t('common.error'), description: e.error, variant: 'destructive' })
             return
         }
 
-        toast({ title: editing ? 'Activación actualizada' : 'Activación creada' })
+        toast({ title: editing ? t('activations.toast.updated') : t('activations.toast.created') })
         setOpen(false)
         setEditing(null)
         form.reset()
@@ -94,11 +86,11 @@ export default function AdminActivations() {
         try {
             const res = await api.delete(`/activations/${deleteItem.id}`)
             if (!res.ok) {
-                toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'destructive' })
+                toast({ title: t('common.error'), description: t('activations.toast.deleteError'), variant: 'destructive' })
                 return
             }
-            toast({ title: 'Activación eliminada' })
-            setItems(prev => prev.filter(i => i.id !== deleteItem.id))
+            toast({ title: t('activations.toast.deleted') })
+            reload() // Use reload from useActivations instead of local state set
         } catch (error) {
             console.error(error)
         } finally {
@@ -136,7 +128,7 @@ export default function AdminActivations() {
         { key: 'id', label: 'ID', render: (v) => <span className="font-mono text-xs text-muted-foreground">{v}</span> },
         {
             key: 'license',
-            label: 'Licencia / Organización',
+            label: t('activations.table.licenseOrg'),
             render: (_, row) => (
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
@@ -152,7 +144,7 @@ export default function AdminActivations() {
         },
         {
             key: 'pcName',
-            label: 'PC / Hardware ID',
+            label: t('activations.table.pcHardware'),
             render: (v, row) => (
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
@@ -167,7 +159,7 @@ export default function AdminActivations() {
         },
         {
             key: 'keyUsed',
-            label: 'Clave Activación',
+            label: t('activations.table.activationKey'),
             render: (v) => (
                 <div className="flex items-center gap-1 group">
                     <code className="text-xs text-muted-foreground font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{v}</code>
@@ -179,7 +171,7 @@ export default function AdminActivations() {
         },
         {
             key: 'date',
-            label: 'Fecha',
+            label: t('common.date') || 'Fecha',
             render: (v) => <span className="text-xs text-muted-foreground">{v ? new Date(v).toLocaleString() : '-'}</span>
         },
         {
@@ -214,8 +206,8 @@ export default function AdminActivations() {
     return (
         <>
             <AdminGestionLayout
-                title="Monitor de Activaciones"
-                description="Supervisa las sesiones activas y gestiona el inventario de claves."
+                title={t('activations.title')}
+                description={t('activations.description')}
                 icon={Activity}
                 searchValue={searchValue}
                 onSearchChange={(v) => { setSearchValue(v); setPage(1); }}
@@ -225,20 +217,20 @@ export default function AdminActivations() {
                 totalPages={totalPages}
                 totalItems={filteredItems.length}
                 onPageChange={setPage}
-                searchPlaceholder="Buscar por ID, PC, Hardware ID, serial..."
+                searchPlaceholder={t('activations.searchPlaceholder')}
                 actions={
                     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); form.reset() } }}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>{editing ? 'Editar Activación' : 'Nueva Activación Manual'}</DialogTitle>
+                                <DialogTitle>{editing ? t('activations.edit') : t('activations.new')}</DialogTitle>
                             </DialogHeader>
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                                     {!editing && (
                                         <FormField control={form.control} name="id" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>ID (Opcional)</FormLabel>
-                                                <FormControl><Input {...field} type="number" placeholder="Automático" /></FormControl>
+                                                <FormLabel>{t('activations.form.idOptional')}</FormLabel>
+                                                <FormControl><Input {...field} type="number" placeholder={t('activations.form.automatic')} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )} />
@@ -246,14 +238,14 @@ export default function AdminActivations() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormField control={form.control} name="licenseId" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>ID Licencia</FormLabel>
+                                                <FormLabel>{t('activations.form.licenseId')}</FormLabel>
                                                 <FormControl><Input {...field} type="number" /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )} />
                                         <FormField control={form.control} name="pcName" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Nombre PC</FormLabel>
+                                                <FormLabel>{t('activations.form.pcName')}</FormLabel>
                                                 <FormControl><Input {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -261,21 +253,21 @@ export default function AdminActivations() {
                                     </div>
                                     <FormField control={form.control} name="hardwareId" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Hardware ID (Identificador de máquina)</FormLabel>
-                                            <FormControl><Input {...field} placeholder="Ej: ABC123-DEF456" className="font-mono" /></FormControl>
+                                            <FormLabel>{t('activations.form.hardwareId')}</FormLabel>
+                                            <FormControl><Input {...field} placeholder={t('activations.form.hardwarePlaceholder')} className="font-mono" /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
                                     <FormField control={form.control} name="keyUsed" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Clave Amarilla (Serial de PC)</FormLabel>
+                                            <FormLabel>{t('activations.form.yellowKey')}</FormLabel>
                                             <FormControl><Input {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
                                     <FormField control={form.control} name="date" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Fecha y Hora</FormLabel>
+                                            <FormLabel>{t('activations.form.dateTime')}</FormLabel>
                                             <FormControl>
                                                 <Input {...field} type="datetime-local" />
                                             </FormControl>
@@ -283,7 +275,7 @@ export default function AdminActivations() {
                                         </FormItem>
                                     )} />
                                     <DialogFooter>
-                                        <Button type="submit">{editing ? 'Guardar Cambios' : 'Crear Activación'}</Button>
+                                        <Button type="submit">{editing ? t('common.saveChanges') : t('common.create')}</Button>
                                     </DialogFooter>
                                 </form>
                             </Form>
@@ -300,7 +292,7 @@ export default function AdminActivations() {
                     emptyState={
                         <div className="flex flex-col items-center justify-center p-10 text-muted-foreground">
                             <Activity className="h-10 w-10 mb-2 opacity-20" />
-                            <p>No se encontraron activaciones con los filtros actuales</p>
+                            <p>{t('activations.emptyState')}</p>
                         </div>
                     }
                 />
@@ -309,9 +301,9 @@ export default function AdminActivations() {
             <ConfirmDialog
                 open={!!deleteItem}
                 onOpenChange={(open) => !open && setDeleteItem(null)}
-                title="¿Eliminar activación?"
-                description={`Estás a punto de eliminar la activación ${deleteItem?.id} del PC "${deleteItem?.pcName}". Esta acción no se puede deshacer.`}
-                confirmText="Eliminar"
+                title={t('activations.deleteTitle')}
+                description={t('activations.deleteDescription', { id: deleteItem?.id, pcName: deleteItem?.pcName })}
+                confirmText={t('common.delete')}
                 onConfirm={confirmDelete}
             />
         </>

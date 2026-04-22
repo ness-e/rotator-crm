@@ -26,6 +26,7 @@ import AdminPlans from './AdminPlans'
 import AdminConstants from './AdminConstants'
 import AdminEmailTemplates from './AdminEmailTemplates'
 import AdminIntegrations from './AdminIntegrations'
+
 // Constants that should not be edited via this UI
 const HIDDEN_SETTINGS = [
     'DEFAULT_CURRENCY',
@@ -512,6 +513,7 @@ export default function Configuracion() {
                 {activeTab === 'planes' && <AdminPlans />}
                 {activeTab === 'email' && <AdminEmailTemplates />}
                 {activeTab === 'integraciones' && <AdminIntegrations />}
+
                 {activeTab === 'backup' && <BackupTab />}
                 {activeTab === 'constantes' && <AdminConstants />}
                 

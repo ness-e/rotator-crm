@@ -353,7 +353,3 @@ export default function AdminPlans({ defaultTab = null }) {
     </div>
   )
 }
-/Tabs>
-    </div>
-  )
-}

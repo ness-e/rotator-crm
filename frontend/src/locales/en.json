@@ -46,7 +46,10 @@
     "markAllRead": "Mark all as read",
     "deleteAll": "Delete all",
     "viewAll": "View all",
-    "noNotifications": "No notifications"
+    "noNotifications": "No notifications",
+    "email": "Email",
+    "phone": "Phone",
+    "country": "Country"
   },
   "navigation": {
     "summary": "Summary",
@@ -67,6 +70,7 @@
     "plans": "Plans & Hosting",
     "emails": "Email Templates",
     "integrations": "Integrations",
+    "appearance": "Appearance",
     "backup": "Backup & Restore",
     "constants": "Technical Constants",
     "logout": "Log Out",
@@ -168,14 +172,23 @@
     },
     "card": {
       "noContact": "No contact",
-      "interest": "Interest"
+      "interest": "Interest",
+      "noNotes": "No notes."
     },
     "form": {
       "company": "Company",
       "contactName": "Contact Name",
       "country": "Country",
       "phone": "Phone",
-      "interestLevel": "Interest Level"
+      "interestLevel": "Interest Level",
+      "notes": "Notes"
+    },
+    "editDescription": "Potential client information.",
+    "toast": {
+      "updated": "Prospect updated",
+      "created": "Prospect created",
+      "deleted": "Prospect deleted",
+      "saveError": "Could not save prospect"
     }
   },
   "users": {
@@ -419,6 +432,44 @@
           "concurrent": "Concurrent Questionnaires"
         }
       }
+    }
+  },
+  "activations": {
+    "title": "Activation Monitor",
+    "description": "Monitor active sessions and manage the key inventory.",
+    "searchPlaceholder": "Search by ID, PC, Hardware ID, serial...",
+    "new": "New Manual Activation",
+    "edit": "Edit Activation",
+    "deleteTitle": "Delete activation?",
+    "deleteDescription": "You are about to delete activation {{id}} from PC \"{{pcName}}\". This action cannot be undone.",
+    "form": {
+      "idOptional": "ID (Optional)",
+      "automatic": "Automatic",
+      "licenseId": "License ID",
+      "pcName": "PC Name",
+      "hardwareId": "Hardware ID (Machine Identifier)",
+      "hardwarePlaceholder": "E.g. ABC123-DEF456",
+      "yellowKey": "Yellow Key (PC Serial)",
+      "dateTime": "Date and Time"
+    },
+    "table": {
+      "licenseOrg": "License / Organization",
+      "pcHardware": "PC / Hardware ID",
+      "activationKey": "Activation Key"
+    },
+    "emptyState": "No activations found with current filters",
+    "toast": {
+      "updated": "Activation updated",
+      "created": "Activation created",
+      "deleted": "Activation deleted",
+      "deleteError": "Could not delete",
+      "saveError": "Could not save activation"
+    },
+    "errors": {
+      "licenseRequired": "License ID required",
+      "keyRequired": "Key required",
+      "pcRequired": "PC name required",
+      "dateRequired": "Date required"
     }
   },
   "audit": {

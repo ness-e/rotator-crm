@@ -144,16 +144,16 @@ export default function AdminServersAndDomains() {
                     ...h,
                     [serverId]: {
                         status: status,
-                        error: failCount > 0 ? 'Fallo en pruebas diagnósticas' : null,
+                        error: failCount > 0 ? t('servers.toast.ajaxErrorTitle') : null,
                         hasWarning: warnCount > 0,
                         checkedAt: new Date().toISOString()
                     }
                 }))
             } else {
-                setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'down', error: 'Error de diagnóstico', checkedAt: new Date().toISOString() } }))
+                setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'down', error: t('servers.toast.ajaxErrorTitle'), checkedAt: new Date().toISOString() } }))
             }
         } catch (e) {
-            setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'down', error: 'Error de conexión', checkedAt: new Date().toISOString() } }))
+            setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'down', error: t('servers.toast.netErrorTitle'), checkedAt: new Date().toISOString() } }))
         }
     }
 
@@ -162,7 +162,7 @@ export default function AdminServersAndDomains() {
         setLastTestRun(now);
         localStorage.setItem('last_server_test_run', now.toString());
         servers.forEach(s => checkServerHealth(s.id));
-        toast({ title: 'Diagnóstico en curso', description: 'Se han iniciado las pruebas en todos los servidores.' });
+        toast({ title: t('servers.toast.testing'), description: t('servers.toast.testingDesc') });
     }
 
     const checkDomainHealth = async (domainId) => {
@@ -182,10 +182,10 @@ export default function AdminServersAndDomains() {
                     }
                 }))
             } else {
-                setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'down', errorMessage: 'Error del servidor', checkedAt: new Date().toISOString() } }))
+                setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'down', errorMessage: t('servers.toast.ajaxErrorTitle'), checkedAt: new Date().toISOString() } }))
             }
         } catch {
-            setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'down', errorMessage: 'Sin conexión', checkedAt: new Date().toISOString() } }))
+            setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'down', errorMessage: t('servers.toast.netErrorTitle'), checkedAt: new Date().toISOString() } }))
         }
     }
 
@@ -221,7 +221,7 @@ export default function AdminServersAndDomains() {
             if (orgsRes.ok) setOrganizations(await orgsRes.json())
             if (provsRes.ok) setProviders(await provsRes.json())
         } catch (error) {
-            toast({ title: 'Error', description: 'No se pudieron cargar los datos', variant: 'destructive' })
+            toast({ title: t('common.error'), description: t('common.noResults'), variant: 'destructive' })
         } finally {
             setLoading(false)
         }
@@ -323,24 +323,24 @@ export default function AdminServersAndDomains() {
                 ? await api.post('/servers', payload)
                 : await api.put(`/servers/${d._id}`, payload)
             if (res.ok) {
-                toast({ title: 'Éxito', description: `Servidor ${serverDialog.mode === 'create' ? 'creado' : 'actualizado'}` })
+                toast({ title: t('servers.toast.success'), description: serverDialog.mode === 'create' ? t('servers.toast.created') : t('servers.toast.updated') })
                 setServerDialog({ open: false, mode: 'create', data: { ...emptyServer } })
                 loadData()
             } else {
                 const err = await res.json()
-                throw new Error(err.error || 'Error al guardar')
+                throw new Error(err.error || t('servers.toast.saveError'))
             }
         } catch (error) {
-            toast({ title: 'Error', description: error.message, variant: 'destructive' })
+            toast({ title: t('common.error'), description: error.message, variant: 'destructive' })
         }
     }
 
     const handleDeleteServer = async (id) => {
-        if (!confirm('¿Eliminar este servidor? También se eliminarán sus relaciones con licencias.')) return
+        if (!confirm(t('servers.toast.deleteConfirm'))) return
         try {
             const res = await api.delete(`/servers/${id}`)
             if (res.ok) {
-                toast({ title: 'Servidor eliminado' })
+                toast({ title: t('servers.toast.deleted') })
                 setServerHealth(prev => {
                     const next = { ...prev }
                     delete next[id]
@@ -349,7 +349,7 @@ export default function AdminServersAndDomains() {
                 loadData()
             }
         } catch {
-            toast({ title: 'Error al eliminar', variant: 'destructive' })
+            toast({ title: t('servers.toast.deleteError'), variant: 'destructive' })
         }
     }
 
@@ -372,23 +372,23 @@ export default function AdminServersAndDomains() {
                 ? await api.post('/domains', payload)
                 : await api.put(`/domains/${d._id}`, payload)
             if (res.ok) {
-                toast({ title: 'Éxito', description: `Dominio ${domainDialog.mode === 'create' ? 'creado' : 'actualizado'}` })
+                toast({ title: t('servers.toast.success'), description: domainDialog.mode === 'create' ? t('servers.toast.domainCreated') : t('servers.toast.domainUpdated') })
                 setDomainDialog({ open: false, mode: 'create', data: { ...emptyDomain }, serverId: null, serverName: '' })
                 loadData()
             } else {
                 const err = await res.json()
-                throw new Error(err.error || 'Error al guardar')
+                throw new Error(err.error || t('servers.toast.saveError'))
             }
         } catch (error) {
-            toast({ title: 'Error', description: error.message, variant: 'destructive' })
+            toast({ title: t('common.error'), description: error.message, variant: 'destructive' })
         }
     }
 
     const handleDeleteDomain = async (id) => {
-        if (!confirm('¿Eliminar este dominio?')) return
+        if (!confirm(t('servers.toast.domainDeleteConfirm'))) return
         try {
             await api.delete(`/domains/${id}`)
-            toast({ title: 'Dominio eliminado' })
+            toast({ title: t('servers.toast.domainDeleted') })
             setDomainHealth(prev => {
                 const next = { ...prev }
                 delete next[id]
@@ -396,7 +396,7 @@ export default function AdminServersAndDomains() {
             })
             loadData()
         } catch {
-            toast({ title: 'Error al eliminar', variant: 'destructive' })
+            toast({ title: t('servers.toast.deleteError'), variant: 'destructive' })
         }
     }
 
@@ -408,19 +408,19 @@ export default function AdminServersAndDomains() {
             const data = await res.json()
             setAjaxTesting({ testing: false, result: data })
             if (data.ok) {
-                toast({ title: 'Prueba AJAX Exitosa', description: `Respuesta: ${data.response}` })
+                toast({ title: t('servers.toast.ajaxSuccessTitle'), description: t('servers.toast.ajaxSuccessDesc', { response: data.response }) })
             } else {
-                toast({ variant: 'destructive', title: 'Error en Prueba AJAX', description: data.error || 'El archivo no respondió correctamente' })
+                toast({ variant: 'destructive', title: t('servers.toast.ajaxErrorTitle'), description: data.error || t('servers.toast.ajaxErrorDesc') })
             }
         } catch (e) {
             setAjaxTesting({ testing: false, result: { ok: false, error: e.message } })
-            toast({ variant: 'destructive', title: 'Error de Red', description: 'No se pudo contactar con el backend' })
+            toast({ variant: 'destructive', title: t('servers.toast.netErrorTitle'), description: t('servers.toast.netErrorDesc') })
         }
     }
 
     const handleMailTest = async () => {
         if (!diagnosticsDialog.serverId || !mailTesting.email) {
-            if (!mailTesting.email) toast({ variant: 'destructive', title: 'Email requerido', description: 'Por favor ingresa un correo para la prueba' })
+            if (!mailTesting.email) toast({ variant: 'destructive', title: t('servers.toast.mailReqTitle'), description: t('servers.toast.mailReqDesc') })
             return
         }
         setMailTesting(prev => ({ ...prev, testing: true, result: null }))
@@ -429,13 +429,13 @@ export default function AdminServersAndDomains() {
             const data = await res.json()
             setMailTesting(prev => ({ ...prev, testing: false, result: data }))
             if (data.ok) {
-                toast({ title: 'Prueba de Email Enviada', description: data.response })
+                toast({ title: t('servers.toast.mailSuccessTitle'), description: data.response })
             } else {
-                toast({ variant: 'destructive', title: 'Error en Envío de Email', description: data.error || data.response || 'El servidor no pudo enviar el correo' })
+                toast({ variant: 'destructive', title: t('servers.toast.mailErrorTitle'), description: data.error || data.response || t('servers.toast.ajaxErrorDesc') })
             }
         } catch (e) {
             setMailTesting(prev => ({ ...prev, testing: false, result: { ok: false, error: e.message } }))
-            toast({ variant: 'destructive', title: 'Error de Red', description: 'No se pudo contactar con el backend' })
+            toast({ variant: 'destructive', title: t('servers.toast.netErrorTitle'), description: t('servers.toast.netErrorDesc') })
         }
     }
 
@@ -558,7 +558,7 @@ export default function AdminServersAndDomains() {
                             </div>
                             <div className="flex gap-2">
                                 <Button variant="outline" size="sm" onClick={() => openServerDialog('edit', server)}>
-                                    <Edit className="h-4 w-4 mr-2" /> Editar
+                                    <Edit className="h-4 w-4 mr-2" /> {t('common.edit')}
                                 </Button>
                             </div>
                         </div>
@@ -569,29 +569,29 @@ export default function AdminServersAndDomains() {
                         <div className="md:col-span-2 space-y-6">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Card className="p-4 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-2 tracking-wider">Conectividad</p>
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-2 tracking-wider">{t('servers.connectivity')}</p>
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Network className="h-3.5 w-3.5" /> IP Pública</span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Network className="h-3.5 w-3.5" /> {t('servers.publicIp')}</span>
                                             <span className="text-sm font-mono font-medium">{server.ipAddress || '—'}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5" /> Dominio Principal</span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5" /> {t('servers.primaryDomain')}</span>
                                             <span className="text-sm font-medium truncate max-w-[150px]">{server.primaryDomain || '—'}</span>
                                         </div>
                                     </div>
                                 </Card>
 
                                 <Card className="p-4 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-2 tracking-wider">Infraestructura</p>
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-2 tracking-wider">{t('servers.infrastructure')}</p>
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> Proveedor</span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {t('servers.provider')}</span>
                                             <span className="text-sm font-medium">{server.providerRef?.name || '—'}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Cpu className="h-3.5 w-3.5" /> Especificaciones</span>
-                                            <span className="text-sm font-medium">{server.size || 'No definido'}</span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Cpu className="h-3.5 w-3.5" /> {t('servers.specifications')}</span>
+                                            <span className="text-sm font-medium">{server.size || t('common.notDefined')}</span>
                                         </div>
                                     </div>
                                 </Card>
@@ -602,10 +602,10 @@ export default function AdminServersAndDomains() {
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="text-sm font-bold flex items-center gap-2">
                                         <Globe className="h-4 w-4 text-indigo-500" />
-                                        Dominios Vinculados ({domainsCount})
+                                        {t('servers.linkedDomains').replace('{{count}}', domainsCount)}
                                     </h4>
                                     <Button size="xs" variant="ghost" className="h-7 text-[11px] text-indigo-600" onClick={() => openDomainDialog('create', server.id, server.name)}>
-                                        <Plus className="h-3 w-3 mr-1" /> Añadir
+                                        <Plus className="h-3 w-3 mr-1" /> {t('common.add')}
                                     </Button>
                                 </div>
                                 
@@ -614,9 +614,9 @@ export default function AdminServersAndDomains() {
                                         <table className="w-full text-sm">
                                             <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 border-b">
                                                 <tr>
-                                                    <th className="text-left py-2 px-4 font-semibold text-[11px] uppercase">Dominio</th>
-                                                    <th className="text-left py-2 px-4 font-semibold text-[11px] uppercase">Estado</th>
-                                                    <th className="text-right py-2 px-4 font-semibold text-[11px] uppercase">Vencimiento</th>
+                                                    <th className="text-left py-2 px-4 font-semibold text-[11px] uppercase">{t('servers.domain')}</th>
+                                                    <th className="text-left py-2 px-4 font-semibold text-[11px] uppercase">{t('common.status')}</th>
+                                                    <th className="text-right py-2 px-4 font-semibold text-[11px] uppercase">{t('servers.expiration')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -640,7 +640,7 @@ export default function AdminServersAndDomains() {
                                 ) : (
                                     <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-muted-foreground">
                                         <Globe className="h-8 w-8 mb-2 opacity-20" />
-                                        <p className="text-xs">No hay dominios vinculados a este servidor</p>
+                                        <p className="text-xs">{t('servers.noLinkedDomains')}</p>
                                     </div>
                                 )}
                             </div>
@@ -651,44 +651,44 @@ export default function AdminServersAndDomains() {
                             <Card className="p-4 border-slate-100 dark:border-slate-800">
                                 <h4 className="text-sm font-bold flex items-center gap-2 mb-4">
                                     <DollarSign className="h-4 w-4 text-emerald-500" />
-                                    Facturación
+                                    {t('servers.billingTitle')}
                                 </h4>
                                 <div className="space-y-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Costo ({server.billingCycle === 'ANNUAL' ? 'Anual' : 'Mensual'})</span>
+                                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{t('servers.cost')} ({server.billingCycle === 'ANNUAL' ? t('servers.billing.ANNUAL') : t('servers.billing.MONTHLY')})</span>
                                         <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100">
                                             {server.currency || 'USD'} {Number(server.billingCycle === 'ANNUAL' ? server.costAnnual : server.costMonthly).toFixed(2)}
                                         </p>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Próximo Pago</span>
+                                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{t('servers.nextPayment')}</span>
                                         <p className={`text-sm font-bold flex items-center gap-2 ${isExpiring ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>
                                             <Calendar className="h-4 w-4" />
-                                            {server.nextPaymentDate ? new Date(server.nextPaymentDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'No definida'}
+                                            {server.nextPaymentDate ? new Date(server.nextPaymentDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : t('common.notDefined')}
                                         </p>
                                     </div>
                                     <div className="pt-2 border-t flex items-center justify-between">
-                                        <span className="text-xs text-muted-foreground">Ciclo</span>
-                                        <Badge variant="secondary" className="text-[10px] uppercase">{server.billingCycle === 'ANNUAL' ? 'Anual' : 'Mensual'}</Badge>
+                                        <span className="text-xs text-muted-foreground">{t('servers.cycle')}</span>
+                                        <Badge variant="secondary" className="text-[10px] uppercase">{server.billingCycle === 'ANNUAL' ? t('servers.billing.ANNUAL') : t('servers.billing.MONTHLY')}</Badge>
                                     </div>
                                 </div>
                             </Card>
 
                             <div className="space-y-3">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Acciones Rápidas</h4>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">{t('common.quickActions')}</h4>
                                 <div className="grid grid-cols-1 gap-2">
                                     <Button variant="outline" className="w-full justify-start gap-3 h-10 border-slate-200" onClick={() => runDiagnostics(server)}>
-                                        <Stethoscope className="h-4 w-4 text-violet-500" /> Diagnóstico de Salud
+                                        <Stethoscope className="h-4 w-4 text-violet-500" /> {t('servers.healthDiagnostic')}
                                     </Button>
                                     <Button variant="outline" className="w-full justify-start gap-3 h-10 border-slate-200" onClick={() => openDomainDialog('create', server.id, server.name)}>
-                                        <Plus className="h-4 w-4 text-emerald-500" /> Añadir Dominio
+                                        <Plus className="h-4 w-4 text-emerald-500" /> {t('servers.addDomain')}
                                     </Button>
                                     <Button variant="outline" className="w-full justify-start gap-3 h-10 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20" 
                                         onClick={() => {
                                             onOpenChange(false)
                                             handleDeleteServer(server.id)
                                         }}>
-                                        <Trash2 className="h-4 w-4" /> Eliminar Servidor
+                                        <Trash2 className="h-4 w-4" /> {t('servers.deleteServer')}
                                     </Button>
                                 </div>
                             </div>
@@ -870,22 +870,22 @@ export default function AdminServersAndDomains() {
                         className="h-11 px-4 rounded-xl border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-950/30 gap-2 font-bold shadow-sm"
                     >
                         <RefreshCcw className="h-4 w-4" />
-                        Ejecutar Tests
+                        {t('servers.runTests')}
                     </Button>
                     <Button 
                         onClick={() => openServerDialog('create')}
                         className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md shadow-primary/20 gap-2 font-bold"
                     >
                         <Plus className="h-5 w-5" />
-                        Nuevo Servidor
+                        {t('servers.newServer')}
                     </Button>
                 </div>
             </div>
 
             <Tabs defaultValue="servers" className="w-full">
                 <TabsList className="grid w-full max-w-sm grid-cols-2 rounded-xl">
-                    <TabsTrigger value="servers" className="rounded-lg">Servidores y Dominios</TabsTrigger>
-                    <TabsTrigger value="providers" className="rounded-lg">Catálogo de Proveedores</TabsTrigger>
+                    <TabsTrigger value="servers" className="rounded-lg">{t('servers.serversAndDomains')}</TabsTrigger>
+                    <TabsTrigger value="providers" className="rounded-lg">{t('servers.providerCatalog')}</TabsTrigger>
                 </TabsList>
 
                 {/* ══════════ SERVERS TAB ══════════ */}
@@ -962,17 +962,17 @@ export default function AdminServersAndDomains() {
                         <div className="flex flex-wrap items-center gap-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">
                                 <SlidersHorizontal className="h-3.5 w-3.5" />
-                                <span>Filtros</span>
+                                <span>{t('common.filters')}</span>
                             </div>
                             
                             <div className="flex flex-wrap items-center gap-2">
                                 {/* Status filter */}
                                 <Select value={filterStatus} onValueChange={setFilterStatus}>
                                     <SelectTrigger className="h-9 w-auto min-w-[140px] text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-primary/20">
-                                        <SelectValue placeholder="Estado" />
+                                        <SelectValue placeholder={t('common.status')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Todos los estados</SelectItem>
+                                        <SelectItem value="all">{t('common.allStatuses')}</SelectItem>
                                         {SERVER_STATUS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
@@ -980,10 +980,10 @@ export default function AdminServersAndDomains() {
                                 {/* Type filter */}
                                 <Select value={filterType} onValueChange={setFilterType}>
                                     <SelectTrigger className="h-9 w-auto min-w-[140px] text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-primary/20">
-                                        <SelectValue placeholder="Tipo" />
+                                        <SelectValue placeholder={t('servers.type')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Todos los tipos</SelectItem>
+                                        <SelectItem value="all">{t('servers.allTypes')}</SelectItem>
                                         {SERVER_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
@@ -992,10 +992,10 @@ export default function AdminServersAndDomains() {
                                 {providers.length > 0 && (
                                     <Select value={filterProvider} onValueChange={setFilterProvider}>
                                         <SelectTrigger className="h-9 w-auto min-w-[150px] text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-primary/20">
-                                            <SelectValue placeholder="Proveedor" />
+                                            <SelectValue placeholder={t('servers.provider')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">Todos los proveedores</SelectItem>
+                                            <SelectItem value="all">{t('servers.allProviders')}</SelectItem>
                                             {providers.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -1006,12 +1006,12 @@ export default function AdminServersAndDomains() {
                             {(filterStatus !== 'all' || filterType !== 'all' || filterProvider !== 'all') && (
                                 <button onClick={() => { setFilterStatus('all'); setFilterType('all'); setFilterProvider('all') }}
                                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/50 hover:bg-red-100 transition-all">
-                                    <XCircle className="h-3.5 w-3.5" /> Limpiar
+                                    <XCircle className="h-3.5 w-3.5" /> {t('common.clear')}
                                 </button>
                             )}
 
                             <div className="ml-auto flex items-center gap-2">
-                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Mostrando:</span>
+                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">{t('common.showing')}</span>
                                 <Badge variant="secondary" className="rounded-lg font-mono">{filteredServers.length}</Badge>
                             </div>
                         </div>
@@ -1221,12 +1221,12 @@ export default function AdminServersAndDomains() {
                                                         <div className="flex justify-between items-center mb-3">
                                                             <h4 className="text-sm font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                                                                 <Globe className="h-4 w-4 text-indigo-500" />
-                                                                Dominios Vinculados
+                                                                {t('servers.linkedDomains')}
                                                                 <Badge variant="secondary" className="h-5 text-[11px]">{server.domains?.length || 0}</Badge>
                                                             </h4>
                                                         </div>
                                                         {(!server.domains || server.domains.length === 0) ? (
-                                                            <p className="text-xs text-slate-400 italic py-2">Sin dominios vinculados. Usa el botón + para añadir uno.</p>
+                                                            <p className="text-xs text-slate-400 italic py-2">{t('servers.noLinkedDomains')}</p>
                                                         ) : (
                                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                                                 {server.domains.map(domain => (
@@ -1330,24 +1330,24 @@ export default function AdminServersAndDomains() {
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-xl">
                                 <HardDrive className="h-5 w-5 text-primary" />
-                                {serverDialog.mode === 'create' ? 'Nuevo' : 'Editar'} Servidor
+                                {serverDialog.mode === 'create' ? t('common.new') : t('common.edit')} {t('servers.server')}
                             </DialogTitle>
-                            <DialogDescription>Configura todos los detalles técnicos, de facturación y relaciones del servidor.</DialogDescription>
+                            <DialogDescription>{t('servers.dialogDescription')}</DialogDescription>
                         </DialogHeader>
 
                         <div className="py-6 space-y-6">
                             {/* Section: Identificación */}
                             <div>
                                 <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                                    <Server className="h-4 w-4 text-blue-500" /> Identificación
+                                    <Server className="h-4 w-4 text-blue-500" /> {t('servers.identification')}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="md:col-span-2">
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <Label>Nombre del Servidor *</Label>
+                                            <Label>{t('servers.serverName')} *</Label>
                                         </div>
                                         <Input value={sf.name} onChange={e => updateServerField('name', e.target.value)}
-                                            required placeholder="Ej. VPS App Producción" />
+                                            required placeholder={t('servers.serverNamePlaceholder')} />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1.5">
