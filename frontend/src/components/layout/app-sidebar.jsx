@@ -78,50 +78,50 @@ export function AppSidebar({ user }) {
 
     const menuItems = [
         {
-            title: 'Resumen',
+            title: t('navigation.summary'),
             icon: LayoutDashboard,
             path: '/admin/dashboard',
             visible: true,
             subItems: [
-                { title: 'Estadísticas', path: '/admin/estadisticas' }
+                { title: t('navigation.statistics'), path: '/admin/estadisticas' }
             ]
         },
         {
-            title: 'Gestión',
+            title: t('navigation.management'),
             icon: Users,
             path: '/admin/gestion',
             visible: isMaster,
             isDropdownOnly: true,
             subItems: [
-                { title: 'Resumen de clientes', path: '/admin/crm?tab=active' },
-                { title: 'Prospectos', path: '/admin/crm?tab=pipeline' },
-                { title: 'Organizaciones', path: '/admin/organizations' },
-                { title: 'Usuarios', path: '/admin/gestion/users' },
-                { title: 'Licencias', path: '/admin/gestion/licenses' },
-                { title: 'Lic. Pendientes', path: '/admin/gestion/pending-licenses' },
-                { title: 'Activaciones', path: '/admin/gestion/activations' },
-                { title: 'Auditoría', path: '/admin/gestion/audit' }
+                { title: t('navigation.activeClients'), path: '/admin/crm/clients' },
+                { title: t('navigation.pipeline'), path: '/admin/crm/prospects' },
+                { title: t('navigation.organizations'), path: '/admin/organizations' },
+                { title: t('navigation.users'), path: '/admin/gestion/users' },
+                { title: t('navigation.licenses'), path: '/admin/gestion/licenses' },
+                { title: t('navigation.pendingLicenses'), path: '/admin/gestion/pending-licenses' },
+                { title: t('navigation.activations'), path: '/admin/gestion/activations' },
+                { title: t('navigation.audit'), path: '/admin/gestion/audit' }
             ]
         },
         {
-            title: 'Servidores y Dominios',
+            title: t('navigation.infrastructure'),
             icon: Server,
             path: '/admin/infraestructura',
             visible: isMaster,
         },
         {
-            title: 'Configuración',
+            title: t('navigation.configuration'),
             icon: Settings,
             path: '/admin/configuracion',
             visible: isMaster,
             subItems: [
-                { title: 'General', path: '/admin/configuracion?tab=general' },
-                { title: 'Roles & Permisos', path: '/admin/configuracion?tab=roles' },
-                { title: 'Planes & Hosting', path: '/admin/configuracion?tab=planes' },
-                { title: 'Plantillas de Email', path: '/admin/configuracion?tab=email' },
-                { title: 'Integraciones', path: '/admin/configuracion?tab=integraciones' },
-                { title: 'Backup & Restauración', path: '/admin/configuracion?tab=backup' },
-                { title: 'Constantes Técnicas', path: '/admin/configuracion?tab=constantes' }
+                { title: t('navigation.general'), path: '/admin/configuracion?tab=general' },
+                { title: t('navigation.roles'), path: '/admin/configuracion?tab=roles' },
+                { title: t('navigation.plans'), path: '/admin/configuracion?tab=planes' },
+                { title: t('navigation.emails'), path: '/admin/configuracion?tab=email' },
+                { title: t('navigation.integrations'), path: '/admin/configuracion?tab=integraciones' },
+                { title: t('navigation.backup'), path: '/admin/configuracion?tab=backup' },
+                { title: t('navigation.constants'), path: '/admin/configuracion?tab=constantes' }
             ]
         },
     ].filter(item => item.visible);

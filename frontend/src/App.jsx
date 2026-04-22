@@ -16,6 +16,8 @@ const PendingLicensesInbox = lazy(() => import('./pages/PendingLicensesInbox.jsx
 const AdminActivations = lazy(() => import('./pages/AdminActivations.jsx'));
 const AdminAudit = lazy(() => import('./pages/AdminAudit.jsx'));
 const CRM = lazy(() => import('./pages/CRM.jsx'));
+const AdminClients = lazy(() => import('./pages/AdminClients.jsx'));
+const AdminProspects = lazy(() => import('./pages/AdminProspects.jsx'));
 const AdminServersAndDomains = lazy(() => import('./pages/AdminServersAndDomains.jsx'));
 const Configuracion = lazy(() => import('./pages/Configuracion.jsx'));
 const Estadisticas = lazy(() => import('./pages/Estadisticas.jsx'));
@@ -117,6 +119,8 @@ export default function App() {
             <Route path="gestion/audit" element={<AdminAudit />} />
             <Route path="organizations" element={<AdminOrganizations />} />
             <Route path="crm" element={<CRM />} />
+            <Route path="crm/clients" element={<AdminClients />} />
+            <Route path="crm/prospects" element={<AdminProspects />} />
             <Route path="crm/clients/:id" element={<ClientDetail />} />
             <Route path="infraestructura" element={<AdminServersAndDomains />} />
             <Route path="configuracion" element={<Configuracion />} />

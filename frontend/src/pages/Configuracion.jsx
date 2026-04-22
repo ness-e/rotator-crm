@@ -5,7 +5,6 @@
  * @path /frontend/src/pages/Configuracion.jsx
  * @lastUpdated 2026-03-23
  */
-
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -17,7 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Settings, Save, AlertCircle, Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle, Database, Package, Mail, Plug, HelpCircle, X, Info } from 'lucide-react'
+import { Settings, Save,  Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle,      X, Info } from 'lucide-react'
 import { api } from '@/utils/api'
 import { useToast } from '@/components/ui/use-toast'
 import InfoHint from '@/components/ui/InfoHint'
@@ -27,8 +26,6 @@ import AdminPlans from './AdminPlans'
 import AdminConstants from './AdminConstants'
 import AdminEmailTemplates from './AdminEmailTemplates'
 import AdminIntegrations from './AdminIntegrations'
-
-
 // Constants that should not be edited via this UI
 const HIDDEN_SETTINGS = [
     'DEFAULT_CURRENCY',
@@ -39,17 +36,13 @@ const HIDDEN_SETTINGS = [
     'SOFTWARE_VERSION_MINOR',
     'XOR_MAGIC_WORD'
 ]
-
-
 // ============ SETTINGS TAB ============
 function SettingsTab() {
     const { toast } = useToast()
     const [settings, setSettings] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
-
     useEffect(() => { loadSettings() }, [])
-
     const loadSettings = async () => {
         setLoading(true)
         try {
@@ -58,11 +51,9 @@ function SettingsTab() {
         } catch (e) { console.error(e) }
         finally { setLoading(false) }
     }
-
     const handleChange = (key, value) => {
         setSettings(prev => prev.map(s => s.key === key ? { ...s, value } : s))
     }
-
     const handleSave = async () => {
         const reportEmails = settings.find(s => s.key === 'REPORT_EMAILS')?.value || '';
         const invalidEmails = reportEmails.split(',').some(email => email.trim() && !email.trim().endsWith('@rotatorsurvey.com'));
@@ -74,7 +65,6 @@ function SettingsTab() {
                 variant: 'destructive' 
             });
         }
-
         setSaving(true)
         try {
             const payload = settings.map(s => ({ key: s.key, value: s.value }))
@@ -85,16 +75,13 @@ function SettingsTab() {
             toast({ title: 'Error', description: 'No se pudo guardar la configuración', variant: 'destructive' })
         } finally { setSaving(false) }
     }
-
     const grouped = settings.reduce((acc, curr) => {
         const g = curr.group || 'GENERAL'
         if (!acc[g]) acc[g] = []
         acc[g].push(curr)
         return acc
     }, {})
-
     if (loading) return <p>Cargando configuración...</p>
-
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -106,12 +93,11 @@ function SettingsTab() {
                     {saving ? 'Guardando...' : <><Save className="mr-2 h-4 w-4" /> Guardar Cambios</>}
                 </Button>
             </div>
-
             <div className="grid gap-6">
-                    {Object.keys(grouped).sort().map(group => (
-                        <Card key={group} className="shadow-sm border-slate-200">
-                            <CardHeader className="pb-3 border-b bg-slate-50/30">
-                                <CardTitle className="text-sm font-bold tracking-wider text-slate-500">{group}</CardTitle>
+                {Object.keys(grouped).sort().map(group => (
+                    <Card key={group} className="shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+                        <CardHeader className="pb-3 border-b bg-slate-50/30 dark:bg-slate-900/40 dark:border-slate-800">
+                                <CardTitle className="text-sm font-bold tracking-wider text-slate-500 dark:text-slate-400">{group}</CardTitle>
                             </CardHeader>
                             <CardContent className="grid gap-6 p-6 md:grid-cols-2">
                                 {grouped[group]
@@ -119,12 +105,11 @@ function SettingsTab() {
                                     .map(setting => (
                                     <div key={setting.key} className="space-y-2 group">
                                         <div className="flex items-center gap-2">
-                                            <Label className="text-sm font-semibold">{setting.description || setting.key}</Label>
+                                            <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">{setting.description || setting.key}</Label>
                                             {SYSTEM_HINTS[setting.key] && (
                                                 <InfoHint content={SYSTEM_HINTS[setting.key]} />
                                             )}
                                         </div>
-
                                         {setting.key === 'REPORT_EMAILS' ? (
                                             <div className="space-y-2">
                                                 <Input 
@@ -134,7 +119,7 @@ function SettingsTab() {
                                                         const val = e.target.value;
                                                         handleChange(setting.key, val);
                                                     }}
-                                                    className={`font-mono text-sm ${
+                                                    className={`font-mono text-sm bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-primary ${
                                                         setting.value.split(',').some(email => email.trim() && !email.trim().endsWith('@rotatorsurvey.com'))
                                                             ? 'border-red-500 focus-visible:ring-red-500'
                                                             : ''
@@ -146,7 +131,7 @@ function SettingsTab() {
                                             </div>
                                         ) : setting.key === 'PASSWORD_POLICY' ? (
                                             <select 
-                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                className="flex h-10 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
                                                 value={setting.value}
                                                 onChange={e => handleChange(setting.key, e.target.value)}
                                             >
@@ -179,7 +164,6 @@ function SettingsTab() {
                             </CardContent>
                         </Card>
                     ))}
-
                 <Alert className="bg-slate-50 dark:bg-slate-900 border-slate-200">
                     <Info className="h-4 w-4 text-primary" />
                     <AlertTitle className="text-slate-900 font-bold">Información de Sistema</AlertTitle>
@@ -191,7 +175,6 @@ function SettingsTab() {
         </div>
     )
 }
-
 // ============ ROLES TAB ============
 function RolesTab() {
     const { toast } = useToast()
@@ -201,9 +184,7 @@ function RolesTab() {
     const [isNew, setIsNew] = useState(false)
     const [formData, setFormData] = useState({ name: '', description: '', permissions: [] })
     const [open, setOpen] = useState(false)
-
     useEffect(() => { loadRoles() }, [])
-
     const loadRoles = async () => {
         setLoading(true)
         try {
@@ -212,7 +193,6 @@ function RolesTab() {
         } catch (e) { console.error(e) }
         finally { setLoading(false) }
     }
-
     const handleEdit = (role) => {
         if (role.name === 'MASTER') {
             return toast({ 
@@ -226,14 +206,12 @@ function RolesTab() {
         setFormData({ name: role.name, description: role.description || '', permissions: role.permissions || [] })
         setOpen(true)
     }
-
     const handleNew = () => {
         setEditing(null)
         setIsNew(true)
         setFormData({ name: '', description: '', permissions: [] })
         setOpen(true)
     }
-
     const togglePermission = (perm) => {
         setFormData(prev => ({
             ...prev,
@@ -242,7 +220,6 @@ function RolesTab() {
                 : [...prev.permissions, perm]
         }))
     }
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         if (!formData.name) return toast({ title: 'Nombre requerido', variant: 'destructive' })
@@ -260,7 +237,6 @@ function RolesTab() {
             toast({ title: 'Error', description: err.message, variant: 'destructive' })
         }
     }
-
     const handleDelete = async (role) => {
         if (role.isSystem || role.name === 'MASTER') return
         
@@ -278,7 +254,6 @@ function RolesTab() {
             toast({ title: 'Error al eliminar', description: err.message, variant: 'destructive' })
         }
     }
-
     return (
         <div className="space-y-6">
             <div className="flex justify-end">
@@ -286,7 +261,6 @@ function RolesTab() {
                     <Plus className="mr-2 h-4 w-4" /> Nuevo Rol
                 </Button>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
                     <div className="col-span-full py-12 flex flex-col items-center justify-center text-muted-foreground">
@@ -363,7 +337,6 @@ function RolesTab() {
                     </Card>
                 ))}
             </div>
-
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>{isNew ? 'Crear Nuevo Rol' : `Editar ${editing?.name}`}</DialogTitle></DialogHeader>
@@ -422,14 +395,12 @@ function RolesTab() {
         </div>
     )
 }
-
 // ============ BACKUP TAB ============
 function BackupTab() {
     const { toast } = useToast()
     const [restoring, setRestoring] = useState(false)
     const [downloading, setDownloading] = useState(false)
     const [file, setFile] = useState(null)
-
     const handleDownload = async () => {
         setDownloading(true)
         try {
@@ -450,7 +421,6 @@ function BackupTab() {
             toast({ title: 'Error', description: 'No se pudo descargar el backup', variant: 'destructive' })
         } finally { setDownloading(false) }
     }
-
     const handleRestore = async () => {
         if (!file) return
         if (!window.confirm('ADVERTENCIA: ¿Estás seguro de restaurar? Esto sobrescribirá TODOS los datos actuales.')) return
@@ -473,10 +443,9 @@ function BackupTab() {
             toast({ title: 'Error', description: 'Falló la restauración', variant: 'destructive' })
         } finally { setRestoring(false) }
     }
-
     return (
         <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-lg border-blue-100 dark:border-blue-900">
+            <Card className="shadow-lg border-blue-100 dark:border-blue-900/50 bg-white dark:bg-slate-950/50">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5 text-blue-500" /> Exportar Datos</CardTitle>
                     <CardDescription>Descarga una copia completa de la base de datos actual.</CardDescription>
@@ -488,8 +457,7 @@ function BackupTab() {
                     <p className="text-xs text-muted-foreground mt-4 text-center">Recomendado antes de realizar actualizaciones importantes.</p>
                 </CardContent>
             </Card>
-
-            <Card className="shadow-lg border-red-100 dark:border-red-900">
+            <Card className="shadow-lg border-red-100 dark:border-red-900/30 bg-white dark:bg-slate-950">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-red-600"><Upload className="h-5 w-5" /> Importar / Restaurar</CardTitle>
                     <CardDescription>Restaura la base de datos desde un archivo backup.</CardDescription>
@@ -501,7 +469,7 @@ function BackupTab() {
                         <AlertDescription>Esta acción reemplazará toda la base de datos actual.</AlertDescription>
                     </Alert>
                     <div className="space-y-2">
-                        <Input type="file" accept=".sqlite,.db" onChange={e => setFile(e.target.files[0])} />
+                        <Input type="file" accept=".sqlite,.db" onChange={e => setFile(e.target.files[0])} className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800" />
                         {file && <p className="text-xs text-muted-foreground">Archivo: <span className="font-semibold">{file.name} ({(file.size / 1024).toFixed(1)} KB)</span></p>}
                     </div>
                     <Button onClick={handleRestore} disabled={!file || restoring} variant="destructive" className="w-full">
@@ -512,11 +480,9 @@ function BackupTab() {
         </div>
     )
 }
-
 // ============ MAIN COMPONENT ============
 export default function Configuracion() {
     const [searchParams, setSearchParams] = useSearchParams();
-
     // Map legacy tab values to new structure
     const rawTab = searchParams.get('tab') || 'general';
     const activeTab = rawTab === 'sistema' ? 'general' 
@@ -524,7 +490,6 @@ export default function Configuracion() {
         : rawTab === 'integrations' ? 'integraciones'
         : rawTab === 'emails' ? 'email'
         : rawTab;
-
     const handleTabChange = (value) => {
         setSearchParams(prev => {
             const newParams = new URLSearchParams(prev);
@@ -532,16 +497,14 @@ export default function Configuracion() {
             return newParams;
         }, { replace: true });
     };
-
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <h1 className="page-title flex items-center gap-3">
-                    <Settings className="h-6 w-6 text-primary" /> Configuración
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
+                    <Settings className="h-8 w-8 text-primary" /> Configuración General
                 </h1>
-                <p className="page-subtitle">Gestiona la configuración del sistema, roles de usuario y copias de seguridad.</p>
+                <p className="text-muted-foreground mt-1">Gestión de parámetros del sistema, roles de usuario y mantenimiento de base de datos.</p>
             </div>
-
             {/* Page Content based on sidebar selection */}
             <div className="mt-4">
                 {activeTab === 'general' && <SettingsTab />}

@@ -8,11 +8,11 @@
  */
 
 import React, { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate} from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
-import { Copy, Edit, Lock, LogOut, User, Mail, Phone, MapPin, Building, Calendar, Key, Shield, Activity } from 'lucide-react'
+import { Copy, Edit,  LogOut, User,  Phone, MapPin, Building,  Key, Shield, Activity } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { GlobalCountrySelect, GlobalCitySelect, GlobalPhoneInput } from '@/components/GlobalSelects'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -23,22 +23,22 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 const profileSchema = z.object({
-  nombre_cliente: z.string().trim().min(1, 'Nombre requerido').regex(/^\S+$/, 'Solo una palabra'),
-  apellido_cliente: z.string().trim().min(1, 'Apellido requerido').regex(/^\S+$/, 'Solo una palabra'),
-  pais_cliente: z.string().trim().min(1, 'País requerido'),
+  nombre_cliente: z.string().trim().min(1, 'firstNameRequired').regex(/^\S+$/, 'oneWord'),
+  apellido_cliente: z.string().trim().min(1, 'lastNameRequired').regex(/^\S+$/, 'oneWord'),
+  pais_cliente: z.string().trim().min(1, 'countryRequired'),
   ciudad_cliente: z.string().trim().optional(),
-  organizacion_cliente: z.string().trim().min(1, 'Organización requerida'),
+  organizacion_cliente: z.string().trim().min(1, 'orgRequired'),
   direccion_cliente: z.string().trim().optional(),
   telefono_cliente: z.string().trim().optional(),
   // Skype removed
 })
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(1, 'Contraseña actual requerida'),
-  newPassword: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
-  confirmPassword: z.string().min(8, 'Confirma tu contraseña'),
+  currentPassword: z.string().min(1, 'currentRequired'),
+  newPassword: z.string().min(8, 'minChars'),
+  confirmPassword: z.string().min(8, 'confirmRequired'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Las contraseñas no coinciden',
+  message: 'mismatch',
   path: ['confirmPassword'],
 })
 
@@ -132,13 +132,13 @@ export default function Panel() {
       body: JSON.stringify(values)
     })
     if (!res.ok) {
-      const e = await res.json().catch(() => ({ error: 'Error' }))
-      toast({ title: 'Error', description: e.error || 'Error al actualizar perfil', variant: 'destructive' })
+      const e = await res.json().catch(() => ({ error: t('common.error') }))
+      toast({ title: t('common.error'), description: e.error || t('dashboard.profile.errors.updateError'), variant: 'destructive' })
       return
     }
     setEditOpen(false)
     loadData()
-    toast({ title: 'Perfil actualizado', description: 'Tus datos se han actualizado correctamente' })
+    toast({ title: t('dashboard.profile.updateSuccess'), description: t('dashboard.profile.updateSuccessDesc') })
   }
 
   async function onPasswordSubmit(values) {
@@ -155,19 +155,19 @@ export default function Panel() {
       })
     })
     if (!res.ok) {
-      const e = await res.json().catch(() => ({ error: 'Error' }))
-      toast({ title: 'Error', description: e.error || 'Error al cambiar contraseña', variant: 'destructive' })
+      const e = await res.json().catch(() => ({ error: t('common.error') }))
+      toast({ title: t('common.error'), description: e.error || t('dashboard.security.errors.updateError'), variant: 'destructive' })
       return
     }
     setPasswordOpen(false)
     passwordForm.reset()
-    toast({ title: 'Contraseña actualizada', description: 'Tu contraseña se ha cambiado correctamente' })
+    toast({ title: t('dashboard.security.updateSuccess'), description: t('dashboard.security.updateSuccessDesc') })
   }
 
   function copySerial() {
     if (data?.license?.licencia_serial) {
       navigator.clipboard.writeText(data.license.licencia_serial)
-      toast({ title: 'Serial copiado', description: 'El serial se ha copiado al portapapeles' })
+      toast({ title: t('dashboard.license.copySuccess'), description: t('dashboard.license.copySuccessDesc') })
     }
   }
 
@@ -194,7 +194,7 @@ export default function Panel() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -224,16 +224,16 @@ export default function Panel() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-8">
           <div className="space-y-1">
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-              Dashboard
+              {t('dashboard.title')}
             </h1>
             <p className="text-lg text-muted-foreground">
-              Bienvenido de nuevo, <span className="text-foreground font-semibold">{data.nombre_cliente || data.correo_cliente}</span>
+              {t('dashboard.welcome', { name: data.nombre_cliente || data.correo_cliente })}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={handleLogout} className="rounded-xl px-6 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all duration-200">
               <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
+              {t('dashboard.logout')}
             </Button>
           </div>
         </div>
@@ -252,45 +252,45 @@ export default function Panel() {
                     <DialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="rounded-lg text-xs font-semibold hover:bg-primary/5">
                         <Edit className="mr-2 h-3.5 w-3.5" />
-                        Editar
+                        {t('common.edit')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
                       <DialogHeader>
-                        <DialogTitle>Editar Perfil Profesional</DialogTitle>
-                        <CardDescription>Actualiza tu información comercial y de contacto.</CardDescription>
+                        <DialogTitle>{t('dashboard.profile.editTitle')}</DialogTitle>
+                        <CardDescription>{t('dashboard.profile.editSubtitle')}</CardDescription>
                       </DialogHeader>
                       <Form {...profileForm}>
                         <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4 pt-4">
                           <div className="grid grid-cols-2 gap-4">
-                            <FormField control={profileForm.control} name="nombre_cliente" render={({ field }) => (
+                            <FormField control={profileForm.control} name="nombre_cliente" render={({ field, fieldState }) => (
                               <FormItem>
-                                <FormLabel>Nombre</FormLabel>
-                                <FormControl><Input {...field} placeholder="Tu nombre" /></FormControl>
-                                <FormMessage />
+                                <FormLabel>{t('dashboard.profile.firstName')}</FormLabel>
+                                <FormControl><Input {...field} placeholder={t('dashboard.profile.placeholders.firstName')} /></FormControl>
+                                {fieldState.error && <FormMessage>{t(`dashboard.profile.errors.${fieldState.error.message}`)}</FormMessage>}
                               </FormItem>
                             )} />
-                            <FormField control={profileForm.control} name="apellido_cliente" render={({ field }) => (
+                            <FormField control={profileForm.control} name="apellido_cliente" render={({ field, fieldState }) => (
                               <FormItem>
-                                <FormLabel>Apellido</FormLabel>
-                                <FormControl><Input {...field} placeholder="Tu apellido" /></FormControl>
-                                <FormMessage />
+                                <FormLabel>{t('dashboard.profile.lastName')}</FormLabel>
+                                <FormControl><Input {...field} placeholder={t('dashboard.profile.placeholders.lastName')} /></FormControl>
+                                {fieldState.error && <FormMessage>{t(`dashboard.profile.errors.${fieldState.error.message}`)}</FormMessage>}
                               </FormItem>
                             )} />
                           </div>
 
-                          <FormField control={profileForm.control} name="organizacion_cliente" render={({ field }) => (
+                          <FormField control={profileForm.control} name="organizacion_cliente" render={({ field, fieldState }) => (
                             <FormItem>
-                              <FormLabel>Organización</FormLabel>
-                              <FormControl><Input {...field} placeholder="Nombre de tu empresa" /></FormControl>
-                              <FormMessage />
+                              <FormLabel>{t('dashboard.profile.organization')}</FormLabel>
+                              <FormControl><Input {...field} placeholder={t('dashboard.profile.placeholders.organization')} /></FormControl>
+                              {fieldState.error && <FormMessage>{t(`dashboard.profile.errors.${fieldState.error.message}`)}</FormMessage>}
                             </FormItem>
                           )} />
 
                           <div className="grid grid-cols-2 gap-4">
-                            <FormField control={profileForm.control} name="pais_cliente" render={({ field }) => (
+                            <FormField control={profileForm.control} name="pais_cliente" render={({ field, fieldState }) => (
                               <FormItem>
-                                <FormLabel>País</FormLabel>
+                                <FormLabel>{t('dashboard.profile.country')}</FormLabel>
                                 <FormControl>
                                   <GlobalCountrySelect
                                     value={field.value}
@@ -300,12 +300,12 @@ export default function Panel() {
                                     }}
                                   />
                                 </FormControl>
-                                <FormMessage />
+                                {fieldState.error && <FormMessage>{t(`dashboard.profile.errors.${fieldState.error.message}`)}</FormMessage>}
                               </FormItem>
                             )} />
                             <FormField control={profileForm.control} name="ciudad_cliente" render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Ciudad</FormLabel>
+                                <FormLabel>{t('dashboard.profile.city')}</FormLabel>
                                 <FormControl>
                                   <GlobalCitySelect
                                     countryCode={profileForm.watch('pais_cliente')}
@@ -320,15 +320,15 @@ export default function Panel() {
 
                           <FormField control={profileForm.control} name="direccion_cliente" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Dirección Fiscal</FormLabel>
-                              <FormControl><Input {...field} placeholder="Dirección de facturación" /></FormControl>
+                              <FormLabel>{t('dashboard.profile.address')}</FormLabel>
+                              <FormControl><Input {...field} placeholder={t('dashboard.profile.placeholders.address')} /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
 
                           <FormField control={profileForm.control} name="telefono_cliente" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Teléfono Celular</FormLabel>
+                              <FormLabel>{t('dashboard.profile.phone')}</FormLabel>
                               <FormControl>
                                 <GlobalPhoneInput value={field.value} onChange={field.onChange} />
                               </FormControl>
@@ -337,16 +337,16 @@ export default function Panel() {
                           )} />
 
                           <div className="flex justify-end gap-3 pt-4 border-t mt-4">
-                            <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
-                            <Button type="submit">Guardar Cambios</Button>
+                            <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t('common.cancel')}</Button>
+                            <Button type="submit">{t('dashboard.profile.saveChanges') || t('common.save')}</Button>
                           </div>
                         </form>
                       </Form>
                     </DialogContent>
                   </Dialog>
                 </div>
-                <CardTitle className="mt-4 text-xl font-bold">Perfil</CardTitle>
-                <CardDescription>Gestión de identidad corporativa</CardDescription>
+                <CardTitle className="mt-4 text-xl font-bold">{t('dashboard.profile.title')}</CardTitle>
+                <CardDescription>{t('dashboard.profile.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
@@ -362,15 +362,15 @@ export default function Panel() {
 
                   <div className="pt-4 space-y-3 border-t">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2"><Building className="h-3.5 w-3.5" /> Org</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><Building className="h-3.5 w-3.5" /> {t('dashboard.profile.orgShort')}</span>
                       <span className="font-medium">{data.organizacion_cliente || 'N/A'}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> País</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> {t('dashboard.profile.countryShort')}</span>
                       <span className="font-medium">{data.pais_cliente || 'N/A'}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> Tel</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> {t('dashboard.profile.phoneShort')}</span>
                       <span className="font-medium">{data.telefono_cliente || 'N/A'}</span>
                     </div>
                   </div>
@@ -381,40 +381,40 @@ export default function Panel() {
                     <DialogTrigger asChild>
                       <Button variant="outline" className="w-full rounded-xl gap-2 text-sm border-slate-200 dark:border-slate-800">
                         <Shield className="h-4 w-4" />
-                        Seguridad y Acceso
+                        {t('dashboard.security.title')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="rounded-2xl">
                       <DialogHeader>
-                        <DialogTitle>Seguridad de la Cuenta</DialogTitle>
-                        <CardDescription>Cambia tu contraseña para mantener tu cuenta segura.</CardDescription>
+                        <DialogTitle>{t('dashboard.security.dialogTitle')}</DialogTitle>
+                        <CardDescription>{t('dashboard.security.dialogSubtitle')}</CardDescription>
                       </DialogHeader>
                       <Form {...passwordForm}>
                         <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4 pt-4">
-                          <FormField control={passwordForm.control} name="currentPassword" render={({ field }) => (
+                          <FormField control={passwordForm.control} name="currentPassword" render={({ field, fieldState }) => (
                             <FormItem>
-                              <FormLabel>Contraseña Actual</FormLabel>
+                              <FormLabel>{t('dashboard.security.currentPassword')}</FormLabel>
                               <FormControl><Input type="password" {...field} /></FormControl>
-                              <FormMessage />
+                              {fieldState.error && <FormMessage>{t(`dashboard.security.errors.${fieldState.error.message}`)}</FormMessage>}
                             </FormItem>
                           )} />
-                          <FormField control={passwordForm.control} name="newPassword" render={({ field }) => (
+                          <FormField control={passwordForm.control} name="newPassword" render={({ field, fieldState }) => (
                             <FormItem>
-                              <FormLabel>Nueva Contraseña</FormLabel>
+                              <FormLabel>{t('dashboard.security.newPassword')}</FormLabel>
                               <FormControl><Input type="password" {...field} /></FormControl>
-                              <FormMessage />
+                              {fieldState.error && <FormMessage>{t(`dashboard.security.errors.${fieldState.error.message}`)}</FormMessage>}
                             </FormItem>
                           )} />
-                          <FormField control={passwordForm.control} name="confirmPassword" render={({ field }) => (
+                          <FormField control={passwordForm.control} name="confirmPassword" render={({ field, fieldState }) => (
                             <FormItem>
-                              <FormLabel>Confirmar Nueva Contraseña</FormLabel>
+                              <FormLabel>{t('dashboard.security.confirmPassword')}</FormLabel>
                               <FormControl><Input type="password" {...field} /></FormControl>
-                              <FormMessage />
+                              {fieldState.error && <FormMessage>{t(`dashboard.security.errors.${fieldState.error.message}`)}</FormMessage>}
                             </FormItem>
                           )} />
                           <div className="flex justify-end gap-3 pt-4 border-t mt-4">
-                            <Button type="button" variant="outline" onClick={() => setPasswordOpen(false)}>Cancelar</Button>
-                            <Button type="submit">Actualizar Contraseña</Button>
+                            <Button type="button" variant="outline" onClick={() => setPasswordOpen(false)}>{t('common.cancel')}</Button>
+                            <Button type="submit">{t('dashboard.security.updateButton')}</Button>
                           </div>
                         </form>
                       </Form>
@@ -433,13 +433,13 @@ export default function Panel() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-2xl font-extrabold flex items-center gap-3">
                     <Key className="h-6 w-6 text-primary" />
-                    Licencia de Producto
+                    {t('dashboard.license.title')}
                   </CardTitle>
                   <div className="badge-active">
-                    Activa
+                    {t('dashboard.license.statusActive')}
                   </div>
                 </div>
-                <CardDescription>Detalles técnicos de tu producto Rotator Survey</CardDescription>
+                <CardDescription>{t('dashboard.license.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-8 pt-4">
 
@@ -447,54 +447,54 @@ export default function Panel() {
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                   <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="space-y-2 text-center md:text-left">
-                      <div className="text-xs font-bold uppercase tracking-wider text-primary">Serial de Activación</div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-primary">{t('dashboard.license.serialLabel')}</div>
                       <div className="font-mono text-2xl md:text-3xl font-bold tracking-widest text-slate-900 dark:text-slate-100">
                         {license.licencia_serial?.match(/.{1,4}/g)?.join('-') || '---'}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Activity className="h-3 w-3" />
-                        Usa este código en el software de escritorio para activar tu licencia.
+                        {t('dashboard.license.serialHint')}
                       </div>
                     </div>
-                    <Button
-                      size="lg"
-                      onClick={copySerial}
-                      className="rounded-xl px-8 shadow-lg shadow-primary/20 hover:scale-105 transition-all"
-                    >
-                      <Copy className="mr-2 h-5 w-5" />
-                      Copiar Serial
-                    </Button>
+                      <Button
+                        size="lg"
+                        onClick={copySerial}
+                        className="rounded-xl px-8 shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                      >
+                        <Copy className="mr-2 h-5 w-5" />
+                        {t('dashboard.license.copyButton')}
+                      </Button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground uppercase">Edición</div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase">{t('dashboard.license.edition')}</div>
                     <div className="font-bold">{getLicenseTypeName(license.licencia_tipo)}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground uppercase">Vencimiento</div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase">{t('dashboard.license.expiration')}</div>
                     <div className="font-bold text-destructive">{license.licencia_expira || 'N/A'}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground uppercase">Activador</div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase">{t('dashboard.license.activator')}</div>
                     <div className="font-bold">{license.licencia_activador || 'N/A'}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground uppercase">Hosting</div>
-                    <div className="font-bold">{license.hosting === 1 ? 'Cloud' : 'Local'}</div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase">{t('dashboard.license.hosting')}</div>
+                    <div className="font-bold">{license.hosting === 1 ? t('servers.types.cloud') : 'Local'}</div>
                   </div>
                 </div>
 
                 <div className="pt-6 border-t">
-                  <h4 className="text-sm font-bold mb-4 uppercase tracking-wider text-slate-500">Capacidades del Plan</h4>
+                  <h4 className="text-sm font-bold mb-4 uppercase tracking-wider text-slate-500">{t('dashboard.license.planCapabilities')}</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                     {[
-                      { label: 'Preguntas', val: license.n_preguntas, icon: 'Q' },
-                      { label: 'Casos', val: license.n_casos, icon: 'C' },
-                      { label: 'Admins', val: license.n_admins, icon: 'A' },
-                      { label: 'Móviles', val: license.n_moviles, icon: 'M' },
-                      { label: 'Telefónicos', val: license.n_telefonicos, icon: 'T' }
+                      { label: t('dashboard.license.questions'), val: license.n_preguntas, icon: 'Q' },
+                      { label: t('dashboard.license.cases'), val: license.n_casos, icon: 'C' },
+                      { label: t('dashboard.license.admins'), val: license.n_admins, icon: 'A' },
+                      { label: t('dashboard.license.mobiles'), val: license.n_moviles, icon: 'M' },
+                      { label: t('dashboard.license.phones'), val: license.n_telefonicos, icon: 'T' }
                     ].map(cap => (
                       <div key={cap.label} className="p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl text-center border">
                         <div className="text-lg font-bold text-primary">{cap.val || '0'}</div>
@@ -510,11 +510,11 @@ export default function Panel() {
             <div className="p-1 px-1">
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-[10px] font-bold">1</div>
-                <span>Descarga el instalador de Rotator Survey.</span>
+                <span>{t('dashboard.license.guide.step1')}</span>
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-[10px] font-bold">2</div>
-                <span>Pega el serial copiado arriba.</span>
+                <span>{t('dashboard.license.guide.step2')}</span>
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-[10px] font-bold">3</div>
-                <span>¡Listo! Tu licencia se activará automáticamente.</span>
+                <span>{t('dashboard.license.guide.step3')}</span>
               </div>
             </div>
           </div>
@@ -523,4 +523,4 @@ export default function Panel() {
     </div>
   )
 }
-
+

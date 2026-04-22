@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,7 +29,6 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Progress } from '@/components/ui/progress'
 import { api } from '@/utils/api'
 import { useToast } from '@/components/ui/use-toast'
 import {
@@ -38,14 +37,15 @@ import {
     Calendar, Activity, Layers, Cpu, AlertCircle,
     Key, Copy, Eye, EyeOff, Check, Lock, FolderOpen,
     Loader2, RotateCcw, XCircle, Wifi, Stethoscope,
-    CheckCircle2, AlertTriangle, ShieldAlert, Info, Globe2,
+    CheckCircle2, AlertTriangle, ShieldAlert, ShieldCheck, Info, Globe2,
     Clock, Database, Mail, Send, LayoutGrid, List, LayoutList,
-    Filter, SlidersHorizontal
+    Filter, SlidersHorizontal, RefreshCcw
 } from 'lucide-react'
 import { SERVER_TYPES, getServerTypeName } from '@/constants/serverTypes'
 import { ProviderCatalog } from '@/components/ProviderCatalog'
 import InfoHint from '@/components/ui/InfoHint'
 import { SYSTEM_HINTS } from '@/utils/hints'
+import { useTranslation } from 'react-i18next'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const SERVER_STATUS_OPTIONS = [
@@ -80,12 +80,17 @@ const emptyDomain = {
 }
 
 export default function AdminServersAndDomains() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [servers, setServers] = useState([])
     const [providers, setProviders] = useState([])
     const [organizations, setOrganizations] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
+    const [lastTestRun, setLastTestRun] = useState(() => {
+        const saved = localStorage.getItem('last_server_test_run');
+        return saved ? parseInt(saved) : null;
+    });
     const [viewMode, setViewMode] = useState('list') // 'list' | 'cards' | 'grouped'
     const [groupBy, setGroupBy] = useState('type')    // 'type' | 'status'
     const [filterStatus, setFilterStatus] = useState('all')
@@ -96,8 +101,23 @@ export default function AdminServersAndDomains() {
     const [expandedServers, setExpandedServers] = useState({})
     const [ftpSheet, setFtpSheet] = useState({ open: false, domain: null, password: null, showPassword: false, loading: false, copied: {} })
     // domainHealth: { [domainId]: { status: 'checking'|'up'|'down', latencyMs, checkedAt, errorMessage } }
-    const [serverHealth, setServerHealth] = useState({})
-    const [domainHealth, setDomainHealth] = useState({})
+    const [serverHealth, setServerHealth] = useState(() => {
+        const saved = localStorage.getItem('server_health_data')
+        return saved ? JSON.parse(saved) : {}
+    })
+    const [domainHealth, setDomainHealth] = useState(() => {
+        const saved = localStorage.getItem('domain_health_data')
+        return saved ? JSON.parse(saved) : {}
+    })
+
+    useEffect(() => {
+        localStorage.setItem('server_health_data', JSON.stringify(serverHealth))
+    }, [serverHealth])
+
+    useEffect(() => {
+        localStorage.setItem('domain_health_data', JSON.stringify(domainHealth))
+    }, [domainHealth])
+
     const [diagnosticsDialog, setDiagnosticsDialog] = useState({ open: false, serverId: null, serverName: '', loading: false, data: null, error: null })
     const [ajaxTesting, setAjaxTesting] = useState({ testing: false, result: null })
     const [mailTesting, setMailTesting] = useState({ testing: false, result: null, email: '' })
@@ -107,31 +127,46 @@ export default function AdminServersAndDomains() {
     useEffect(() => { loadData() }, [])
 
     const checkServerHealth = async (serverId) => {
-        setServerHealth(h => ({ ...h, [serverId]: { status: 'checking' } }))
+        setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'checking' } }))
         try {
             const res = await api.get(`/servers/${serverId}/diagnostics`)
             if (res.ok) {
                 const data = await res.json()
-                // Server is considered "up" if ping and http (if applicable) are ok
-                const isHealthy = data.results?.ping?.ok !== false && data.results?.http?.ok !== false
+                const tests = data.tests || []
+                const failCount = tests.filter(t => t.status === 'error').length
+                const warnCount = tests.filter(t => t.status === 'warning').length
+
+                let status = 'up'
+                if (failCount > 0) status = 'down'
+                else if (warnCount > 0) status = 'warning'
+
                 setServerHealth(h => ({
                     ...h,
                     [serverId]: {
-                        status: isHealthy ? 'up' : 'down',
-                        error: isHealthy ? null : 'Fallo en pruebas diagnósticas',
-                        checkedAt: new Date()
+                        status: status,
+                        error: failCount > 0 ? 'Fallo en pruebas diagnósticas' : null,
+                        hasWarning: warnCount > 0,
+                        checkedAt: new Date().toISOString()
                     }
                 }))
             } else {
-                setServerHealth(h => ({ ...h, [serverId]: { status: 'down', error: 'Error de diagnóstico' } }))
+                setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'down', error: 'Error de diagnóstico', checkedAt: new Date().toISOString() } }))
             }
         } catch (e) {
-            setServerHealth(h => ({ ...h, [serverId]: { status: 'down', error: 'Error de conexión' } }))
+            setServerHealth(h => ({ ...h, [serverId]: { ...h[serverId], status: 'down', error: 'Error de conexión', checkedAt: new Date().toISOString() } }))
         }
     }
 
+    const runAllTests = () => {
+        const now = Date.now();
+        setLastTestRun(now);
+        localStorage.setItem('last_server_test_run', now.toString());
+        servers.forEach(s => checkServerHealth(s.id));
+        toast({ title: 'Diagnóstico en curso', description: 'Se han iniciado las pruebas en todos los servidores.' });
+    }
+
     const checkDomainHealth = async (domainId) => {
-        setDomainHealth(h => ({ ...h, [domainId]: { status: 'checking' } }))
+        setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'checking' } }))
         try {
             const res = await api.get(`/domains/${domainId}/health`)
             if (res.ok) {
@@ -143,14 +178,14 @@ export default function AdminServersAndDomains() {
                         latencyMs: data.latencyMs,
                         statusCode: data.statusCode,
                         errorMessage: data.errorMessage,
-                        checkedAt: data.checkedAt
+                        checkedAt: new Date().toISOString()
                     }
                 }))
             } else {
-                setDomainHealth(h => ({ ...h, [domainId]: { status: 'down', errorMessage: 'Error del servidor' } }))
+                setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'down', errorMessage: 'Error del servidor', checkedAt: new Date().toISOString() } }))
             }
         } catch {
-            setDomainHealth(h => ({ ...h, [domainId]: { status: 'down', errorMessage: 'Sin conexión' } }))
+            setDomainHealth(h => ({ ...h, [domainId]: { ...h[domainId], status: 'down', errorMessage: 'Sin conexión', checkedAt: new Date().toISOString() } }))
         }
     }
 
@@ -171,8 +206,17 @@ export default function AdminServersAndDomains() {
             if (serversRes.ok) {
                 const sData = await serversRes.json()
                 setServers(sData)
-                // Auto-run health checks for all servers
-                sData.forEach(s => checkServerHealth(s.id))
+                
+                // Cooldown check: 30 minutes (30 * 60 * 1000)
+                const now = Date.now();
+                const savedLastRun = localStorage.getItem('last_server_test_run');
+                const lastRunTime = savedLastRun ? parseInt(savedLastRun) : 0;
+                
+                if (now - lastRunTime > 30 * 60 * 1000) {
+                    sData.forEach(s => checkServerHealth(s.id));
+                    localStorage.setItem('last_server_test_run', now.toString());
+                    setLastTestRun(now);
+                }
             }
             if (orgsRes.ok) setOrganizations(await orgsRes.json())
             if (provsRes.ok) setProviders(await provsRes.json())
@@ -297,6 +341,11 @@ export default function AdminServersAndDomains() {
             const res = await api.delete(`/servers/${id}`)
             if (res.ok) {
                 toast({ title: 'Servidor eliminado' })
+                setServerHealth(prev => {
+                    const next = { ...prev }
+                    delete next[id]
+                    return next
+                })
                 loadData()
             }
         } catch {
@@ -340,6 +389,11 @@ export default function AdminServersAndDomains() {
         try {
             await api.delete(`/domains/${id}`)
             toast({ title: 'Dominio eliminado' })
+            setDomainHealth(prev => {
+                const next = { ...prev }
+                delete next[id]
+                return next
+            })
             loadData()
         } catch {
             toast({ title: 'Error al eliminar', variant: 'destructive' })
@@ -415,8 +469,19 @@ export default function AdminServersAndDomains() {
     }
 
     const getStatusLabel = (status) => {
-        const labels = { active: 'Activo', inactive: 'Inactivo', maintenance: 'Mantenimiento', expired: 'Expirado' }
+        const labels = {
+            active: t('servers.statusLabel.active'),
+            inactive: t('servers.statusLabel.inactive'),
+            maintenance: t('servers.statusLabel.maintenance'),
+            expired: t('servers.statusLabel.expired')
+        }
         return labels[status] || status
+    }
+
+    const getServerTypeNameTranslated = (type) => {
+        const typeKeys = { '0': 'cloud', '1': 'private', '2': 'own', '3': 'pool' }
+        const key = typeKeys[String(type)] || 'unknown'
+        return t(`servers.types.${key}`)
     }
 
     const isExpiringSoon = (dateString) => {
@@ -641,17 +706,23 @@ export default function AdminServersAndDomains() {
         const health = serverHealth[server.id]
         const isFailed = health?.status === 'down'
         const isChecking = health?.status === 'checking'
+        const isWarning = health?.status === 'warning'
         
         return (
             <Card className={`flex flex-col h-full rounded-2xl border transition-all duration-500 group overflow-hidden relative ${
                 isFailed 
                     ? 'border-red-500 shadow-red-100 dark:shadow-red-950/20 shadow-lg ring-1 ring-red-500/20' 
+                    : isWarning
+                    ? 'border-amber-500 shadow-amber-100 dark:shadow-amber-950/20 shadow-lg ring-1 ring-amber-500/20'
                     : 'border-slate-200/60 dark:border-slate-800/60 shadow-md hover:shadow-xl hover:-translate-y-1'
             } bg-white dark:bg-slate-900`}>
                 
-                {/* Health Status Overlay for Errors */}
+                {/* Health Status Overlay */}
                 {isFailed && (
                     <div className="absolute top-0 left-0 right-0 h-1 bg-red-500 z-10 animate-pulse" />
+                )}
+                {isWarning && (
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500 z-10 animate-pulse" />
                 )}
 
                 {/* Card Header */}
@@ -668,20 +739,26 @@ export default function AdminServersAndDomains() {
                                 getStatusDot(server.status)
                             )}
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/80">
-                                {isChecking ? 'Verificando...' : getStatusLabel(server.status)}
+                                {isChecking ? t('servers.verifying') : getStatusLabel(server.status)}
                             </span>
                             {isFailed && (
                                 <Badge variant="destructive" className="h-4 text-[8px] px-1 font-black animate-pulse">
-                                    <AlertTriangle className="h-2 w-2 mr-0.5" /> ERROR
+                                    <AlertTriangle className="h-2 w-2 mr-0.5" /> {t('common.error').toUpperCase()}
                                 </Badge>
                             )}
                         </div>
                         <h3 className={`text-base font-bold line-clamp-1 ${isFailed ? 'text-red-700 dark:text-red-400' : 'text-slate-900 dark:text-slate-100'}`}>
                             {server.name}
                         </h3>
+                        {health?.checkedAt && (
+                            <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                                <Clock className="h-2.5 w-2.5" />
+                                {new Date(health.checkedAt).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        )}
                     </div>
                     <Badge variant={isFailed ? "destructive" : "secondary"} className="text-[10px] font-bold h-5">
-                        {getServerTypeName(server.type)}
+                        {getServerTypeNameTranslated(server.type)}
                     </Badge>
                 </div>
 
@@ -689,14 +766,14 @@ export default function AdminServersAndDomains() {
                     {/* Technical Specs */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Dirección IP</p>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{t('servers.ipAddress')}</p>
                             <p className="text-sm font-mono font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                                 <Network className="h-3.5 w-3.5 text-blue-500/80" />
                                 {server.ipAddress || '—'}
                             </p>
                         </div>
                         <div className="space-y-1 text-right">
-                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Proveedor</p>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{t('servers.provider')}</p>
                             <p className="text-sm font-medium flex items-center gap-1.5 justify-end text-slate-700 dark:text-slate-300">
                                 <Building2 className="h-3.5 w-3.5 text-indigo-500/80" />
                                 {server.providerRef?.name || '—'}
@@ -707,10 +784,10 @@ export default function AdminServersAndDomains() {
                     {/* Hardware info without capacity */}
                     <div className="pt-2 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
                         <div className="space-y-1">
-                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Especificaciones</p>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{t('servers.specifications')}</p>
                             <p className="text-sm font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                                 <Cpu className="h-3.5 w-3.5 text-orange-500/80" />
-                                {server.size || 'No definido'}
+                                {server.size || t('common.notDefined')}
                             </p>
                         </div>
                     </div>
@@ -718,17 +795,17 @@ export default function AdminServersAndDomains() {
                     {/* Domains & Billing */}
                     <div className="pt-2 grid grid-cols-2 gap-4 border-t border-slate-100 dark:border-slate-800">
                         <div className="space-y-1">
-                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Dominios</p>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{t('servers.domains')}</p>
                             <div className="flex items-center gap-1.5">
                                 <Globe2 className="h-3.5 w-3.5 text-blue-500/80" />
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{domainsCount} vinculados</span>
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('servers.linkedDomains', { count: domainsCount })}</span>
                             </div>
                         </div>
                         <div className="space-y-1 text-right">
-                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Vencimiento</p>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{t('servers.expiration')}</p>
                             <p className={`text-sm font-bold flex items-center gap-1.5 justify-end ${isExpiring ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>
                                 <Clock className="h-3.5 w-3.5" />
-                                {server.nextPaymentDate ? new Date(server.nextPaymentDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : '—'}
+                                {server.nextPaymentDate ? new Date(server.nextPaymentDate).toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : (i18n.language === 'en' ? 'en-US' : 'es-ES'), { day: '2-digit', month: 'short' }) : '—'}
                             </p>
                         </div>
                     </div>
@@ -757,7 +834,7 @@ export default function AdminServersAndDomains() {
                     </div>
                     <Button size="sm" variant="outline" className="h-8 text-xs font-bold rounded-xl border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                         onClick={() => setServerDetailDialog({ open: true, server })}>
-                        Ver Detalles
+                        {t('common.viewDetails')}
                     </Button>
                 </div>
             </Card>
@@ -767,24 +844,41 @@ export default function AdminServersAndDomains() {
     return (
         <div className="w-full px-4 py-10 space-y-8 animate-in fade-in duration-400">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
                         <div className="p-2.5 bg-primary/10 rounded-xl">
                             <Server className="h-7 w-7 text-primary" />
                         </div>
-                        Infraestructura
+                        {t('servers.title')}
                     </h1>
-                    <p className="text-muted-foreground mt-2 ml-1">Servidores, dominios y catálogo de proveedores</p>
+                    <p className="text-muted-foreground mt-2 ml-1">{t('servers.description')}</p>
                 </div>
-                <div className="relative w-full md:w-80">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                        placeholder="Buscar servidor, IP, proveedor..."
-                        className="pl-9 h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                    <div className="relative flex-1 sm:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                            placeholder={t('servers.searchPlaceholder')}
+                            className="pl-9 h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Button 
+                        onClick={runAllTests}
+                        variant="outline"
+                        className="h-11 px-4 rounded-xl border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-950/30 gap-2 font-bold shadow-sm"
+                    >
+                        <RefreshCcw className="h-4 w-4" />
+                        Ejecutar Tests
+                    </Button>
+                    <Button 
+                        onClick={() => openServerDialog('create')}
+                        className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md shadow-primary/20 gap-2 font-bold"
+                    >
+                        <Plus className="h-5 w-5" />
+                        Nuevo Servidor
+                    </Button>
                 </div>
             </div>
 
@@ -799,10 +893,10 @@ export default function AdminServersAndDomains() {
                     {/* Summary Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                            { icon: Server, label: 'Total Servidores', value: servers.length, color: 'blue' },
-                            { icon: Activity, label: 'Activos', value: activeServers, color: 'emerald' },
-                            { icon: Globe, label: 'Dominios', value: totalDomains, color: 'indigo' },
-                            { icon: AlertCircle, label: 'Pago próximo', value: expiringSoonPayments, color: 'amber' },
+                            { icon: Server, label: t('servers.totalServers'), value: servers.length, color: 'blue' },
+                            { icon: Activity, label: t('common.active'), value: activeServers, color: 'emerald' },
+                            { icon: Globe, label: t('servers.domains'), value: totalDomains, color: 'indigo' },
+                            { icon: AlertCircle, label: t('servers.nextPayment'), value: expiringSoonPayments, color: 'amber' },
                         ].map(({ icon: Icon, label, value, color }) => (
                             <div key={label} className={`bg-${color}-50 dark:bg-${color}-950/30 border border-${color}-100 dark:border-${color}-900/50 rounded-xl p-4 flex items-center gap-3`}>
                                 <div className={`p-2 bg-${color}-500/15 rounded-lg flex-shrink-0`}>
@@ -823,9 +917,9 @@ export default function AdminServersAndDomains() {
                                 {/* View switcher */}
                                 <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                                     {[
-                                        { mode: 'cards',   Icon: LayoutGrid,  label: 'Tarjetas' },
-                                        { mode: 'grouped', Icon: LayoutList,   label: 'Agrupada' },
-                                        { mode: 'list',    Icon: List,         label: 'Lista'    },
+                                        { mode: 'cards',   Icon: LayoutGrid,  label: t('servers.view.cards') },
+                                        { mode: 'grouped', Icon: LayoutList,   label: t('servers.view.grouped') },
+                                        { mode: 'list',    Icon: List,         label: t('servers.view.list')    },
                                     ].map(({ mode, Icon, label }) => (
                                         <button key={mode}
                                             onClick={() => setViewMode(mode)}
@@ -842,8 +936,8 @@ export default function AdminServersAndDomains() {
 
                                 {viewMode === 'grouped' && (
                                     <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-100 dark:border-slate-800">
-                                        <span className="text-[10px] uppercase font-bold text-slate-400 px-2">Agrupar por:</span>
-                                        {[{ key: 'type', label: 'Tipo' }, { key: 'status', label: 'Estado' }].map(({ key, label }) => (
+                                        <span className="text-[10px] uppercase font-bold text-slate-400 px-2">{t('servers.view.groupBy')}</span>
+                                        {[{ key: 'type', label: t('servers.type') }, { key: 'status', label: t('servers.statusLabel') }].map(({ key, label }) => (
                                             <button key={key}
                                                 onClick={() => setGroupBy(key)}
                                                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
@@ -858,7 +952,7 @@ export default function AdminServersAndDomains() {
 
                             <Button className="rounded-xl shadow-md h-10 px-6 font-bold flex-shrink-0 bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98]" 
                                 onClick={() => openServerDialog('create')}>
-                                <Plus className="mr-2 h-4 w-4" /> Nuevo Servidor
+                                <Plus className="mr-2 h-4 w-4" /> {t('servers.new')}
                             </Button>
                         </div>
 
@@ -931,8 +1025,8 @@ export default function AdminServersAndDomains() {
                     ) : filteredServers.length === 0 ? (
                         <div className="flex flex-col items-center justify-center p-16 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/20">
                             <Server className="h-12 w-12 text-slate-300 mb-4" />
-                            <p className="text-slate-500 font-medium text-lg">No se encontraron servidores</p>
-                            <p className="text-sm text-slate-400 mt-1">Añade tu primer servidor con el botón superior</p>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{t('servers.noServersFound')}</h3>
+                            <p className="text-slate-500 max-w-[280px] text-center">{t('servers.addFirstServer')}</p>
                         </div>
                     ) : (
                         <div className="mt-4">
@@ -975,12 +1069,15 @@ export default function AdminServersAndDomains() {
                                     {filteredServers.map(server => {
                                         const health = serverHealth[server.id];
                                         const isFailed = health?.status === 'down';
+                                        const isWarning = health?.status === 'warning';
                                         const isChecking = health?.status === 'checking';
                                         
                                         return (
                                             <Card key={server.id} className={`rounded-2xl border transition-all duration-300 overflow-hidden hover:shadow-md ${
                                                 isFailed 
                                                     ? 'border-red-500 bg-red-50/10 dark:bg-red-950/5 shadow-sm shadow-red-100' 
+                                                    : isWarning
+                                                    ? 'border-amber-500 bg-amber-50/10 dark:bg-amber-950/5 shadow-sm shadow-amber-100'
                                                     : 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm'
                                             }`}>
                                                 {/* Server Row */}
@@ -998,13 +1095,15 @@ export default function AdminServersAndDomains() {
                                                                 ? <ChevronDown className="h-4 w-4 text-slate-400" />
                                                                 : <ChevronRight className="h-4 w-4 text-slate-400" />}
                                                         </button>
-                                                        <div className={`p-2.5 rounded-xl flex-shrink-0 mt-0.5 ${isFailed ? 'bg-red-500/15' : 'bg-blue-500/10'}`}>
+                                                        <div className={`p-2.5 rounded-xl flex-shrink-0 mt-0.5 ${isFailed ? 'bg-red-500/15' : isWarning ? 'bg-amber-500/15' : 'bg-emerald-500/10'}`}>
                                                             {isChecking ? (
                                                                 <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                                                             ) : isFailed ? (
-                                                                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                                                <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                                            ) : isWarning ? (
+                                                                <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                                                             ) : (
-                                                                <HardDrive className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                                <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                                             )}
                                                         </div>
                                                         <div className="min-w-0">
@@ -1021,10 +1120,16 @@ export default function AdminServersAndDomains() {
                                                                     {getStatusDot(server.status)}
                                                                     <span className="text-xs text-muted-foreground">{getStatusLabel(server.status)}</span>
                                                                 </div>
-                                                                <Badge variant="outline" className="text-[11px] h-5">{getServerTypeName(server.type)}</Badge>
+                                                                <Badge variant="outline" className="text-[11px] h-5">{getServerTypeNameTranslated(server.type)}</Badge>
+                                                                {health?.checkedAt && (
+                                                                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                                                                        <Clock className="h-2.5 w-2.5" />
+                                                                        {new Date(health.checkedAt).toLocaleString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                                                    </span>
+                                                                )}
                                                                 {isFailed && (
                                                                     <Badge variant="destructive" className="h-5 text-[10px] animate-pulse">
-                                                                        ERROR EN TESTS
+                                                                        {t('servers.testsError')}
                                                                     </Badge>
                                                                 )}
                                                             </div>
@@ -1049,7 +1154,7 @@ export default function AdminServersAndDomains() {
                                                             {(server.type === '1' || server.type === '2') && server.organization && (
                                                                 <div className="flex items-center gap-1 mt-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium">
                                                                     <Building2 className="h-3 w-3" />
-                                                                    Cliente: {server.organization.name}
+                                                                    {t('common.client')}: {server.organization.name}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -1059,7 +1164,7 @@ export default function AdminServersAndDomains() {
                                                         <div className="hidden sm:block text-right">
                                                             <div className="flex items-center gap-1 text-xs text-muted-foreground justify-end">
                                                                 <DollarSign className="h-3 w-3" />
-                                                                <span>{server.billingCycle === 'ANNUAL' ? 'Costo Anual' : 'Costo Mensual'}</span>
+                                                                <span>{server.billingCycle === 'ANNUAL' ? t('servers.annualCost') : t('servers.monthlyCost')}</span>
                                                             </div>
                                                             <p className="text-sm font-semibold">
                                                                 {server.costMonthly > 0 || server.costAnnual > 0
@@ -1072,7 +1177,7 @@ export default function AdminServersAndDomains() {
                                                         <div className="hidden md:block text-right">
                                                             <div className="flex items-center gap-1 text-xs text-muted-foreground justify-end">
                                                                 <Calendar className="h-3 w-3" />
-                                                                <span>Próx. pago</span>
+                                                                <span>{t('servers.nextPaymentShort')}</span>
                                                             </div>
                                                             <p className={`text-sm font-semibold ${isExpiringSoon(server.nextPaymentDate) ? 'text-amber-500' : ''}`}>
                                                                 {server.nextPaymentDate
@@ -1083,10 +1188,10 @@ export default function AdminServersAndDomains() {
                                                         <div className="flex items-center gap-1 border-l pl-4 border-slate-200 dark:border-slate-800">
                                                             <Button size="sm" variant="ghost" className="h-8 px-2 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                                                 onClick={() => setServerDetailDialog({ open: true, server })}>
-                                                                Ver Detalles
+                                                                {t('common.viewDetails')}
                                                             </Button>
                                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-500"
-                                                                title="Añadir dominio"
+                                                                title={t('servers.addDomain')}
                                                                 onClick={() => openDomainDialog('create', server.id, server.name)}>
                                                                 <Plus className="h-4 w-4" />
                                                             </Button>
@@ -1717,18 +1822,18 @@ export default function AdminServersAndDomains() {
                                         </div>
                                         <div className="flex-1">
                                             <p className={`font-bold text-base ${overallOk ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-600 dark:text-red-400'}`}>
-                                                {overallOk ? 'Servidor operando correctamente' : 'Se detectaron problemas en el servidor'}
+                                                {overallOk ? t('servers.diagnostics.okBanner') : t('servers.diagnostics.errorBanner')}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-0.5">
-                                                {passCount} OK · {warnCount} advertencias · {failCount} errores
-                                                {d.generatedAt && ` · ${new Date(d.generatedAt).toLocaleTimeString('es-ES')}`}
+                                                {t('servers.diagnostics.summary', { pass: passCount, warn: warnCount, error: failCount })}
+                                                {d.generatedAt && ` · ${new Date(d.generatedAt).toLocaleTimeString(i18n.language === 'pt' ? 'pt-BR' : (i18n.language === 'en' ? 'en-US' : 'es-ES'))}`}
                                             </p>
                                         </div>
                                         <Button size="sm" variant="outline" onClick={() => {
                                             const server = servers.find(s => s.id === diagnosticsDialog.serverId)
                                             if (server) runDiagnostics(server)
                                         }}>
-                                            <RotateCcw className="h-3 w-3 mr-1.5" /> Actualizar
+                                            <RotateCcw className="h-3 w-3 mr-1.5" /> {t('common.update')}
                                         </Button>
                                     </div>
 
@@ -1801,18 +1906,18 @@ export default function AdminServersAndDomains() {
                                                     {isStudies && test.raw && (
                                                         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                             <div className="bg-slate-50 dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 text-center shadow-inner">
-                                                                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Total Estudios</p>
+                                                                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">{t('servers.diagnostics.totalStudies')}</p>
                                                                 <p className="text-4xl font-black text-slate-800 dark:text-slate-100">{test.raw.total}</p>
                                                             </div>
                                                             <div className="bg-indigo-50 dark:bg-indigo-900/30 p-5 rounded-2xl border border-indigo-200 dark:border-indigo-800/50 text-center shadow-inner">
-                                                                <p className="text-[10px] text-indigo-600/70 dark:text-indigo-400/70 font-black uppercase tracking-widest mb-2">Móvil / Tablet</p>
+                                                                <p className="text-[10px] text-indigo-600/70 dark:text-indigo-400/70 font-black uppercase tracking-widest mb-2">{t('servers.diagnostics.mobileTablet')}</p>
                                                                 <p className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{test.raw.mobile}</p>
                                                             </div>
                                                             <div className="bg-emerald-50 dark:bg-emerald-900/30 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 text-center shadow-inner relative overflow-hidden">
                                                                 <div className="absolute top-0 right-0 p-2 opacity-10">
                                                                     <Activity className="h-12 w-12 text-emerald-600" />
                                                                 </div>
-                                                                <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 font-black uppercase tracking-widest mb-2">Activos Hoy</p>
+                                                                <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 font-black uppercase tracking-widest mb-2">{t('servers.diagnostics.activeToday')}</p>
                                                                 <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{test.raw.activeToday}</p>
                                                             </div>
                                                         </div>
@@ -1823,8 +1928,8 @@ export default function AdminServersAndDomains() {
                                                         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                             <div className="bg-orange-50 dark:bg-orange-950/20 p-5 rounded-2xl border border-orange-200 dark:border-orange-900/30 flex items-center justify-between shadow-sm">
                                                                 <div>
-                                                                    <p className="text-[10px] text-orange-600/70 font-black uppercase mb-1">Archivos Modificados</p>
-                                                                    <p className="text-sm text-muted-foreground font-medium italic mb-2">Últimas 2 horas</p>
+                                                                    <p className="text-[10px] text-orange-600/70 font-black uppercase mb-1">{t('servers.diagnostics.filesModified')}</p>
+                                                                    <p className="text-sm text-muted-foreground font-medium italic mb-2">{t('servers.diagnostics.last2Hours')}</p>
                                                                     <p className="text-5xl font-black text-orange-600 dark:text-orange-400">{test.raw.filesModified}</p>
                                                                 </div>
                                                                 <div className="p-4 bg-orange-100 dark:bg-orange-900/40 rounded-full">
@@ -1833,7 +1938,7 @@ export default function AdminServersAndDomains() {
                                                             </div>
                                                             <div className="bg-blue-50 dark:bg-blue-950/20 p-5 rounded-2xl border border-blue-200 dark:border-blue-900/30 flex items-center justify-between shadow-sm">
                                                                 <div>
-                                                                    <p className="text-[10px] text-blue-600/70 font-black uppercase mb-3">Volumen de Transferencia</p>
+                                                                    <p className="text-[10px] text-blue-600/70 font-black uppercase mb-3">{t('servers.diagnostics.transferVolume')}</p>
                                                                     <div className="flex items-baseline gap-1">
                                                                         <p className="text-5xl font-black text-blue-600 dark:text-blue-400">{test.raw.bytesMB}</p>
                                                                         <p className="text-xl font-black text-blue-500/60 uppercase">MB</p>
@@ -1855,14 +1960,14 @@ export default function AdminServersAndDomains() {
                                                                         <HardDrive className="h-8 w-8 text-slate-600 dark:text-slate-400" />
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter">Espacio Utilizado</p>
+                                                                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter">{t('servers.diagnostics.diskUsed')}</p>
                                                                         <p className="text-3xl font-black text-slate-800 dark:text-slate-100">
                                                                             {test.raw.usedGB} <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest ml-1">GB</span>
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="text-right pb-1">
-                                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Capacidad Total</p>
+                                                                    <p className="text-[10px] text-muted-foreground font-bold uppercase">{t('servers.diagnostics.totalCapacity')}</p>
                                                                     <p className="text-lg font-black text-slate-500">{test.raw.limitGB} GB</p>
                                                                 </div>
                                                             </div>
@@ -1877,7 +1982,7 @@ export default function AdminServersAndDomains() {
                                                                 />
                                                             </div>
                                                             <p className="text-[11px] text-muted-foreground mt-3 text-right font-black tracking-widest uppercase italic">
-                                                                {Math.round((test.raw.usedGB / test.raw.limitGB) * 100)}% de Cuota de Disco en Uso
+                                                                {Math.round((test.raw.usedGB / test.raw.limitGB) * 100)}% {t('servers.diagnostics.diskQuotaInUse')}
                                                             </p>
                                                         </div>
                                                     )}
@@ -1891,14 +1996,14 @@ export default function AdminServersAndDomains() {
                                                                 </div>
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-1">
-                                                                        <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-black rounded uppercase">Entorno PHP</span>
+                                                                     <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-black rounded uppercase">{t('servers.diagnostics.phpEnvironment')}</span>
                                                                     </div>
                                                                     <p className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">v{test.raw.version}</p>
-                                                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Versión Actual del Servidor</p>
+                                                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t('servers.diagnostics.currentServerVersion')}</p>
                                                                 </div>
                                                             </div>
                                                             <div className="px-6 py-4 bg-slate-900 dark:bg-white rounded-2xl text-center min-w-[140px]">
-                                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mb-1">Requisito Mínimo</p>
+                                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mb-1">{t('servers.diagnostics.minRequirement')}</p>
                                                                 <p className="text-xl font-black text-white dark:text-slate-900">v{test.raw.minimum}</p>
                                                             </div>
                                                         </div>
@@ -1910,16 +2015,16 @@ export default function AdminServersAndDomains() {
                                                             <div className="relative group">
                                                                 <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                                                                 <div className="relative flex-shrink-0 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl min-w-[100px] text-center">
-                                                                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter mb-1">Compilación</p>
+                                                                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter mb-1">{t('servers.diagnostics.compilation')}</p>
                                                                     <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{test.raw.version}</p>
                                                                 </div>
                                                             </div>
                                                             <div className="flex-1">
-                                                                <p className="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-2">Librerías de Funciones Nucleares</p>
+                                                                <p className="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-2">{t('servers.diagnostics.coreFunctionLibraries')}</p>
                                                                 <p className="text-xs text-muted-foreground leading-relaxed">
                                                                     {isPhpFunc 
-                                                                        ? 'Funciones maestras de servidor optimizadas y sincronizadas para el procesamiento de encuestas de alto volumen.' 
-                                                                        : 'Scripts de utilidad cliente cargados y validados correctamente en el entorno de ejecución del navegador.'
+                                                                        ? t('servers.diagnostics.masterPhpDesc')
+                                                                        : t('servers.diagnostics.jsUtilityDesc')
                                                                     }
                                                                 </p>
                                                             </div>
@@ -1962,8 +2067,8 @@ export default function AdminServersAndDomains() {
                                                                         <p className="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight">ajaxCheck.php</p>
                                                                         <p className="text-xs font-medium text-muted-foreground">
                                                                             {test.raw?.fileExists 
-                                                                                ? 'Endpoint de validación detectado en el servidor remoto.' 
-                                                                                : 'El archivo de prueba no ha sido localizado en la ruta pública.'}
+                                                                                ? t('servers.diagnostics.endpointDetected')
+                                                                                : t('servers.diagnostics.testFileNotFound')}
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -1975,9 +2080,9 @@ export default function AdminServersAndDomains() {
                                                                         className="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:scale-105 transition-transform font-black uppercase tracking-widest text-[10px] h-12 px-8"
                                                                     >
                                                                         {ajaxTesting.testing ? (
-                                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Verificando...</>
+                                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t('common.verifying')}</>
                                                                         ) : (
-                                                                            <><Wifi className="h-4 w-4 mr-2" /> Ejecutar Test AJAX</>
+                                                                            <><Wifi className="h-4 w-4 mr-2" /> {t('servers.diagnostics.runAjaxTest')}</>
                                                                         )}
                                                                     </Button>
                                                                     {ajaxTesting.result && (
@@ -1985,7 +2090,7 @@ export default function AdminServersAndDomains() {
                                                                             ajaxTesting.result.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                                                                         }`}>
                                                                             {ajaxTesting.result.ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                                                                            {ajaxTesting.result.ok ? 'Respuesta Correcta' : 'Fallo de Comunicación'}
+                                                                            {ajaxTesting.result.ok ? t('servers.diagnostics.correctResponse') : t('servers.diagnostics.commFailure')}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -2005,8 +2110,8 @@ export default function AdminServersAndDomains() {
                                                                         <p className="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight">ajaxMailtest.php</p>
                                                                         <p className="text-xs font-medium text-muted-foreground">
                                                                             {test.raw?.fileExists 
-                                                                                ? 'Prueba de envío de correos vía AJAX disponible.' 
-                                                                                : 'El archivo de prueba de correo no fue encontrado.'}
+                                                                                ? t('servers.diagnostics.mailTestAvailable')
+                                                                                : t('servers.diagnostics.mailTestNotFound')}
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -2029,9 +2134,9 @@ export default function AdminServersAndDomains() {
                                                                             className="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:scale-105 transition-transform font-black uppercase tracking-widest text-[10px] h-12 px-8"
                                                                         >
                                                                             {mailTesting.testing ? (
-                                                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enviando...</>
+                                                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t('common.sending')}</>
                                                                             ) : (
-                                                                                <><Send className="h-4 w-4 mr-2" /> Enviar Prueba</>
+                                                                                <><Send className="h-4 w-4 mr-2" /> {t('servers.diagnostics.sendTest')}</>
                                                                             )}
                                                                         </Button>
                                                                     </div>
@@ -2073,4 +2178,4 @@ export default function AdminServersAndDomains() {
             />
         </div>
     )
-}
+}

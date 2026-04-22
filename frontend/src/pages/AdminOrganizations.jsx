@@ -33,16 +33,13 @@
  * @lastUpdated 2026-03-23
  * @author Sistema
  */
-
 import React, { useState } from 'react';
-import { Building2, Plus, Pencil, Trash2, Users, Receipt, Check, ChevronsUpDown, Phone, Globe, Briefcase, Mail, Clock, XCircle, Send, ShoppingCart, CheckCircle2, Sparkles } from 'lucide-react';
+import { Building2, Plus, Pencil, Trash2, Users, Receipt, Check, ChevronsUpDown,  Globe, Briefcase, Mail, Clock, XCircle, Send, ShoppingCart, CheckCircle2, Sparkles } from 'lucide-react';
 import InfoHint from '@/components/ui/InfoHint';
 import { SYSTEM_HINTS } from '@/utils/hints';
 import { DataTable } from '@/components/DataTable';
 import { AdminGestionLayout } from '@/components/AdminGestionLayout';
 import { useDebouncedValue } from '../utils/debounce';
-import { StatusBadge } from '@/components/StatusBadge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -59,7 +56,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { GlobalPhoneInput } from '@/components/GlobalSelects';
-
 const EntityStatusBadge = ({ status }) => {
     switch (status) {
         case 'En proceso':
@@ -105,7 +101,6 @@ const orgSchema = z.object({
     status: z.string().optional(),
     primerContactoId: z.number().optional().nullable()
 });
-
 // Helper component for Searchable Comboboxes
 function SearchableCombobox({ items, value, onChange, placeholder, searchPlaceholder, emptyMessage }) {
     const [open, setOpen] = useState(false)
@@ -143,8 +138,8 @@ function SearchableCombobox({ items, value, onChange, placeholder, searchPlaceho
         </Popover>
     )
 }
-
 export default function AdminOrganizations() {
+    const { t } = useTranslation();
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const nav = useNavigate();
@@ -156,8 +151,6 @@ export default function AdminOrganizations() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const debouncedSearch = useDebouncedValue(searchValue, 300);
-
-
     // Queries
     const { data: orgs = [], isLoading } = useQuery({
         queryKey: ['organizations'],
@@ -169,7 +162,6 @@ export default function AdminOrganizations() {
             return res.json();
         }
     });
-
     const { data: countries = [] } = useQuery({
         queryKey: ['locations_countries'],
         queryFn: async () => {
@@ -178,7 +170,6 @@ export default function AdminOrganizations() {
             return [];
         }
     });
-
     const { data: usersData = [] } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
@@ -187,7 +178,6 @@ export default function AdminOrganizations() {
             return [];
         }
     });
-
     const { data: licenseVersions = [] } = useQuery({
         queryKey: ['license_templates'],
         queryFn: async () => {
@@ -196,11 +186,9 @@ export default function AdminOrganizations() {
             return [];
         }
     });
-
     // Options derived from queries
     const countryOptions = countries.map(c => ({ value: c.isoCode, label: `${c.name} (${c.isoCode})` }));
     const masterUsers = usersData.filter(u => u.role === 'MASTER' || u.tipo === 'MASTER').map(u => ({ value: u.id, label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email }));
-
     // Mutations
     const createOrg = useMutation({
         mutationFn: async (data) => {
@@ -218,7 +206,6 @@ export default function AdminOrganizations() {
             toast({ title: 'Organización creada' });
         }
     });
-
     const updateOrg = useMutation({
         mutationFn: async ({ id, data }) => {
             const res = await fetch(`/api/crm/organizations/${id}`, {
@@ -236,7 +223,6 @@ export default function AdminOrganizations() {
             toast({ title: 'Organización actualizada' });
         }
     });
-
     const form = useForm({
         resolver: zodResolver(orgSchema),
         defaultValues: {
@@ -247,7 +233,6 @@ export default function AdminOrganizations() {
             businessType: '', primerContactoId: null
         }
     });
-
     const inviteForm = useForm({
         resolver: zodResolver(z.object({
             email: z.string().email('Email requerido para la invitación'),
@@ -255,7 +240,6 @@ export default function AdminOrganizations() {
         })),
         defaultValues: { email: '', productTemplateId: '' }
     });
-
     const createInvitation = useMutation({
         mutationFn: async (data) => {
             const res = await fetch('/api/invitations', {
@@ -276,13 +260,10 @@ export default function AdminOrganizations() {
             toast({ title: 'Error al enviar invitación', description: e.message, variant: 'destructive' });
         }
     });
-
     const onInviteSubmit = (values) => {
         createInvitation.mutate(values);
     };
-
     const selectedCountry = form.watch('countryCode');
-
     const { data: cities = [] } = useQuery({
         queryKey: ['locations_cities', selectedCountry],
         queryFn: async () => {
@@ -294,20 +275,17 @@ export default function AdminOrganizations() {
         enabled: !!selectedCountry
     });
     const cityOptions = cities.map(c => ({ value: c.name, label: `${c.name}, ${c.stateCode}` }));
-
     const onSubmit = (values) => {
         // Remove empty numeric values if any
         if (values.primerContactoId === '') values.primerContactoId = null;
         if (values.ejecutivoId === '') values.ejecutivoId = null;
         if (values.marketTargetId === '') values.marketTargetId = null;
-
         if (editing) {
             updateOrg.mutate({ id: editing.id, data: values });
         } else {
             createOrg.mutate(values);
         }
     };
-
     const handleEdit = (row) => {
         setEditing(row);
         form.reset({
@@ -339,7 +317,6 @@ export default function AdminOrganizations() {
         });
         setOpen(true);
     };
-
     const handleNew = () => {
         setEditing(null);
         form.reset({
@@ -350,7 +327,6 @@ export default function AdminOrganizations() {
         });
         setOpen(true);
     };
-
     // Delete Logic
     const confirmDelete = async () => {
         if (!deleteId) return;
@@ -361,7 +337,6 @@ export default function AdminOrganizations() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Error deleting');
-
             toast({ title: 'Organización eliminada' });
             queryClient.invalidateQueries(['organizations']);
         } catch (e) {
@@ -370,7 +345,6 @@ export default function AdminOrganizations() {
             setDeleteId(null);
         }
     };
-
     // Filter
     const filtered = orgs.filter(o => {
         const q = debouncedSearch.toLowerCase().trim();
@@ -378,68 +352,65 @@ export default function AdminOrganizations() {
                o.taxId?.includes(q) ||
                o.status?.toLowerCase().includes(q);
     });
-
     const isAll = String(pageSize) === 'all';
     const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filtered.length / Number(pageSize)));
     const currentPage = Math.min(page, totalPages);
     const start = isAll ? 0 : (currentPage - 1) * Number(pageSize);
     const pageItems = isAll ? filtered : filtered.slice(start, start + Number(pageSize));
-
-
     const columns = [
         {
-            key: 'name', label: 'Organización', render: (v, r) => (
+            key: 'name', label: t('organizations.table.org'), render: (v, r) => (
                 <div>
                     <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-primary" />
                         {v}
                     </div>
                     <div className="text-xs text-muted-foreground flex gap-1 items-center mt-1">
-                        <Globe className="h-3 w-3" /> {r.countryCode || 'XX'} · {r.city || 'Sin ciudad'}
+                        <Globe className="h-3 w-3" /> {r.countryCode || 'XX'} · {r.city || t('organizations.table.noCity')}
                     </div>
                 </div>
             )
         },
         { 
-            key: 'status', label: 'Estado', render: (v, r) => (
+            key: 'status', label: t('organizations.table.status'), render: (v, r) => (
                 <div className="flex flex-col items-start">
                     <EntityStatusBadge status={r.status || 'Nuevo'} />
                 </div>
             ) 
         },
         {
-            key: 'clientType', label: 'Título', render: (v, r) => (
+            key: 'clientType', label: t('organizations.table.title'), render: (v, r) => (
                 <div className="flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-md w-8 h-8 text-sm font-bold text-slate-700 dark:text-slate-300">
                     {r.clientType || 'C'}
                 </div>
             )
         },
         {
-            key: 'contacts', label: 'Contacto Principal', render: (v, r) => (
+            key: 'contacts', label: t('organizations.table.mainContact'), render: (v, r) => (
                 <div className="text-xs space-y-1">
-                    <div className="flex items-center gap-1"><Briefcase className="h-3 w-3" /> {r.adminContactName ? `${r.adminContactName} ${r.adminContactLastName || ''}`.trim() : 'N/A'}</div>
-                    <div className="flex items-center gap-1 text-muted-foreground"><Mail className="h-3 w-3" /> {r.adminContactEmail || r.email || 'N/A'}</div>
+                    <div className="flex items-center gap-1"><Briefcase className="h-3 w-3" /> {r.adminContactName ? `${r.adminContactName} ${r.adminContactLastName || ''}`.trim() : t('common.na')}</div>
+                    <div className="flex items-center gap-1 text-muted-foreground"><Mail className="h-3 w-3" /> {r.adminContactEmail || r.email || t('common.na')}</div>
                 </div>
             )
         },
         {
-            key: 'useContacts', label: 'Contacto de Uso', render: (v, r) => (
+            key: 'useContacts', label: t('organizations.table.useContact'), render: (v, r) => (
                 <div className="text-xs space-y-1">
-                    <div className="flex items-center gap-1"><Users className="h-3 w-3 text-cyan-500" /> {r.useContactName ? `${r.useContactName} ${r.useContactLastName || ''}`.trim() : 'N/A'}</div>
-                    <div className="flex items-center gap-1 text-muted-foreground"><Mail className="h-3 w-3" /> {r.useContactEmail || 'N/A'}</div>
+                    <div className="flex items-center gap-1"><Users className="h-3 w-3 text-cyan-500" /> {r.useContactName ? `${r.useContactName} ${r.useContactLastName || ''}`.trim() : t('common.na')}</div>
+                    <div className="flex items-center gap-1 text-muted-foreground"><Mail className="h-3 w-3" /> {r.useContactEmail || t('common.na')}</div>
                 </div>
             )
         },
         {
-            key: 'usage', label: 'Uso', render: (v, r) => (
+            key: 'usage', label: t('organizations.table.usage'), render: (v, r) => (
                 <div className="text-xs">
-                    <div>Usr: <b>{r._count?.users || 0}</b></div>
-                    <div>Lic: <b>{r._count?.licenses || 0}</b></div>
+                    <div>{t('navigation.users')}: <b>{r._count?.users || 0}</b></div>
+                    <div>{t('navigation.licenses')}: <b>{r._count?.licenses || 0}</b></div>
                 </div>
             )
         },
         {
-            key: 'actions', label: 'Acciones', render: (v, r) => (
+            key: 'actions', label: t('common.actions'), render: (v, r) => (
                 <div className="flex gap-2">
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(r)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => setDeleteId(r.id)}>
@@ -449,12 +420,11 @@ export default function AdminOrganizations() {
             )
         }
     ];
-
     return (
         <>
             <AdminGestionLayout
-                title="Organizaciones"
-                description="Gestión completa de entidades B2B y prospectos corporativos."
+                title={t('organizations.title')}
+                description={t('organizations.description')}
                 icon={Building2}
                 searchValue={searchValue}
                 onSearchChange={(v) => { setSearchValue(v); setPage(1); }}
@@ -464,19 +434,19 @@ export default function AdminOrganizations() {
                 totalPages={totalPages}
                 totalItems={filtered.length}
                 onPageChange={setPage}
-                searchPlaceholder="Buscar por nombre, RIF o estado..."
+                searchPlaceholder={t('organizations.searchPlaceholder')}
                 actions={
                     <div className="flex items-center gap-3">
                         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="outline" className="rounded-xl shadow-sm hover:scale-105 transition-all text-primary border-primary">
-                                    <Send className="mr-2 h-4 w-4" /> Invitar Cliente por Email
+                                    <Send className="mr-2 h-4 w-4" /> {t('organizations.new')}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-md">
                                 <DialogHeader>
                                     <DialogTitle className="flex items-center gap-2">
-                                        <Send className="h-5 w-5 text-primary" /> Invitar Nuevo Cliente
+                                        <Send className="h-5 w-5 text-primary" /> {t('organizations.new')}
                                     </DialogTitle>
                                     <DialogDescription className="sr-only">
                                         Formulario para enviar invitación
@@ -486,7 +456,7 @@ export default function AdminOrganizations() {
                                     <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4 pt-4">
                                         <FormField control={inviteForm.control} name="email" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Correo Electrónico (Para envío del link)</FormLabel>
+                                                <FormLabel>{t('organizations.form.email')}</FormLabel>
                                                 <FormControl>
                                                     <Input type="email" placeholder="cliente@empresa.com" {...field} />
                                                 </FormControl>
@@ -495,10 +465,10 @@ export default function AdminOrganizations() {
                                         )} />
                                         <FormField control={inviteForm.control} name="productTemplateId" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Plan de Licencia (*)</FormLabel>
+                                                <FormLabel>{t('licenses.form.plan')} (*)</FormLabel>
                                                 <FormControl>
                                                     <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                                        <option value="">Seleccione un plan de licencia...</option>
+                                                        <option value="">{t('licenses.form.plan')}...</option>
                                                         {licenseVersions.filter(v => v._isActive !== false).map(v => (
                                                             <option key={v._templateId || v.id_version} value={v._templateId || v.id_version}>{v.version_nombre || v.name} - ${v.price_annual || 0}/año</option>
                                                         ))}
@@ -508,27 +478,26 @@ export default function AdminOrganizations() {
                                             </FormItem>
                                         )} />
                                         <div className="flex justify-end gap-2 pt-4">
-                                            <Button type="button" variant="outline" onClick={() => setInviteOpen(false)}>Cancelar</Button>
+                                            <Button type="button" variant="outline" onClick={() => setInviteOpen(false)}>{t('common.cancel')}</Button>
                                             <Button type="submit" disabled={createInvitation.isPending}>
-                                                {createInvitation.isPending ? 'Generando...' : 'Generar y Enviar Link'}
+                                                {createInvitation.isPending ? t('common.loading') : t('common.generate')}
                                             </Button>
                                         </div>
                                     </form>
                                 </Form>
                             </DialogContent>
                         </Dialog>
-
                         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
                             <DialogTrigger asChild>
                                 <Button onClick={handleNew} className="rounded-xl shadow-lg hover:scale-105 transition-all">
-                                    <Plus className="mr-2 h-4 w-4" /> Alta Manual
+                                    <Plus className="mr-2 h-4 w-4" /> {t('organizations.new')}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent aria-describedby={undefined} className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
                                 <DialogHeader className="p-6 pb-4 border-b bg-muted/20">
                                     <DialogTitle className="text-2xl flex items-center gap-2">
                                         <Building2 className="h-6 w-6 text-primary" />
-                                        {editing ? 'Editar Organización' : 'Alta Manual (Organización)'}
+                                        {editing ? t('organizations.edit') : t('organizations.new')}
                                     </DialogTitle>
                                 </DialogHeader>
                                 
@@ -539,39 +508,38 @@ export default function AdminOrganizations() {
                                                 
                                                 {/* SECCIÓN 1: DATOS GENERALES */}
                                                 <div className="space-y-4">
-                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Briefcase className="h-4 w-4" /> Datos Generales</h3>
+                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Briefcase className="h-4 w-4" /> {t('navigation.general')}</h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <FormField control={form.control} name="name" render={({ field }) => (
-                                                            <FormItem><FormLabel>Nombre de Entidad *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                                            <FormItem><FormLabel>{t('organizations.form.entityName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="taxId" render={({ field }) => (
-                                                            <FormItem><FormLabel>ID Fiscal (RIF/NIT/CIF)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                                            <FormItem><FormLabel>{t('organizations.form.fiscalId')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="businessType" render={({ field }) => (
-                                                            <FormItem><FormLabel>Tipo de Negocio</FormLabel><FormControl><Input placeholder="Ej. Agencia de Investigación, Manufactura..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                            <FormItem><FormLabel>{t('organizations.form.businessType')}</FormLabel><FormControl><Input placeholder={t('organizations.form.businessPlaceholder')} {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="status" render={({ field }) => (
-                                                            <FormItem><FormLabel>Status Operativo</FormLabel><FormControl>
+                                                            <FormItem><FormLabel>{t('organizations.form.status')}</FormLabel><FormControl>
                                                                 <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3 text-sm">
-                                                                    <option value="Nuevo">Nuevo</option>
-                                                                    <option value="En proceso">En proceso</option>
-                                                                    <option value="Correo enviado">Correo enviado</option>
-                                                                    <option value="Compro por la pagina">Compró por la página</option>
-                                                                    <option value="Renovo">Renovó</option>
-                                                                    <option value="No renovo">No renovó</option>
+                                                                    <option value="Nuevo">{t('prospects.stages.new')}</option>
+                                                                    <option value="En proceso">{t('organizations.status.inProcess')}</option>
+                                                                    <option value="Correo enviado">{t('organizations.status.emailSent')}</option>
+                                                                    <option value="Compro por la pagina">{t('organizations.status.purchasedWeb')}</option>
+                                                                    <option value="Renovo">{t('organizations.status.renewed')}</option>
+                                                                    <option value="No renovo">{t('organizations.status.noRenewal')}</option>
                                                                 </select>
                                                             </FormControl><FormMessage /></FormItem>
                                                         )} />
                                                     </div>
                                                 </div>
-
                                                 {/* SECCIÓN 2: UBICACIÓN */}
                                                 <div className="space-y-4">
-                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Globe className="h-4 w-4" /> Ubicación Dinámica</h3>
+                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Globe className="h-4 w-4" /> {t('organizations.form.country')}</h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <FormField control={form.control} name="countryCode" render={({ field }) => (
                                                             <FormItem className="flex flex-col justify-end">
-                                                                <FormLabel>País *</FormLabel>
+                                                                <FormLabel>{t('organizations.form.country')}</FormLabel>
                                                                 <FormControl>
                                                                     <SearchableCombobox 
                                                                         items={countryOptions}
@@ -581,9 +549,9 @@ export default function AdminOrganizations() {
                                                                             // Reset city when country changes
                                                                             form.setValue('city', '');
                                                                         }}
-                                                                        placeholder="Seleccione País..."
-                                                                        searchPlaceholder="Buscar País..."
-                                                                        emptyMessage="No encontrado."
+                                                                        placeholder={t('organizations.form.selectCountry')}
+                                                                        searchPlaceholder={t('organizations.form.selectCountry')}
+                                                                        emptyMessage={t('common.noResults')}
                                                                     />
                                                                 </FormControl>
                                                                 <FormMessage />
@@ -591,76 +559,72 @@ export default function AdminOrganizations() {
                                                         )} />
                                                         <FormField control={form.control} name="city" render={({ field }) => (
                                                             <FormItem className="flex flex-col justify-end">
-                                                                <FormLabel>Ciudad / Región</FormLabel>
+                                                                <FormLabel>{t('organizations.form.city')}</FormLabel>
                                                                 <FormControl>
                                                                     <SearchableCombobox 
                                                                         items={cityOptions}
                                                                         value={field.value}
                                                                         onChange={field.onChange}
-                                                                        placeholder={selectedCountry ? "Seleccione Ciudad..." : "Elija País primero"}
-                                                                        searchPlaceholder="Buscar Ciudad..."
-                                                                        emptyMessage={selectedCountry ? "Buscando..." : "Esperando país."}
+                                                                        placeholder={selectedCountry ? t('organizations.form.selectCity') : t('organizations.form.chooseCountryFirst')}
+                                                                        searchPlaceholder={t('organizations.form.selectCity')}
+                                                                        emptyMessage={selectedCountry ? t('common.loading') : t('organizations.form.chooseCountryFirst')}
                                                                     />
                                                                 </FormControl>
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="address" render={({ field }) => (
-                                                            <FormItem className="md:col-span-2"><FormLabel>Dirección Física</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                                            <FormItem className="md:col-span-2"><FormLabel>{t('organizations.form.address')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                                         )} />
                                                     </div>
                                                 </div>
-
                                                 {/* SECCIÓN 3: CONTACTOS */}
                                                 <div className="space-y-4">
-                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Users className="h-4 w-4" /> Directores y Contactos</h3>
+                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Users className="h-4 w-4" /> {t('organizations.form.admonContact')}</h3>
                                                     
                                                     <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-dashed space-y-4">
-                                                        <h4 className="text-xs font-bold text-muted-foreground uppercase">Contacto Administrativo (Compras/Pagos)</h4>
+                                                        <h4 className="text-xs font-bold text-muted-foreground uppercase">{t('organizations.form.admonContact')}</h4>
                                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                             <FormField control={form.control} name="adminContactName" render={({ field }) => (
-                                                                <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                                <FormItem><FormLabel>{t('organizations.form.name')}</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                             )} />
                                                             <FormField control={form.control} name="adminContactLastName" render={({ field }) => (
-                                                                <FormItem><FormLabel>Apellido</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                                <FormItem><FormLabel>{t('organizations.form.lastName')}</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                             )} />
                                                             <FormField control={form.control} name="adminContactEmail" render={({ field }) => (
-                                                                <FormItem><FormLabel>Correo Admon.</FormLabel><FormControl><Input type="email" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                                <FormItem><FormLabel>{t('organizations.form.admonEmail')}</FormLabel><FormControl><Input type="email" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                             )} />
                                                         </div>
                                                     </div>
-
                                                     <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-dashed space-y-4">
-                                                        <h4 className="text-xs font-bold text-muted-foreground uppercase">Contacto de Uso (Operador/Líder)</h4>
+                                                        <h4 className="text-xs font-bold text-muted-foreground uppercase">{t('organizations.form.useContact')}</h4>
                                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                             <FormField control={form.control} name="useContactName" render={({ field }) => (
-                                                                <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                                <FormItem><FormLabel>{t('organizations.form.name')}</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                             )} />
                                                             <FormField control={form.control} name="useContactLastName" render={({ field }) => (
-                                                                <FormItem><FormLabel>Apellido</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                                <FormItem><FormLabel>{t('organizations.form.lastName')}</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                             )} />
                                                             <FormField control={form.control} name="useContactEmail" render={({ field }) => (
-                                                                <FormItem><FormLabel>Correo Operativo</FormLabel><FormControl><Input type="email" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                                <FormItem><FormLabel>{t('organizations.form.useEmail')}</FormLabel><FormControl><Input type="email" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                             )} />
                                                         </div>
                                                     </div>
-
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                                                         <FormField control={form.control} name="phone" render={({ field }) => (
-                                                            <FormItem><FormLabel>Teléfono Fijo / General</FormLabel><FormControl><GlobalPhoneInput {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                            <FormItem><FormLabel>{t('organizations.form.generalPhone')}</FormLabel><FormControl><GlobalPhoneInput {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                         )} />
-
                                                         <FormField control={form.control} name="primerContactoId" render={({ field }) => (
                                                             <FormItem className="flex flex-col justify-end">
-                                                                <FormLabel>Primer Contacto Interno (Rotator)</FormLabel>
+                                                                <FormLabel>{t('organizations.form.firstContact')}</FormLabel>
                                                                 <FormControl>
                                                                     <SearchableCombobox 
                                                                         items={masterUsers}
                                                                         value={field.value || ''}
                                                                         onChange={(v) => field.onChange(v ? Number(v) : null)}
-                                                                        placeholder="Asignar Master..."
-                                                                        searchPlaceholder="Buscar Empleado..."
-                                                                        emptyMessage="Sin empleados."
+                                                                        placeholder={t('organizations.form.assignMaster')}
+                                                                        searchPlaceholder={t('organizations.form.searchEmployee')}
+                                                                        emptyMessage={t('organizations.form.noEmployees')}
                                                                     />
                                                                 </FormControl>
                                                                 <FormMessage />
@@ -668,33 +632,32 @@ export default function AdminOrganizations() {
                                                         )} />
                                                     </div>
                                                 </div>
-
                                                 {/* SECCIÓN 4: COMPRAS Y CRM */}
                                                 <div className="space-y-4">
-                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Receipt className="h-4 w-4" /> Clasificación y Seguimiento</h3>
+                                                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider flex items-center gap-2 border-b pb-2"><Receipt className="h-4 w-4" /> {t('organizations.form.classification')}</h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <FormField control={form.control} name="clientType" render={({ field }) => (
                                                             <FormItem>
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <FormLabel className="mb-0">Cod. Clasificación</FormLabel>
+                                                                    <FormLabel className="mb-0">{t('organizations.form.classificationCode')}</FormLabel>
                                                                     <InfoHint content={SYSTEM_HINTS.ORG_CLASSIFICATION} />
                                                                 </div>
                                                                 <FormControl>
                                                                     <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3 text-sm">
-                                                                        <option value="A">Tipo A (Corporativo VIP)</option>
-                                                                        <option value="B">Tipo B (Empresa Mediana)</option>
-                                                                        <option value="C">Tipo C (Pyme)</option>
-                                                                        <option value="D">Tipo D (Micro/Otro)</option>
+                                                                        <option value="A">{t('organizations.status.typeA')}</option>
+                                                                        <option value="B">{t('organizations.status.typeB')}</option>
+                                                                        <option value="C">{t('organizations.status.typeC')}</option>
+                                                                        <option value="D">{t('organizations.status.typeD')}</option>
                                                                     </select>
                                                                 </FormControl>
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="source" render={({ field }) => (
-                                                            <FormItem><FormLabel>Origen / Medio</FormLabel><FormControl><Input placeholder="Google, Referido, Feria..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                                            <FormItem><FormLabel>{t('organizations.form.origin')}</FormLabel><FormControl><Input placeholder={t('organizations.form.originPlaceholder')} {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                                         )} />
                                                         <FormField control={form.control} name="language" render={({ field }) => (
-                                                            <FormItem><FormLabel>Idioma Preferido</FormLabel><FormControl>
+                                                            <FormItem><FormLabel>{t('organizations.form.preferredLanguage')}</FormLabel><FormControl>
                                                                 <select {...field} value={field.value || 'es'} className="flex h-10 w-full rounded-md border bg-background px-3 text-sm">
                                                                     <option value="es">Español</option>
                                                                     <option value="en">Inglés</option>
@@ -704,10 +667,9 @@ export default function AdminOrganizations() {
                                                         )} />
                                                     </div>
                                                     <FormField control={form.control} name="notes" render={({ field }) => (
-                                                        <FormItem><FormLabel>Bitácora Inicial / Notas</FormLabel><FormControl><textarea {...field} value={field.value || ''} rows={3} placeholder="Condiciones, acuerdos o descripción histórica..." className="flex w-full rounded-md border bg-background px-3 py-2 text-sm" /></FormControl><FormMessage /></FormItem>
+                                                        <FormItem><FormLabel>{t('organizations.form.initialLog')}</FormLabel><FormControl><textarea {...field} value={field.value || ''} rows={3} placeholder={t('organizations.form.logPlaceholder')} className="flex w-full rounded-md border bg-background px-3 py-2 text-sm" /></FormControl><FormMessage /></FormItem>
                                                     )} />
                                                 </div>
-
                                             </div>
                                         </ScrollArea>
                                         
@@ -716,19 +678,19 @@ export default function AdminOrganizations() {
                                                 <FormField control={form.control} name="isActive" render={({ field }) => (
                                                     <FormItem className="flex items-center gap-2 space-y-0 text-sm font-medium">
                                                         <FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} className="h-4 w-4 accent-primary" /></FormControl>
-                                                        <FormLabel className="!mt-0 cursor-pointer">Activa</FormLabel>
+                                                        <FormLabel className="!mt-0 cursor-pointer">{t('organizations.form.active')}</FormLabel>
                                                     </FormItem>
                                                 )} />
                                                 <FormField control={form.control} name="isMaster" render={({ field }) => (
                                                     <FormItem className="flex items-center gap-2 space-y-0 text-sm font-medium">
                                                         <FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} className="h-4 w-4 accent-amber-500" /></FormControl>
-                                                        <FormLabel className="!mt-0 cursor-pointer text-amber-600">Es Master</FormLabel>
+                                                        <FormLabel className="!mt-0 cursor-pointer text-amber-600">{t('organizations.form.isMaster')}</FormLabel>
                                                     </FormItem>
                                                 )} />
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                                                <Button type="submit" className="min-w-[120px] shadow-md">{editing ? 'Actualizar Ficha' : 'Dar de Alta'}</Button>
+                                                <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
+                                                <Button type="submit" className="min-w-[120px] shadow-md">{editing ? t('common.update') : t('common.save')}</Button>
                                             </div>
                                         </div>
                                     </form>
@@ -740,15 +702,13 @@ export default function AdminOrganizations() {
             >
                 <DataTable columns={columns} data={pageItems} loading={isLoading} />
             </AdminGestionLayout>
-
             <ConfirmDialog
                 open={!!deleteId}
                 onOpenChange={(o) => { if (!o) setDeleteId(null) }}
-                title="¿Eliminar Organización?"
-                description="Esta acción no se puede deshacer. Se verificará si existen usuarios o licencias asociados."
+                title={t('organizations.deleteTitle')}
+                description={t('organizations.deleteDescription')}
                 onConfirm={confirmDelete}
             />
         </>
     );
-
 }

@@ -35,7 +35,7 @@ const languages = [
 ];
 
 export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout }) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { theme, setTheme } = useTheme();
   
   const fileInputRef = useRef(null);
@@ -116,7 +116,7 @@ export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout 
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 p-1">
-            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Idioma</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('navigation.language')}</DropdownMenuLabel>
             <DropdownMenuSeparator className="my-1" />
             {languages.map((lang) => (
               <DropdownMenuItem
@@ -144,25 +144,25 @@ export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout 
               {theme === 'light' && <Sun className="h-5 w-5 text-orange-500" />}
               {theme === 'dark' && <Moon className="h-5 w-5 text-blue-400" />}
               {theme === 'system' && <Monitor className="h-5 w-5" />}
-              <span className="sr-only">Cambiar tema</span>
+              <span className="sr-only">{t('navigation.theme')}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40 p-1">
-            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tema</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('navigation.theme')}</DropdownMenuLabel>
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center gap-2 px-2 py-2 cursor-pointer">
               <Sun className="h-4 w-4 text-orange-500" />
-              <span className="text-sm">Claro</span>
+              <span className="text-sm">{t('navigation.light')}</span>
               {theme === 'light' && <Check className="ml-auto h-4 w-4 text-primary" />}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center gap-2 px-2 py-2 cursor-pointer">
               <Moon className="h-4 w-4 text-blue-400" />
-              <span className="text-sm">Oscuro</span>
+              <span className="text-sm">{t('navigation.dark')}</span>
               {theme === 'dark' && <Check className="ml-auto h-4 w-4 text-primary" />}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('system')} className="flex items-center gap-2 px-2 py-2 cursor-pointer">
               <Monitor className="h-4 w-4" />
-              <span className="text-sm">Sistema</span>
+              <span className="text-sm">{t('navigation.system')}</span>
               {theme === 'system' && <Check className="ml-auto h-4 w-4 text-primary" />}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -187,11 +187,11 @@ export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout 
               </Avatar>
               <div className="hidden md:flex flex-col text-left leading-tight">
                 <span className="text-sm font-bold truncate max-w-[150px]">
-                  {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.nombre || 'Usuario'}
+                  {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.nombre || t('navigation.user')}
                 </span>
                 <span className="text-[10px] text-primary/80 font-bold uppercase tracking-widest flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                  {user?.role || user?.tipo || 'Administrador'}
+                  {user?.role || user?.tipo || t('navigation.admin')}
                 </span>
               </div>
             </div>
@@ -199,7 +199,7 @@ export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout 
           <DropdownMenuContent align="end" className="w-56 p-1">
             <DropdownMenuLabel className="px-2 py-2">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-bold leading-none">Mi Cuenta</p>
+                <p className="text-sm font-bold leading-none">{t('navigation.myAccount')}</p>
                 <p className="text-xs leading-none text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
             </DropdownMenuLabel>
@@ -216,7 +216,7 @@ export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout 
                 ) : (
                   <Upload className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
                 )}
-                <span className="text-sm font-semibold">Cambiar imagen</span>
+                <span className="text-sm font-semibold">{t('navigation.changeImage')}</span>
               </DropdownMenuItem>
             )}
 
@@ -225,7 +225,7 @@ export function AdminHeader({ user, unreadCount, onNotificationsClick, onLogout 
               className="flex items-center gap-2 px-2 py-2.5 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/30 rounded-md group"
             >
               <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-              <span className="text-sm font-semibold">Cerrar Sesión</span>
+              <span className="text-sm font-semibold">{t('navigation.logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

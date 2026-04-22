@@ -44,7 +44,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Search, Plus, Globe, UserCircle, Edit, Trash2, Phone, Calendar } from 'lucide-react';
+import { Search, Plus, Globe,  Edit,  Phone, GitMerge } from 'lucide-react';
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect } from '@/hooks/useApi';
 import { useToast } from '@/components/ui/use-toast';
 import { GlobalPhoneInput } from '@/components/GlobalSelects';
@@ -238,25 +238,31 @@ export default function AdminProspects() {
 
     return (
         <div className="space-y-4 h-[calc(100vh-100px)] flex flex-col animate-fade-in">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 flex-shrink-0">
+            {/* Standardized Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 flex-shrink-0">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Pipeline de Prospectos</h1>
-                    <p className="text-muted-foreground">Gestión de potenciales clientes.</p>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
+                        <GitMerge className="h-8 w-8 text-primary" />
+                        Pipeline de Prospectos
+                    </h1>
+                    <p className="text-muted-foreground mt-1">Gestión de potenciales clientes y seguimiento de ventas.</p>
                 </div>
-                <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> Nuevo Prospecto</Button>
-            </div>
+                
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 sm:flex-none">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Buscar prospecto..." 
+                            className="pl-9 w-full sm:w-[260px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 transition-all focus:ring-primary"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
 
-            {/* Filter */}
-            <div className="flex-shrink-0">
-                <div className="relative max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Buscar por empresa, contacto o email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                    />
+                    <Button onClick={openNew} className="rounded-xl shadow-lg shadow-primary/20">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nuevo Prospecto
+                    </Button>
                 </div>
             </div>
 
@@ -388,4 +394,4 @@ export default function AdminProspects() {
             </Dialog>
         </div>
     );
-}
+}

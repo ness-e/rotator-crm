@@ -5,7 +5,7 @@
  * @path /frontend/src/pages/AdminUsers.jsx
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Users, UserPlus, Pencil, Trash2, Building2 } from 'lucide-react';
 import InfoHint from '@/components/ui/InfoHint';
 import { SYSTEM_HINTS } from '@/utils/hints';
@@ -25,20 +25,22 @@ import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/u
 import { GlobalPhoneInput } from '@/components/GlobalSelects';
 import { useDebouncedValue } from '../utils/debounce';
 import AdminGestionLayout from '@/components/AdminGestionLayout';
-
-// Schema aligned with Prisma User model
-const userSchema = z.object({
-  firstName: z.string().min(1, 'Nombre requerido'),
-  lastName: z.string().min(1, 'Apellido requerido'),
-  email: z.string().email('Email inválido'),
-  role: z.enum(['MASTER', 'ANALISTA', 'VISUALIZADOR', 'CLIENTE']).default('CLIENTE'),
-  organizationId: z.string().min(1, 'Organización requerida'), // Form handles as string
-  phone: z.string().optional(),
-  password: z.string().optional()
-});
+import { useTranslation } from 'react-i18next';
 
 export default function AdminUsers() {
+  const { t } = useTranslation();
   const { toast } = useToast();
+
+  // Schema aligned with Prisma User model
+  const userSchema = useMemo(() => z.object({
+    firstName: z.string().min(1, t('users.errors.firstNameRequired')),
+    lastName: z.string().min(1, t('users.errors.lastNameRequired')),
+    email: z.string().email(t('users.errors.emailInvalid')),
+    role: z.enum(['MASTER', 'ANALISTA', 'VISUALIZADOR', 'CLIENTE']).default('CLIENTE'),
+    organizationId: z.string().min(1, t('users.errors.orgRequired')),
+    phone: z.string().optional(),
+    password: z.string().optional()
+  }), [t]);
 
   // Data
   const { data: users = [], isLoading } = useUsers();
@@ -147,7 +149,7 @@ export default function AdminUsers() {
 
   const columns = [
     {
-      key: 'name', label: 'Usuario', render: (_, r) => (
+      key: 'name', label: t('users.table.user'), render: (_, r) => (
         <div>
           <div className="font-medium text-slate-900 dark:text-slate-100">{`${r.firstName || ''} ${r.lastName || ''}`.trim() || r.email}</div>
           <div className="text-xs text-muted-foreground">{r.email}</div>
@@ -155,14 +157,14 @@ export default function AdminUsers() {
       )
     },
     {
-      key: 'organization', label: 'Organización', render: (v, r) => (
+      key: 'organization', label: t('users.table.org'), render: (v, r) => (
         <div className="flex items-center gap-2">
           <Building2 className="h-3 w-3 text-muted-foreground" />
-          <span className="text-sm">{r.organization?.name || 'Sin Asignar'}</span>
+          <span className="text-sm">{r.organization?.name || t('users.table.unassigned')}</span>
         </div>
       )
     },
-    { key: 'role', label: 'Rol', render: (v) => <StatusBadge status={v === 'MASTER' ? 'active' : v === 'ANALISTA' ? 'warning' : 'info'} label={v} /> },
+    { key: 'role', label: t('users.table.role'), render: (v) => <StatusBadge status={v === 'MASTER' ? 'active' : v === 'ANALISTA' ? 'warning' : 'info'} label={v} /> },
     {
       key: 'actions', label: '', render: (_, r) => (
         <div className="flex justify-end gap-2">
@@ -176,8 +178,8 @@ export default function AdminUsers() {
   return (
     <>
       <AdminGestionLayout
-        title="Usuarios"
-        description="Directorio global de usuarios y accesos."
+        title={t('users.title')}
+        description={t('users.description')}
         icon={Users}
         searchValue={searchValue}
         onSearchChange={(v) => { setSearchValue(v); setPage(1); }}
@@ -187,39 +189,39 @@ export default function AdminUsers() {
         totalPages={totalPages}
         totalItems={filtered.length}
         onPageChange={setPage}
-        searchPlaceholder="Buscar por nombre o correo electrónico..."
+        searchPlaceholder={t('users.searchPlaceholder')}
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleNew} className="rounded-xl shadow-lg hover:scale-105 transition-all">
-                <UserPlus className="mr-2 h-4 w-4" /> Nuevo Usuario
+                <UserPlus className="mr-2 h-4 w-4" /> {t('users.new')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editing ? 'Editar Usuario' : 'Crear Usuario'}</DialogTitle>
+                <DialogTitle>{editing ? t('users.edit') : t('users.create')}</DialogTitle>
                 <DialogDescription>
-                  {editing ? 'Modifica los datos del usuario existente.' : 'Ingresa la información para el nuevo usuario.'}
+                  {editing ? t('dashboard.profile.editDesc') : t('users.description')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="firstName" render={({ field }) => (
-                      <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel>{t('users.form.firstName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="lastName" render={({ field }) => (
-                      <FormItem><FormLabel>Apellido</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel>{t('users.form.lastName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                   </div>
                   <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem><FormLabel>Correo Electrónico</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>{t('users.form.email')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="organizationId" render={({ field }) => (
-                      <FormItem><FormLabel>Organización</FormLabel><FormControl>
+                      <FormItem><FormLabel>{t('users.form.org')}</FormLabel><FormControl>
                         <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
-                          <option value="">Seleccionar...</option>
+                          <option value="">{t('common.searchPlaceholder')}</option>
                           {orgs.map(o => (
                             <option key={o.id} value={String(o.id)}>{o.name}</option>
                           ))}
@@ -229,7 +231,7 @@ export default function AdminUsers() {
                     <FormField control={form.control} name="role" render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center gap-2 mb-1">
-                          <FormLabel className="mb-0">Rol</FormLabel>
+                          <FormLabel className="mb-0">{t('users.form.role')}</FormLabel>
                           <InfoHint content={SYSTEM_HINTS.USER_ROLE} />
                         </div>
                         <FormControl>
@@ -245,14 +247,14 @@ export default function AdminUsers() {
                     )} />
                   </div>
                   <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem><FormLabel>Teléfono</FormLabel><FormControl><GlobalPhoneInput value={field.value || ''} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>{t('users.form.phone')}</FormLabel><FormControl><GlobalPhoneInput value={field.value || ''} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="password" render={({ field }) => (
-                    <FormItem><FormLabel>Contraseña {editing && '(Opcional)'}</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>{t('users.form.password')} {editing && `(${t('common.na')})`}</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <div className="flex justify-end gap-2 mt-4">
-                    <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-                    <Button type="submit">Guardar</Button>
+                    <Button type="button" variant="ghost" onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
+                    <Button type="submit">{t('common.save')}</Button>
                   </div>
                 </form>
               </Form>
@@ -266,9 +268,9 @@ export default function AdminUsers() {
       <ConfirmDialog
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
-        title={`¿Eliminar a ${userToDelete?.firstName || ''} ${userToDelete?.lastName || ''}?`.trim()}
-        description="Esta acción no se puede deshacer."
-        confirmText="Eliminar"
+        title={`${t('common.delete')} ${userToDelete?.firstName || ''} ${userToDelete?.lastName || ''}?`.trim()}
+        description={t('common.confirmationDescription')}
+        confirmText={t('common.delete')}
         onConfirm={handleDelete}
         variant="destructive"
       />

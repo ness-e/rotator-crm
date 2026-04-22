@@ -2,7 +2,6 @@
  * @file Resumen.jsx
  * @description Vista principal de resumen operativo
  */
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/utils/api';
@@ -16,7 +15,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-
 export default function Resumen() {
     // 1. Data Fetching
     const { data: licenses = [], isLoading: licensesLoading } = useQuery({
@@ -28,7 +26,6 @@ export default function Resumen() {
         },
         onError: () => toast.error('Error al cargar licencias'),
     });
-
     const { data: organizations = [], isLoading: orgsLoading } = useQuery({
         queryKey: ['organizations'],
         queryFn: async () => {
@@ -38,7 +35,6 @@ export default function Resumen() {
         },
         onError: () => toast.error('Error al cargar organizaciones'),
     });
-
     const { data: auditLogs = [], isLoading: auditLoading } = useQuery({
         queryKey: ['audit'],
         queryFn: async () => {
@@ -47,7 +43,6 @@ export default function Resumen() {
             return res.json();
         },
     });
-
     const { data: payments = [], isLoading: paymentsLoading } = useQuery({
         queryKey: ['payments'],
         queryFn: async () => {
@@ -56,11 +51,8 @@ export default function Resumen() {
             return res.json();
         },
     });
-
     const loading = licensesLoading || orgsLoading || auditLoading || paymentsLoading;
-
     if (loading) return <div className="p-10"><Skeleton className="h-[600px] w-full" /></div>;
-
     // 2. Cálculos para Tarjetas de Resumen Rápido
     const totalOrganizations = organizations?.length || 0;
     const totalLicenses = licenses?.length || 0;
@@ -83,10 +75,8 @@ export default function Resumen() {
         return daysUntil > 0 && daysUntil <= 15;
     });
     const expiringIn15DaysCount = expiringIn15DaysList.length;
-
     // Sort to show soonest to expire first
     const alertsExpiringList = [...expiringIn15DaysList].sort((a,b) => new Date(a.expirationDate) - new Date(b.expirationDate)).slice(0, 10);
-
     // 3. Cálculos de Pagos y Auditoría
     const recentPayments = Array.isArray(payments) ? payments.slice(0, 10) : [];
     
@@ -95,11 +85,9 @@ export default function Resumen() {
     const masterLogsSlice = Array.isArray(auditLogs) && auditLogs.length > 0
         ? auditLogs.filter(log => log.user?.role === 'MASTER' || log.user?.tipo === 'MASTER' || true).slice(0, 20) // Take any 20 if role check is tricky
         : [];
-
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold tracking-tight">Resumen Operativo</h1>
-
             {/* 2.1 Tarjetas de resumen rapido */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard title="Organizaciones" value={totalOrganizations} icon={Building2} color="bg-blue-500/10 text-blue-600" />
@@ -112,7 +100,6 @@ export default function Resumen() {
                 <StatCard title="Expiradas" value={expiredLicenses} icon={CalendarX} color="bg-rose-500/10 text-rose-600" />
                 <div className="hidden lg:block"></div> {/* Spacer for grid alignment */}
             </div>
-
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* 2.2 Seccion de alertas o urgente */}
                 <Card className="shadow-sm">
@@ -148,7 +135,6 @@ export default function Resumen() {
                                 </Table>
                             </div>
                         </div>
-
                         {/* Pagos -> */}
                         <div>
                             <h3 className="font-semibold text-sm mb-3 text-muted-foreground uppercase tracking-wider">Últimos 10 Pagos</h3>
@@ -177,7 +163,6 @@ export default function Resumen() {
                         </div>
                     </CardContent>
                 </Card>
-
                 <div className="space-y-6">
                     {/* 2.4 Estado de la infraestructura */}
                     <Card className="shadow-sm bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -203,7 +188,6 @@ export default function Resumen() {
                             </div>
                         </CardContent>
                     </Card>
-
                     {/* 2.3 Monitoreo de ACtividad Reciente */}
                     <Card className="shadow-sm">
                         <CardHeader>

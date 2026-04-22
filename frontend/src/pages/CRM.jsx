@@ -1,35 +1,23 @@
-/**
- * @file CRM.jsx
- * @description Hub principal CRM & Clientes — fusiona gestión de clientes con pipeline y analytics.
- * @module Frontend Page
- * @path /frontend/src/pages/CRM.jsx
- * @lastUpdated 2026-03-24
- */
-
 import React from 'react';
-import { Network, Briefcase } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import AdminClients from './AdminClients';
 import AdminProspects from './AdminProspects';
-import { PageLayout, PageLayoutTab } from '@/components/layout/PageLayout';
 
+/**
+ * @file CRM.jsx
+ * @description Hub principal CRM — despacha Clientes Activos o Pipeline según el query param 'tab'
+ */
 export default function CRM() {
-    return (
-        <PageLayout
-            title="CRM & Clientes"
-            subtitle="Gestiona clientes, prospectos, pipeline y seguimientos."
-            tabs={[
-                { value: 'active', label: 'Clientes Activos', icon: Briefcase },
-                { value: 'pipeline', label: 'Pipeline', icon: Network }
-            ]}
-            defaultTab="active"
-        >
-            <PageLayoutTab value="active">
-                <AdminClients />
-            </PageLayoutTab>
+    const [searchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'active';
 
-            <PageLayoutTab value="pipeline">
+    return (
+        <div className="container-fluid p-0 animate-in fade-in duration-500">
+            {activeTab === 'active' ? (
+                <AdminClients />
+            ) : (
                 <AdminProspects />
-            </PageLayoutTab>
-        </PageLayout>
+            )}
+        </div>
     );
 }

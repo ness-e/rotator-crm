@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { DataTable } from '@/components/DataTable'
 import { AdminGestionLayout } from '@/components/AdminGestionLayout'
-import { Inbox, Trash2, RefreshCw } from 'lucide-react'
+import { Inbox, Trash2} from 'lucide-react'
 import { api } from '../utils/api'
 import { useDebouncedValue } from '../utils/debounce'
-
 export default function PendingLicensesInbox() {
   const { toast } = useToast()
   const [items, setItems] = useState([])
@@ -15,9 +14,7 @@ export default function PendingLicensesInbox() {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
-
   const debouncedQuery = useDebouncedValue(query, 300)
-
   async function reload() {
     setLoading(true)
     try {
@@ -30,12 +27,10 @@ export default function PendingLicensesInbox() {
       setLoading(false)
     }
   }
-
   useEffect(() => { reload() }, [])
   
   // Reset page on search change
   useEffect(() => { setPage(1) }, [debouncedQuery])
-
   const filtered = useMemo(() => {
     const q = debouncedQuery.toLowerCase().trim()
     if (!q) return items
@@ -46,13 +41,11 @@ export default function PendingLicensesInbox() {
       (a.id || '').toLowerCase().includes(q)
     )
   }, [items, debouncedQuery])
-
   const isAll = String(pageSize) === 'all'
   const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filtered.length / Number(pageSize)))
   const currentPage = Math.min(page, totalPages)
   const start = isAll ? 0 : (currentPage - 1) * Number(pageSize)
   const pageItems = isAll ? filtered : filtered.slice(start, start + Number(pageSize))
-
   async function handleDelete(item) {
     if (!window.confirm(`¿Eliminar la invitación para "${item.email}"?`)) return
     try {
@@ -67,7 +60,6 @@ export default function PendingLicensesInbox() {
       toast({ title: 'Error al eliminar', description: e.message, variant: 'destructive' })
     }
   }
-
   return (
     <AdminGestionLayout
       title="Invitaciones Pendientes"

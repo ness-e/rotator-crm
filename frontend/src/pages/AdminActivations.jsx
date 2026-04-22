@@ -8,10 +8,9 @@
  */
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle,  DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -19,9 +18,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/components/ui/use-toast';
 import { copyToClipboard } from '@/utils/copy';
 import { DataTable } from '@/components/DataTable';
-import { FilterBar } from '@/components/FilterBar';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Search, Monitor, Calendar, Key, Trash2, Edit, Plus, Copy } from 'lucide-react';
+import { Activity, Search, Monitor,   Trash2, Edit,  Copy } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useActivations } from '@/hooks/useApi';
 import { api } from '@/utils/api'; // Ensure api is imported for CRUD
@@ -318,4 +316,4 @@ export default function AdminActivations() {
             />
         </>
     )
-}
+}

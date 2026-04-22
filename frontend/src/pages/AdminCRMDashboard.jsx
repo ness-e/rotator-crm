@@ -18,7 +18,7 @@ import {
     DollarSign, TrendingUp, Users, AlertTriangle, Calendar,
     RefreshCw, ArrowUpRight, ArrowDownRight, Target
 } from 'lucide-react'
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts'
+import { ResponsiveContainer,      Tooltip, PieChart, Pie, Cell } from 'recharts'
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
@@ -386,4 +386,4 @@ export default function AdminCRMDashboard() {
             </div>
         </div>
     )
-}
+}

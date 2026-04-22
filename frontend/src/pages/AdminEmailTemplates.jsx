@@ -158,8 +158,8 @@ export default function AdminEmailTemplates() {
     return (
         <div className="flex h-[calc(100vh-200px)] gap-6 antialiased">
                 {/* LISTADO LATERAL */}
-                <Card className="w-1/4 min-w-[280px] flex flex-col shadow-sm border-slate-200 overflow-hidden">
-                    <CardHeader className="py-4 px-5 border-b bg-slate-50/50">
+                <Card className="w-1/4 min-w-[280px] flex flex-col shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950">
+                    <CardHeader className="py-4 px-5 border-b bg-slate-50/50 dark:bg-slate-900/40 dark:border-slate-800">
                         <div className="flex justify-between items-center mb-4">
                             <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">Repositorio</CardTitle>
                             <Button size="icon" variant="outline" className="h-8 w-8 rounded-full hover:bg-primary hover:text-white transition-all" onClick={handleCreate}>
@@ -170,13 +170,13 @@ export default function AdminEmailTemplates() {
                             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input 
                                 placeholder="Buscar plantilla..." 
-                                className="pl-9 h-9 text-xs rounded-full bg-white"
+                                className="pl-9 h-9 text-xs rounded-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:ring-primary"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </CardHeader>
-                    <ScrollArea className="flex-1 bg-white">
+                    <ScrollArea className="flex-1 bg-white dark:bg-slate-950">
                         <div className="p-3 space-y-1.5">
                             {filteredTemplates.map(t => (
                                 <div
@@ -185,7 +185,7 @@ export default function AdminEmailTemplates() {
                                     className={`group p-4 rounded-xl cursor-pointer transition-all border ${
                                         selected?.id === t.id 
                                             ? 'bg-primary text-primary-foreground border-primary shadow-lg ring-4 ring-primary/10 scale-[1.02]' 
-                                            : 'border-transparent hover:bg-slate-50 hover:border-slate-200'
+                                            : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-slate-200 dark:hover:border-slate-800'
                                     }`}
                                 >
                                     <div className="flex justify-between items-center">
@@ -218,8 +218,8 @@ export default function AdminEmailTemplates() {
                     {selected ? (
                         <>
                             {/* EDITOR DE CODIGO */}
-                            <Card className="flex-[5] flex flex-col shadow-xl border-slate-200 overflow-hidden ring-1 ring-black/[0.02]">
-                                <CardHeader className="py-3 px-5 border-b bg-white flex flex-row items-center justify-between space-y-0">
+                            <Card className="flex-[5] flex flex-col shadow-xl border-slate-200 dark:border-slate-800 overflow-hidden ring-1 ring-black/[0.02] bg-white dark:bg-slate-950">
+                                <CardHeader className="py-3 px-5 border-b bg-white dark:bg-slate-900/60 dark:border-slate-800 flex flex-row items-center justify-between space-y-0">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-inner">
                                             <Code className="h-5 w-5" />
@@ -227,7 +227,7 @@ export default function AdminEmailTemplates() {
                                         <div>
                                             <CardTitle className="text-sm font-bold tracking-tight">{selected.code}</CardTitle>
                                             <div className="flex items-center gap-2">
-                                                <Badge variant="outline" className="text-[9px] h-4 py-0 font-mono bg-slate-50">v1.0</Badge>
+                                                <Badge variant="outline" className="text-[9px] h-4 py-0 font-mono bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">v1.0</Badge>
                                                 <span className="text-[10px] text-muted-foreground">Editor de Estructura HTML</span>
                                             </div>
                                         </div>
@@ -242,8 +242,8 @@ export default function AdminEmailTemplates() {
                                         </Button>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="flex-1 overflow-hidden p-0 flex flex-col bg-slate-50/30">
-                                    <div className="p-5 space-y-5 border-b bg-white">
+                                <CardContent className="flex-1 overflow-hidden p-0 flex flex-col bg-slate-50/30 dark:bg-slate-950/20">
+                                    <div className="p-5 space-y-5 border-b bg-white dark:bg-slate-900/40 dark:border-slate-800">
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center gap-2 mb-1.5">
@@ -253,7 +253,7 @@ export default function AdminEmailTemplates() {
                                                 <Input
                                                     value={selected.name || ''}
                                                     onChange={e => setSelected({ ...selected, name: e.target.value })}
-                                                    className="h-10 text-sm border-slate-200 focus:ring-primary focus:border-primary rounded-lg transition-all"
+                                                    className="h-10 text-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-primary focus:border-primary rounded-lg transition-all"
                                                     placeholder="Nombre de la plantilla..."
                                                 />
                                             </div>
@@ -265,7 +265,7 @@ export default function AdminEmailTemplates() {
                                                 <Input
                                                     value={selected.subject || ''}
                                                     onChange={e => setSelected({ ...selected, subject: e.target.value })}
-                                                    className="h-10 text-sm font-semibold border-slate-200 focus:ring-primary focus:border-primary rounded-lg transition-all"
+                                                    className="h-10 text-sm font-semibold border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-primary focus:border-primary rounded-lg transition-all"
                                                     placeholder="Asunto..."
                                                 />
                                             </div>
@@ -282,7 +282,7 @@ export default function AdminEmailTemplates() {
                                                         key={v}
                                                         content={`Variable dinámica: ${v}. Se reemplazará con el dato real al enviar.`}
                                                     >
-                                                        <Badge variant="secondary" className="cursor-help text-[10px] h-5 bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 transition-colors">
+                                                        <Badge variant="secondary" className="cursor-help text-[10px] h-5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/50 hover:bg-blue-100 transition-colors">
                                                             {`{{${v}}}`}
                                                         </Badge>
                                                     </InfoHint>
@@ -302,7 +302,7 @@ export default function AdminEmailTemplates() {
 
                                     {/* Alerta: variables no registradas detectadas en el body */}
                                     {unregisteredVars.length > 0 && (
-                                        <Alert variant="destructive" className="mx-5 mt-4 border-amber-200 bg-amber-50 text-amber-900 [&>svg]:text-amber-600">
+                                        <Alert variant="destructive" className="mx-5 mt-4 border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
                                             <AlertTriangle className="h-4 w-4" />
                                             <AlertDescription className="text-xs">
                                                 <span className="font-bold">Variables sin registrar detectadas en el HTML:</span>{' '}
@@ -314,7 +314,7 @@ export default function AdminEmailTemplates() {
 
                                     {/* Alerta: body vacío */}
                                     {selected.body !== undefined && selected.body.trim().length === 0 && (
-                                        <Alert variant="destructive" className="mx-5 mt-4 border-red-200 bg-red-50 text-red-800 [&>svg]:text-red-500">
+                                        <Alert variant="destructive" className="mx-5 mt-4 border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 [&>svg]:text-red-500 dark:[&>svg]:text-red-400">
                                             <AlertTriangle className="h-4 w-4" />
                                             <AlertDescription className="text-xs font-medium">
                                                 El cuerpo de la plantilla está vacío. Escriba el código HTML en el editor para poder guardar.

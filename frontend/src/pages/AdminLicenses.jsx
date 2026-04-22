@@ -4,16 +4,13 @@
  * @module Frontend Page
  * @path /frontend/src/pages/AdminLicenses.jsx
  */
-
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog'
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form'
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useForm, useFieldArray } from 'react-hook-form'
-import { Monitor, KeySquare, Loader2, Plus, RefreshCw, Copy, Trash2, Edit, AlertCircle, CheckCircle2, Server, Building2 } from 'lucide-react'
+import { Monitor, KeySquare,  Plus,  Copy, Trash2, Edit,   Server, Building2 } from 'lucide-react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useToast } from '@/components/ui/use-toast'
@@ -24,8 +21,6 @@ import AdminGestionLayout from '@/components/AdminGestionLayout'
 import { Badge } from '@/components/ui/badge'
 import { useQuery } from '@tanstack/react-query'
 import { useDebouncedValue } from '../utils/debounce'
-
-
 // --- SCHEMAS ---
 const licenseSchema = z.object({
   id: z.number().optional(),
@@ -40,7 +35,6 @@ const licenseSchema = z.object({
   })).default([]),
   ownedByUserId: z.coerce.number().optional(),
   notes: z.string().optional(),
-
   // Limits
   limitQuestions: z.coerce.number().min(0),
   limitCases: z.coerce.number().min(0),
@@ -55,11 +49,9 @@ const licenseSchema = z.object({
   limitKioskSupervisors: z.coerce.number().min(0),
   limitParticipants: z.coerce.number().min(0),
   concurrentQuestionnaires: z.coerce.number().min(0),
-
   // Meta
   productTemplateId: z.string().optional(), // Optional selection to auto-fill
 })
-
 const defaultValues = {
   organizationId: '',
   serialKey: '',
@@ -84,14 +76,12 @@ const defaultValues = {
   concurrentQuestionnaires: 0,
   productTemplateId: ''
 }
-
 // Form Component
 const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], productTemplates = [], users = [], serverNodes = [] }) => {
   const { fields, append, remove } = useFieldArray({
     control: f.control,
     name: "licenseServers"
   });
-
   const handleTemplateChange = (val) => {
     f.setValue('productTemplateId', val);
     if (!val) {
@@ -99,14 +89,12 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
       f.setValue('concurrentQuestionnaires', 0);
       return;
     }
-
     const template = productTemplates.find(t => String(t.id_version) === val || String(t._templateId) === val);
     if (template) {
       // 1 year from now
       const nextYear = new Date();
       nextYear.setFullYear(nextYear.getFullYear() + 1);
       f.setValue('expirationDate', nextYear.toISOString().split('T')[0]);
-
       // limits
       f.setValue('limitQuestions', template.n_preguntas || 0);
       f.setValue('limitCases', template.n_casos || 0);
@@ -120,12 +108,10 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
       f.setValue('limitCaptureSupervisors', template.n_supervisores_captura || 0);
       f.setValue('limitKioskSupervisors', template.n_supervisores_kiosco || 0);
       f.setValue('limitParticipants', template.n_participantes || 0);
-
       // Default hosting plan tracking
       const defaultQuest = template.cuestionarios_concurrentes || 0;
       let matchedPlanId = '';
       let assignQuest = defaultQuest;
-
       // Ensure template.hosting is evaluated
       if (template.hosting) {
         matchedPlanId = String(template.hosting);
@@ -152,7 +138,6 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
           }
         }
       }
-
       // Important: Use String or undefined to avoid coerce 0 from empty string. Empty string behaves buggy with zod.
       f.setValue('hostingPlanId', matchedPlanId, { shouldValidate: true, shouldDirty: true });
       f.setValue('concurrentQuestionnaires', assignQuest, { shouldValidate: true, shouldDirty: true });
@@ -175,7 +160,6 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
               <FormMessage />
             </FormItem>
           )} />
-
           <FormField control={f.control} name="ownedByUserId" render={({ field }) => (
             <FormItem>
               <FormLabel>Usuario Asignado</FormLabel>
@@ -192,7 +176,6 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
               <FormMessage />
             </FormItem>
           )} />
-
           <FormField control={f.control} name="productTemplateId" render={({ field }) => (
             <FormItem>
               <FormLabel>Licencia Plan (Plantilla)</FormLabel>
@@ -205,14 +188,12 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
               <FormMessage />
             </FormItem>
           )} />
-
           <FormField control={f.control} name="serialKey" render={({ field }) => (
             <FormItem>
               <FormLabel>Serial</FormLabel>
               <FormControl><Input {...field} readOnly placeholder="Generar autom." className="font-mono bg-slate-100 dark:bg-slate-900" /></FormControl>
             </FormItem>
           )} />
-
           {isEdit && (
             <FormField control={f.control} name="encryptedActivationKey" render={({ field }) => (
               <FormItem>
@@ -221,7 +202,6 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
               </FormItem>
             )} />
           )}
-
           <FormField control={f.control} name="expirationDate" render={({ field }) => (
             <FormItem>
               <FormLabel>Expiración (Vacío = Vitalicia)</FormLabel>
@@ -229,7 +209,6 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
             </FormItem>
           )} />
         </div>
-
         {/* Volumetrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border p-4 rounded-lg bg-white dark:bg-slate-950">
           <h3 className="col-span-full font-semibold text-sm text-muted-foreground uppercase flex items-center gap-2">
@@ -239,18 +218,15 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
           <FormField control={f.control} name="limitCases" render={({ field }) => <FormItem><FormLabel className="text-xs">Casos</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitAdmins" render={({ field }) => <FormItem><FormLabel className="text-xs">Admins</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitMobileUsers" render={({ field }) => <FormItem><FormLabel className="text-xs">Móviles</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
-
           <FormField control={f.control} name="limitPhoneUsers" render={({ field }) => <FormItem><FormLabel className="text-xs">Telefónicos</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitDataEntries" render={({ field }) => <FormItem><FormLabel className="text-xs">Digitadores</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitAnalysts" render={({ field }) => <FormItem><FormLabel className="text-xs">Analistas</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitClients" render={({ field }) => <FormItem><FormLabel className="text-xs">Clientes</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
-
           <FormField control={f.control} name="limitClassifiers" render={({ field }) => <FormItem><FormLabel className="text-xs">Clasificadores</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitParticipants" render={({ field }) => <FormItem><FormLabel className="text-xs">Participantes</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitCaptureSupervisors" render={({ field }) => <FormItem><FormLabel className="text-xs">Sup. Captura</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
           <FormField control={f.control} name="limitKioskSupervisors" render={({ field }) => <FormItem><FormLabel className="text-xs">Sup. Kiosco</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
         </div>
-
         {/* Infrastructure */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
           <h3 className="col-span-full font-semibold text-sm text-muted-foreground uppercase flex items-center gap-2">
@@ -300,7 +276,6 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
                 const watchServerId = f.watch(`licenseServers.${index}.serverId`);
                 const selectedServer = serverNodes.find(s => String(s.id) === String(watchServerId));
                 const domains = selectedServer?.domains || [];
-
                 return (
                   <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end border-b border-border/50 pb-4 last:border-0 last:pb-0">
                     <div className="md:col-span-5">
@@ -344,14 +319,12 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
           </div>
           <FormField control={f.control} name="concurrentQuestionnaires" render={({ field }) => <FormItem><FormLabel>Cuestionarios Concurrentes</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>} />
         </div>
-
         {/* Notes */}
         <div className="border p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
           <FormField control={f.control} name="notes" render={({ field }) => (
             <FormItem><FormLabel>Notas</FormLabel><FormControl><textarea {...field} value={field.value || ''} rows={2} placeholder="Observaciones internas..." className="flex w-full rounded-md border bg-background px-3 py-2 text-sm" /></FormControl></FormItem>
           )} />
         </div>
-
         <DialogFooter className="gap-2">
           <Button type="button" variant="outline" onClick={() => f.reset()}>Restaurar</Button>
           <Button type="submit">{isEdit ? 'Guardar Cambios' : 'Crear Licencia'}</Button>
@@ -360,10 +333,8 @@ const LicenseForm = ({ f, onSubmitFn, isEdit, orgs = [], hostingPlans = [], prod
     </Form>
   )
 }
-
 export default function AdminLicenses() {
   const { toast } = useToast()
-
   // Data
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -371,7 +342,6 @@ export default function AdminLicenses() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
   const debouncedSearch = useDebouncedValue(searchValue, 300)
-
   // Orgs + Hosting Plans for dropdowns
   const { data: orgs = [] } = useQuery({
     queryKey: ['organizations'],
@@ -382,7 +352,6 @@ export default function AdminLicenses() {
       return res.json();
     }
   });
-
   const { data: hostingPlans = [] } = useQuery({
     queryKey: ['hosting-plans'],
     queryFn: async () => {
@@ -392,7 +361,6 @@ export default function AdminLicenses() {
       return res.json();
     }
   });
-
   const { data: productTemplates = [] } = useQuery({
     queryKey: ['product-templates'],
     queryFn: async () => {
@@ -402,7 +370,6 @@ export default function AdminLicenses() {
       return res.json();
     }
   });
-
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -412,7 +379,6 @@ export default function AdminLicenses() {
       return res.json();
     }
   });
-
   const { data: serverNodes = [] } = useQuery({
     queryKey: ['server-nodes'],
     queryFn: async () => {
@@ -422,7 +388,6 @@ export default function AdminLicenses() {
       return res.json();
     }
   });
-
   // UI State
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -430,11 +395,8 @@ export default function AdminLicenses() {
   const [actionsTarget, setActionsTarget] = useState(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [targetDelete, setTargetDelete] = useState(null)
-
   const form = useForm({ resolver: zodResolver(licenseSchema), defaultValues })
-
   useEffect(() => { reload() }, [])
-
   const reload = () => {
     setLoading(true)
     api.get('/licenses')
@@ -443,14 +405,12 @@ export default function AdminLicenses() {
       })
       .finally(() => setLoading(false))
   }
-
   const onSubmit = async (values) => {
     try {
       const payload = {
         ...values,
         organizationId: Number(values.organizationId)
       };
-
       if (editing) {
         await api.put(`/licenses/${editing.id}`, payload);
         toast({ title: 'Licencia actualizada' });
@@ -463,7 +423,6 @@ export default function AdminLicenses() {
       toast({ title: 'Error', description: 'Ocurrió un error al guardar', variant: 'destructive' });
     }
   }
-
   const handleEdit = (item) => {
     setEditing(item);
     form.reset({
@@ -478,7 +437,6 @@ export default function AdminLicenses() {
     });
     setOpen(true);
   }
-
   const handleDelete = async () => {
     if (!targetDelete) return;
     try {
@@ -490,7 +448,6 @@ export default function AdminLicenses() {
       toast({ title: 'Error', variant: 'destructive' });
     }
   }
-
   const handleCopyData = (item) => {
     const text = `
 Serial: ${item.serialKey}
@@ -501,20 +458,16 @@ Móviles: ${item.limitMobileUsers} | Admins: ${item.limitAdmins}
     navigator.clipboard.writeText(text);
     toast({ title: 'Datos copiados' });
   }
-
   const filtered = items.filter(i => {
     const search = debouncedSearch.toLowerCase();
     return i.serialKey?.toLowerCase().includes(search) ||
            i.organization?.name?.toLowerCase().includes(search);
   });
-
-
   const isAll = String(pageSize) === 'all';
   const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filtered.length / Number(pageSize)));
   const currentPage = Math.min(page, totalPages);
   const start = isAll ? 0 : (currentPage - 1) * Number(pageSize);
   const pageItems = isAll ? filtered : filtered.slice(start, start + Number(pageSize));
-
   const columns = [
     { key: 'serialKey', label: 'Serial', render: (v) => <span className="font-mono text-xs">{v}</span> },
     {
@@ -546,7 +499,6 @@ Móviles: ${item.limitMobileUsers} | Admins: ${item.limitAdmins}
       )
     }
   ]
-
   return (
     <>
       <AdminGestionLayout
@@ -581,7 +533,6 @@ Móviles: ${item.limitMobileUsers} | Admins: ${item.limitAdmins}
       >
         <DataTable columns={columns} data={pageItems} loading={loading} />
       </AdminGestionLayout>
-
       <ConfirmDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen} title="¿Eliminar Licencia?" description="Esta acción no se puede deshacer." confirmText="Eliminar" onConfirm={handleDelete} variant="destructive" />
     </>
   )

@@ -2,7 +2,6 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/utils/api';
 import { useClients } from '@/hooks/useApi';
-import { toast } from 'sonner';
 import {
     Users, Globe, Award, DollarSign, TrendingUp, Target,
     AlertTriangle, Calendar, ArrowUpRight, ArrowDownRight, RefreshCw, Key, Server, BadgeAlert, UserMinus
@@ -15,7 +14,6 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
-
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
 const PROVIDER_COLORS = {
     'MOCHAHOST': '#3b82f6',
@@ -24,7 +22,6 @@ const PROVIDER_COLORS = {
     'POOL': '#8b5cf6',
     'Sin proveedor': '#6b7280'
 };
-
 export default function Estadisticas() {
     // Data Fetching
     const { data: crmMetrics, isLoading: crmLoading } = useQuery({
@@ -35,7 +32,6 @@ export default function Estadisticas() {
             return null; // Fallback gracefully if endpoint fails
         }
     });
-
     const { data: licenses = [], isLoading: licensesLoading } = useQuery({
         queryKey: ['licenses'],
         queryFn: async () => {
@@ -44,7 +40,6 @@ export default function Estadisticas() {
             return [];
         }
     });
-
     const { data: organizations = [], isLoading: orgsLoading } = useQuery({
         queryKey: ['organizations'],
         queryFn: async () => {
@@ -53,9 +48,7 @@ export default function Estadisticas() {
             return [];
         }
     });
-
     const { data: clientsData = null, isLoading: clientsLoading } = useClients();
-
     const { data: churnByCountry = [], isLoading: churnLoading } = useQuery({
         queryKey: ['churnByCountry'],
         queryFn: async () => {
@@ -64,7 +57,6 @@ export default function Estadisticas() {
             return [];
         }
     });
-
     const { data: serverCosts = null, isLoading: costsLoading } = useQuery({
         queryKey: ['serverCosts'],
         queryFn: async () => {
@@ -73,7 +65,6 @@ export default function Estadisticas() {
             return null;
         }
     });
-
     const { data: expiringServers = [], isLoading: expServersLoading } = useQuery({
         queryKey: ['expiringServers'],
         queryFn: async () => {
@@ -82,27 +73,19 @@ export default function Estadisticas() {
             return [];
         }
     });
-
     const loading = crmLoading || licensesLoading || orgsLoading || clientsLoading || churnLoading || costsLoading || expServersLoading;
-
     if (loading) return <div className="p-10"><Skeleton className="h-96 w-full" /></div>;
-
     // --- CÁLCULOS MANUALES Y COMBINADOS ---
-
     // 1. Métricas CRM extraídas
     const financial = crmMetrics?.financial || { mrr: 0, arr: 0, ltv: 0, arpu: 0 };
     const retention = crmMetrics?.retention || { renewalRate: 0, churnRate: 0, expiringSoon: 0, activeLicenses: 0, expiredLicenses: 0 };
     const customers = crmMetrics?.customers || { totalUsers: 0, totalLicenses: licenses.length, topCountry: '-', topPlan: '-', licensesByType: {} };
     const alerts = crmMetrics?.alerts || { expiringSoon: [] };
-
     const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val || 0);
-
     // 2. Cálculos ad-hoc 
     const currentYear = new Date().getFullYear();
     const newClientsThisYear = organizations.filter(org => new Date(org.createdAt).getFullYear() === currentYear).length;
-
     const clientStats = clientsData?.stats || null;
-
     // Distribución Geográfica (Basada en Organizaciones)
     const geoCount = organizations.reduce((acc, org) => {
         const code = org.countryCode || 'Desc.';
@@ -111,7 +94,6 @@ export default function Estadisticas() {
     }, {});
     const geoData = Object.keys(geoCount).map(k => ({ name: k, value: geoCount[k] })).sort((a,b) => b.value - a.value);
     const topCountryCalc = geoData[0]?.name || '-';
-
     // Distribución por Plan de Hosting (Basado en organizaciones o licencias)
     const hostingsCount = organizations.reduce((acc, org) => {
         const plan = org.hostingPlan?.name || 'Sin Hosting';
@@ -120,10 +102,8 @@ export default function Estadisticas() {
     }, {});
     const hostingData = Object.keys(hostingsCount).map(k => ({ name: k, value: hostingsCount[k] })).sort((a,b) => b.value - a.value);
     const topHostingPlan = hostingData[0]?.name || '-';
-
     // Distribución Plan de Licencia (Graph Data)
     const licenseTypeData = Object.entries(customers.licensesByType || {}).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
-
     // Infra Provider Data
     const providerData = serverCosts?.byProveedor ?
         Object.entries(serverCosts.byProveedor).map(([name, data]) => ({
@@ -131,7 +111,6 @@ export default function Estadisticas() {
             value: data.costoMensual,
             count: data.count
         })) : [];
-
     return (
         <div className="space-y-8 animate-fade-in p-2 pb-10">
             <div>
@@ -141,7 +120,6 @@ export default function Estadisticas() {
                 </h1>
                 <p className="text-muted-foreground mt-1">Visión consolidada de ingresos, adopción, retención y monitoreo operativo.</p>
             </div>
-
             {/* SECCIÓN 1: RENTABILIDAD E INGRESOS */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold border-b pb-2 uppercase tracking-wide text-muted-foreground">Rentabilidad e Ingresos</h2>
@@ -184,7 +162,6 @@ export default function Estadisticas() {
                     </Card>
                 </div>
             </div>
-
             {/* SECCIÓN 2: ADQUISICIÓN Y CRECIMIENTO */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold border-b pb-2 uppercase tracking-wide text-muted-foreground">Adquisición y Crecimiento</h2>
@@ -207,7 +184,6 @@ export default function Estadisticas() {
                         </CardContent>
                     </Card>
                 </div>
-
                 {/* 3 Highlights */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <StatCard title="País Principal" value={topCountryCalc} icon={Globe} color="bg-cyan-500/10 text-cyan-600" />
@@ -215,7 +191,6 @@ export default function Estadisticas() {
                     <StatCard title="Hosting Popular" value={topHostingPlan} icon={Server} color="bg-slate-500/10 text-slate-600" />
                 </div>
             </div>
-
             {/* SECCIÓN 3: RETENCIÓN Y ACTIVIDAD CRM */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold border-b pb-2 uppercase tracking-wide text-muted-foreground">Retención y Actividad CRM</h2>
@@ -244,7 +219,6 @@ export default function Estadisticas() {
                     )}
                 </div>
             </div>
-
             {/* SECCIÓN 4: ESTADO OPERATIVO Y ALERTAS */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold border-b pb-2 uppercase tracking-wide text-muted-foreground">Estado Operativo y Alertas</h2>
@@ -285,7 +259,6 @@ export default function Estadisticas() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Estado de licencias (1 columna vertical) */}
                     <Card className="rounded-2xl shadow-xl border-none">
                         <CardHeader>
@@ -332,7 +305,6 @@ export default function Estadisticas() {
                     </Card>
                 </div>
             </div>
-
             {/* SECCIÓN 5: ANÁLISIS DEMOGRÁFICO Y TÉCNICO */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold border-b pb-2 uppercase tracking-wide text-muted-foreground">Análisis Demográfico y Técnico</h2>
@@ -362,7 +334,6 @@ export default function Estadisticas() {
                             </div>
                         </CardContent>
                     </Card>
-
                     {/* Distribución Geográfica */}
                     <Card className="rounded-2xl shadow-md border-none">
                         <CardHeader>
@@ -391,7 +362,6 @@ export default function Estadisticas() {
                             </div>
                         </CardContent>
                     </Card>
-
                     {/* Distribución Hosting */}
                     <Card className="rounded-2xl shadow-md border-none lg:col-span-2">
                         <CardHeader>
@@ -446,7 +416,6 @@ export default function Estadisticas() {
                         </CardContent>
                     </Card>
                 </div>
-
                 {/* Tablas de Segmentación */}
                 {clientStats && clientStats.pivot && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
@@ -501,7 +470,6 @@ export default function Estadisticas() {
                     </div>
                 )}
             </div>
-
             {/* SECCIÓN 6: INFRAESTRUCTURA Y COSTOS */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold border-b pb-2 uppercase tracking-wide text-muted-foreground">Infraestructura y Costos</h2>
@@ -513,7 +481,6 @@ export default function Estadisticas() {
                         <StatCard title="Costo Anual" value={formatCurrency(serverCosts.totalAnual)} icon={DollarSign} color="bg-indigo-500/10 text-indigo-600" />
                     </div>
                 )}
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                     {/* Cost Distribution */}
                     <Card className="rounded-2xl shadow-md border-none lg:col-span-1">
@@ -549,7 +516,6 @@ export default function Estadisticas() {
                             </div>
                         </CardContent>
                     </Card>
-
                     {/* Expiring Servers Table */}
                     <Card className="rounded-2xl shadow-md border lg:col-span-2 border-amber-200">
                         <CardHeader className="bg-amber-50 dark:bg-amber-900/10">
@@ -593,7 +559,6 @@ export default function Estadisticas() {
                     </Card>
                 </div>
             </div>
-
         </div>
     );
 }
