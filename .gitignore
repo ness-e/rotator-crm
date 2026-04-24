@@ -1,0 +1,9 @@
+node_modules
+dist
+logs
+*.db
+*.db.backup
+*.db.bak
+.env
+uploads
+.DS_Store
