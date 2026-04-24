@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +21,7 @@ import InfoHint from '@/components/ui/InfoHint'
 import { SYSTEM_HINTS } from '@/utils/hints'
 
 export default function AdminEmailTemplates() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [templates, setTemplates] = useState([])
     const [selected, setSelected] = useState(null)
@@ -58,8 +60,8 @@ export default function AdminEmailTemplates() {
         // Validación: body vacío
         if (!selected.body || selected.body.trim().length === 0) {
             return toast({
-                title: 'Plantilla vacía',
-                description: 'El cuerpo HTML de la plantilla no puede estar vacío.',
+                title: t('emails.emptyBody'),
+                description: t('emails.emptyBodyDesc'),
                 variant: 'destructive'
             })
         }
@@ -73,50 +75,50 @@ export default function AdminEmailTemplates() {
             
             const res = await api.put(`/templates/${selected.id}`, payload)
             if (res.ok) {
-                toast({ title: 'Plantilla guardada correctamente' })
+                toast({ title: t('emails.saveSuccess') })
                 await loadTemplates()
             } else {
                 throw new Error('Failed to save template')
             }
         } catch (e) {
-            toast({ title: 'Error', description: e.message, variant: 'destructive' })
+            toast({ title: t('common.error'), description: t('emails.saveError'), variant: 'destructive' })
         } finally {
             setSaving(false)
         }
     }, [selected, loadTemplates, toast])
 
     const handleCreate = useCallback(async () => {
-        const code = prompt('Ingrese el código de la nueva plantilla (ej. USER_ALERTA):')
+        const code = prompt(t('emails.form.newPrompt'))
         if (!code) return
         
         try {
             const res = await api.post('/templates', {
                 code: code.toUpperCase().replace(/\s+/g, '_'),
-                name: 'Nueva Plantilla',
-                subject: 'Asunto predeterminado',
+                name: t('emails.form.newName'),
+                subject: t('emails.form.defaultSubject'),
                 body: '<html><body><h1>Hola {{name}}</h1><p>Contenido...</p></body></html>',
                 variables: JSON.stringify(['name'])
             })
             if (res.ok) {
-                toast({ title: 'Plantilla creada' })
+                toast({ title: t('emails.toast.created') })
                 loadTemplates()
             }
         } catch (e) {
-            toast({ title: 'Error al crear', variant: 'destructive' })
+            toast({ title: t('emails.toast.createError'), variant: 'destructive' })
         }
     }, [loadTemplates, toast])
 
     const handleDelete = useCallback(async (id) => {
-        if (!window.confirm('¿Está seguro de eliminar esta plantilla permanentemente?')) return
+        if (!window.confirm(t('emails.confirmDelete'))) return
         try {
             const res = await api.delete(`/templates/${id}`)
             if (res.ok) {
-                toast({ title: 'Plantilla eliminada' })
+                toast({ title: t('emails.toast.deleted') })
                 setSelected(null)
                 loadTemplates()
             }
         } catch (e) {
-            toast({ title: 'Error al eliminar', variant: 'destructive' })
+            toast({ title: t('emails.toast.deleteError'), variant: 'destructive' })
         }
     }, [loadTemplates, toast])
 
@@ -147,7 +149,7 @@ export default function AdminEmailTemplates() {
             <div className="flex items-center justify-center h-64">
                 <div className="flex flex-col items-center gap-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p className="text-muted-foreground text-sm">Cargando plantillas de correo...</p>
+                    <p className="text-muted-foreground text-sm">{t('emails.loading')}</p>
                 </div>
             </div>
         )
@@ -161,7 +163,7 @@ export default function AdminEmailTemplates() {
                 <Card className="w-1/4 min-w-[280px] flex flex-col shadow-sm border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950">
                     <CardHeader className="py-4 px-5 border-b bg-slate-50/50 dark:bg-slate-900/40 dark:border-slate-800">
                         <div className="flex justify-between items-center mb-4">
-                            <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">Repositorio</CardTitle>
+                            <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('emails.sidebar')}</CardTitle>
                             <Button size="icon" variant="outline" className="h-8 w-8 rounded-full hover:bg-primary hover:text-white transition-all" onClick={handleCreate}>
                                 <Plus className="h-4 w-4" />
                             </Button>
@@ -169,7 +171,7 @@ export default function AdminEmailTemplates() {
                         <div className="relative">
                             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input 
-                                placeholder="Buscar plantilla..." 
+                                placeholder={t('emails.searchPlaceholder')} 
                                 className="pl-9 h-9 text-xs rounded-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:ring-primary"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
@@ -199,14 +201,14 @@ export default function AdminEmailTemplates() {
                                         }`} />
                                     </div>
                                     <div className={`text-[10px] mt-1 truncate ${selected?.id === t.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                                        {t.name || 'Sin nombre definido'}
+                                        {t.name || t('common.notDefined')}
                                     </div>
                                 </div>
                             ))}
                             {filteredTemplates.length === 0 && (
                                 <div className="py-12 text-center">
                                     <Mail className="h-10 w-10 text-slate-200 mx-auto mb-2" />
-                                    <p className="text-xs text-muted-foreground">No se encontraron plantillas</p>
+                                    <p className="text-xs text-muted-foreground">{t('emails.emptyList')}</p>
                                 </div>
                             )}
                         </div>
@@ -228,7 +230,7 @@ export default function AdminEmailTemplates() {
                                             <CardTitle className="text-sm font-bold tracking-tight">{selected.code}</CardTitle>
                                             <div className="flex items-center gap-2">
                                                 <Badge variant="outline" className="text-[9px] h-4 py-0 font-mono bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">v1.0</Badge>
-                                                <span className="text-[10px] text-muted-foreground">Editor de Estructura HTML</span>
+                                                <span className="text-[10px] text-muted-foreground">{t('emails.editorTitle')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -238,7 +240,7 @@ export default function AdminEmailTemplates() {
                                         </Button>
                                         <Button onClick={handleSave} disabled={saving} className="h-9 px-5 rounded-full shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
                                             <Save className="mr-2 h-4 w-4" />
-                                            {saving ? 'Guardando...' : 'Guardar Cambios'}
+                                            {saving ? t('constants.saving') : t('common.saveChanges')}
                                         </Button>
                                     </div>
                                 </CardHeader>
@@ -247,40 +249,40 @@ export default function AdminEmailTemplates() {
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center gap-2 mb-1.5">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">Nombre Descriptivo</Label>
+                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">{t('emails.form.name')}</Label>
                                                     <InfoHint content={SYSTEM_HINTS.EMAIL_TEMPLATE_NAME} />
                                                 </div>
                                                 <Input
                                                     value={selected.name || ''}
                                                     onChange={e => setSelected({ ...selected, name: e.target.value })}
                                                     className="h-10 text-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-primary focus:border-primary rounded-lg transition-all"
-                                                    placeholder="Nombre de la plantilla..."
+                                                    placeholder={t('emails.form.namePlaceholder')}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center gap-2 mb-1.5">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">Asunto del Email</Label>
+                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">{t('emails.form.subject')}</Label>
                                                     <InfoHint content={SYSTEM_HINTS.EMAIL_TEMPLATE_SUBJECT} />
                                                 </div>
                                                 <Input
                                                     value={selected.subject || ''}
                                                     onChange={e => setSelected({ ...selected, subject: e.target.value })}
                                                     className="h-10 text-sm font-semibold border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-primary focus:border-primary rounded-lg transition-all"
-                                                    placeholder="Asunto..."
+                                                    placeholder={t('emails.form.subjectPlaceholder')}
                                                 />
                                             </div>
                                         </div>
                                         
                                         <div className="flex items-center justify-between py-1 px-1">
                                             <div className="flex items-center gap-2">
-                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Variables Disponibles</Label>
+                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('emails.form.variables')}</Label>
                                                 <InfoHint content={SYSTEM_HINTS.EMAIL_TEMPLATE_VARIABLES} />
                                             </div>
                                             <div className="flex flex-wrap gap-2">
                                                 {parseVariables(selected.variables).map(v => (
                                                     <InfoHint 
                                                         key={v}
-                                                        content={`Variable dinámica: ${v}. Se reemplazará con el dato real al enviar.`}
+                                                        content={`${t('common.active')}: ${v}. ${t('emails.preview.hint')}`}
                                                     >
                                                         <Badge variant="secondary" className="cursor-help text-[10px] h-5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/50 hover:bg-blue-100 transition-colors">
                                                             {`{{${v}}}`}
@@ -288,7 +290,7 @@ export default function AdminEmailTemplates() {
                                                     </InfoHint>
                                                 ))}
                                                 <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-slate-400" onClick={() => {
-                                                    const v = prompt('Nombre de la variable:');
+                                                    const v = prompt(t('emails.form.variablePrompt'));
                                                     if (v) {
                                                         const current = parseVariables(selected.variables);
                                                         setSelected({ ...selected, variables: JSON.stringify([...current, v]) });
@@ -305,9 +307,9 @@ export default function AdminEmailTemplates() {
                                         <Alert variant="destructive" className="mx-5 mt-4 border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
                                             <AlertTriangle className="h-4 w-4" />
                                             <AlertDescription className="text-xs">
-                                                <span className="font-bold">Variables sin registrar detectadas en el HTML:</span>{' '}
+                                                <span className="font-bold">{t('emails.alerts.unregistered')}</span>{' '}
                                                 {unregisteredVars.map(v => `{{${v}}}`).join(', ')}.
-                                                Regístralas en "Variables Disponibles" para que se reemplacen correctamente al enviar.
+                                                {t('emails.alerts.unregisteredDesc')}
                                             </AlertDescription>
                                         </Alert>
                                     )}
@@ -317,7 +319,7 @@ export default function AdminEmailTemplates() {
                                         <Alert variant="destructive" className="mx-5 mt-4 border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 [&>svg]:text-red-500 dark:[&>svg]:text-red-400">
                                             <AlertTriangle className="h-4 w-4" />
                                             <AlertDescription className="text-xs font-medium">
-                                                El cuerpo de la plantilla está vacío. Escriba el código HTML en el editor para poder guardar.
+                                                {t('emails.alerts.emptyEditor')}
                                             </AlertDescription>
                                         </Alert>
                                     )}
@@ -344,7 +346,7 @@ export default function AdminEmailTemplates() {
                                         <div className="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
                                             <Eye className="h-4 w-4" />
                                         </div>
-                                        <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">Live Preview</CardTitle>
+                                        <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('emails.preview.title')}</CardTitle>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="flex-1 p-0 flex flex-col relative">
@@ -352,16 +354,16 @@ export default function AdminEmailTemplates() {
                                         {/* Browser Header Simulation */}
                                         <div className="px-5 py-4 border-b bg-slate-50/80 text-[11px] text-slate-600 flex flex-col gap-1.5 shadow-sm">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold w-12 text-slate-400">Desde:</span> 
+                                                <span className="font-bold w-12 text-slate-400">{t('emails.preview.from')}</span> 
                                                 <span className="bg-white px-2 py-0.5 rounded border border-slate-200">Rotator Survey &lt;noreply@rotatorsurvey.com&gt;</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold w-12 text-slate-400">Para:</span> 
+                                                <span className="font-bold w-12 text-slate-400">{t('emails.preview.to')}</span> 
                                                 <span className="bg-white px-2 py-0.5 rounded border border-slate-200">usuario@dominio.com</span>
                                             </div>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="font-bold w-12 text-slate-400">Asunto:</span> 
-                                                <span className="text-slate-900 font-semibold">{selected.subject || '(Sin asunto)'}</span>
+                                                <span className="font-bold w-12 text-slate-400">{t('emails.preview.subject')}</span> 
+                                                <span className="text-slate-900 font-semibold">{selected.subject || t('emails.preview.noSubject')}</span>
                                             </div>
                                         </div>
                                         
@@ -381,7 +383,7 @@ export default function AdminEmailTemplates() {
                                                 <Info className="h-4 w-4 text-blue-600" />
                                             </div>
                                             <p className="text-[10px] text-blue-700 leading-tight">
-                                                Las etiquetas <code className="bg-blue-200/50 px-1 rounded font-bold text-blue-800">{"{{variable}}"}</code> serán inyectadas dinámicamente durante el envío masivo.
+                                                {t('emails.preview.hint')}
                                             </p>
                                         </div>
                                     </div>
@@ -393,12 +395,12 @@ export default function AdminEmailTemplates() {
                             <div className="p-8 bg-white rounded-full shadow-xl mb-6 ring-8 ring-slate-50 animate-bounce-slow">
                                 <Mail className="h-16 w-16 text-primary/30" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Seleccione un Repositorio</h3>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">{t('emails.emptyState.title')}</h3>
                             <p className="text-sm text-slate-500 max-w-[260px] text-center leading-relaxed">
-                                Elija una plantilla de la lista lateral para visualizar el código fuente y previsualizar el renderizado en tiempo real.
+                                {t('emails.emptyState.desc')}
                             </p>
                             <Button variant="outline" className="mt-8 rounded-full px-6" onClick={handleCreate}>
-                                <Plus className="mr-2 h-4 w-4" /> Crear Nueva
+                                <Plus className="mr-2 h-4 w-4" /> {t('emails.emptyState.create')}
                             </Button>
                         </Card>
                     )}

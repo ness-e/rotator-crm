@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,35 +17,37 @@ import { Save, Eye, EyeOff, Mail } from 'lucide-react'
 import InfoHint from '@/components/ui/InfoHint'
 import { SYSTEM_HINTS } from '@/utils/hints'
 
-const INTEGRATION_GROUPS = [
-    {
-        id: 'paypal',
-        name: 'PayPal (Pasarela de Pagos)',
-        icon: <span className="font-bold text-lg">P</span>,
-        fields: [
-            { key: 'PAYPAL_CLIENT_ID', label: 'Client ID', type: 'text' },
-            { key: 'PAYPAL_CLIENT_SECRET', label: 'Client Secret', type: 'password' }
-        ]
-    },
-    {
-        id: 'smtp',
-        name: 'SMTP (Envío de Correos)',
-        icon: <Mail className="h-5 w-5" />,
-        fields: [
-            { key: 'SMTP_HOST', label: 'Host', type: 'text' },
-            { key: 'SMTP_PORT', label: 'Puerto', type: 'number' },
-            { key: 'SMTP_USER', label: 'Usuario', type: 'text' },
-            { key: 'SMTP_PASS', label: 'Contraseña', type: 'password' }
-        ]
-    }
-]
 
 export default function AdminIntegrations() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [settings, setSettings] = useState({})
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [visibleKeys, setVisibleKeys] = useState({})
+
+    const integrationGroups = React.useMemo(() => [
+        {
+            id: 'paypal',
+            name: t('integrations.groups.paypal'),
+            icon: <span className="font-bold text-lg">P</span>,
+            fields: [
+                { key: 'PAYPAL_CLIENT_ID', label: t('integrations.fields.clientId'), type: 'text' },
+                { key: 'PAYPAL_CLIENT_SECRET', label: t('integrations.fields.clientSecret'), type: 'password' }
+            ]
+        },
+        {
+            id: 'smtp',
+            name: t('integrations.groups.smtp'),
+            icon: <Mail className="h-5 w-5" />,
+            fields: [
+                { key: 'SMTP_HOST', label: t('integrations.fields.host'), type: 'text' },
+                { key: 'SMTP_PORT', label: t('integrations.fields.port'), type: 'number' },
+                { key: 'SMTP_USER', label: t('integrations.fields.user'), type: 'text' },
+                { key: 'SMTP_PASS', label: t('integrations.fields.pass'), type: 'password' }
+            ]
+        }
+    ], [t])
 
     useEffect(() => {
         loadSettings()
@@ -81,12 +84,12 @@ export default function AdminIntegrations() {
 
             const res = await api.put('/settings', updatePayload)
             if (res.ok) {
-                toast({ title: 'Integraciones actualizadas' })
+                toast({ title: t('integrations.saveSuccess') })
             } else {
                 throw new Error('Error saving')
             }
         } catch (e) {
-            toast({ title: 'Error', description: 'No se pudieron guardar los cambios', variant: 'destructive' })
+            toast({ title: t('common.error'), description: t('integrations.saveError'), variant: 'destructive' })
         } finally {
             setSaving(false)
         }
@@ -100,23 +103,23 @@ export default function AdminIntegrations() {
         setSettings(prev => ({ ...prev, [key]: value }))
     }
 
-    if (loading) return <div className="p-8 text-center text-muted-foreground">Cargando integraciones...</div>
+    if (loading) return <div className="p-8 text-center text-muted-foreground">{t('integrations.loading')}</div>
 
     return (
         <div className="space-y-6 max-w-4xl">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Integraciones</h2>
-                    <p className="text-muted-foreground">Configura las conexiones con servicios externos.</p>
+                    <h2 className="text-2xl font-bold tracking-tight">{t('integrations.title')}</h2>
+                    <p className="text-muted-foreground">{t('integrations.description')}</p>
                 </div>
                 <Button onClick={handleSave} disabled={saving}>
                     <Save className="mr-2 h-4 w-4" />
-                    {saving ? 'Guardando...' : 'Guardar Cambios'}
+                    {saving ? t('constants.saving') : t('common.saveChanges')}
                 </Button>
             </div>
 
             <div className="grid gap-6">
-                {INTEGRATION_GROUPS.map(group => (
+                {integrationGroups.map(group => (
                     <Card key={group.id} className="overflow-hidden">
                         <CardHeader className="bg-slate-50 dark:bg-slate-900/50 border-b py-4">
                             <div className="flex items-center gap-2">
@@ -138,7 +141,7 @@ export default function AdminIntegrations() {
                                             type={field.type === 'password' && !visibleKeys[field.key] ? 'password' : 'text'}
                                             value={settings[field.key] || ''}
                                             onChange={e => handleChange(field.key, e.target.value)}
-                                            placeholder={field.default || 'No configurado'}
+                                            placeholder={field.default || t('integrations.fields.notConfigured')}
                                             className="pr-10 font-mono text-sm"
                                         />
                                         {field.type === 'password' && (

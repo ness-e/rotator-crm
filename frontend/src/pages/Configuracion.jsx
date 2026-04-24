@@ -7,6 +7,7 @@
  */
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +17,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Settings, Save,  Shield, Plus, Edit, Trash2, Download, Upload, AlertTriangle,      X, Info } from 'lucide-react'
 import { api } from '@/utils/api'
 import { useToast } from '@/components/ui/use-toast'
@@ -39,6 +41,7 @@ const HIDDEN_SETTINGS = [
 ]
 // ============ SETTINGS TAB ============
 function SettingsTab() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [settings, setSettings] = useState([])
     const [loading, setLoading] = useState(true)
@@ -82,16 +85,16 @@ function SettingsTab() {
         acc[g].push(curr)
         return acc
     }, {})
-    if (loading) return <p>Cargando configuración...</p>
+    if (loading) return <p>{t('configuration.loading')}</p>
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2 text-muted-foreground">
                     <Shield className="h-4 w-4" />
-                    <span className="text-sm">Configuración protegida por perfil MASTER</span>
+                    <span className="text-sm">{t('configuration.protected')}</span>
                 </div>
                 <Button onClick={handleSave} disabled={saving} className="shadow-lg shadow-primary/20">
-                    {saving ? 'Guardando...' : <><Save className="mr-2 h-4 w-4" /> Guardar Cambios</>}
+                    {saving ? t('common.saving') : <><Save className="mr-2 h-4 w-4" /> {t('common.saveChanges')}</>}
                 </Button>
             </div>
             <div className="grid gap-6">
@@ -127,7 +130,7 @@ function SettingsTab() {
                                                     }`}
                                                 />
                                                 {setting.value.split(',').some(email => email.trim() && !email.trim().endsWith('@rotatorsurvey.com')) && (
-                                                    <p className="text-[10px] text-red-500 font-medium">Todos los correos deben terminar en @rotatorsurvey.com</p>
+                                                    <p className="text-[10px] text-red-500 font-medium">{t('configuration.emailSuffixError')}</p>
                                                 )}
                                             </div>
                                         ) : setting.key === 'PASSWORD_POLICY' ? (
@@ -136,9 +139,9 @@ function SettingsTab() {
                                                 value={setting.value}
                                                 onChange={e => handleChange(setting.key, e.target.value)}
                                             >
-                                                <option value="low">Baja (Mín. 8 caracteres)</option>
-                                                <option value="medium">Media (Mayús. y Núm.)</option>
-                                                <option value="high">Alta (Mayús., Núm. y Símb.)</option>
+                                                <option value="low">{t('configuration.passwordPolicy.low')}</option>
+                                                <option value="medium">{t('configuration.passwordPolicy.medium')}</option>
+                                                <option value="high">{t('configuration.passwordPolicy.high')}</option>
                                             </select>
                                         ) : setting.value === 'true' || setting.value === 'false' ? (
                                             <div className="flex items-center space-x-2 h-10 px-1">
@@ -147,7 +150,7 @@ function SettingsTab() {
                                                     onCheckedChange={(checked) => handleChange(setting.key, String(checked))} 
                                                 />
                                                 <span className="text-sm font-medium text-slate-600">
-                                                    {setting.value === 'true' ? 'Activado' : 'Desactivado'}
+                                                    {setting.value === 'true' ? t('common.active') : t('common.inactive')}
                                                 </span>
                                             </div>
                                         ) : (
@@ -167,9 +170,9 @@ function SettingsTab() {
                     ))}
                 <Alert className="bg-slate-50 dark:bg-slate-900 border-slate-200">
                     <Info className="h-4 w-4 text-primary" />
-                    <AlertTitle className="text-slate-900 font-bold">Información de Sistema</AlertTitle>
+                    <AlertTitle className="text-slate-900 font-bold">{t('configuration.systemInfo')}</AlertTitle>
                     <AlertDescription className="text-slate-600">
-                        Las constantes técnicas del núcleo (Versiones, XOR, Moneda) han sido bloqueadas para prevenir inconsistencias en el licenciamiento.
+                        {t('configuration.systemInfoDescription')}
                     </AlertDescription>
                 </Alert>
             </div>
@@ -178,6 +181,7 @@ function SettingsTab() {
 }
 // ============ ROLES TAB ============
 function RolesTab() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [roles, setRoles] = useState([])
     const [loading, setLoading] = useState(true)
@@ -259,14 +263,14 @@ function RolesTab() {
         <div className="space-y-6">
             <div className="flex justify-end">
                 <Button onClick={handleNew} className="rounded-xl shadow-lg shadow-primary/20">
-                    <Plus className="mr-2 h-4 w-4" /> Nuevo Rol
+                    <Plus className="mr-2 h-4 w-4" /> {t('roles.new')}
                 </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
                     <div className="col-span-full py-12 flex flex-col items-center justify-center text-muted-foreground">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-                        <p>Cargando roles del sistema...</p>
+                        <p>{t('roles.loading')}</p>
                     </div>
                 ) : roles.map(role => (
                     <Card key={role.name} className="relative group overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -277,7 +281,7 @@ function RolesTab() {
                                     <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">{role.name}</h3>
                                     <div className="flex items-center gap-2">
                                         <Badge variant={role.isSystem ? "warning" : "outline"} className="text-[10px] px-2 py-0 h-5">
-                                            {role.isSystem ? 'Sistema' : 'Personalizado'}
+                                            {role.isSystem ? t('roles.system') : t('roles.custom')}
                                         </Badge>
                                         {role.name === 'MASTER' && (
                                             <Badge className="bg-slate-900 text-white text-[10px] px-2 py-0 h-5">Root</Badge>
@@ -290,7 +294,7 @@ function RolesTab() {
                                         variant="ghost" 
                                         className="h-8 w-8 hover:bg-primary/10 hover:text-primary" 
                                         onClick={() => handleEdit(role)}
-                                        title={role.name === 'MASTER' ? 'Rol protegido' : 'Editar rol'}
+                                        title={role.name === 'MASTER' ? t('roles.protected') : t('roles.edit')}
                                     >
                                         <Edit className="h-4 w-4" />
                                     </Button>
@@ -308,12 +312,12 @@ function RolesTab() {
                             </div>
                             
                             <p className="text-sm text-muted-foreground mb-6 line-clamp-2 min-h-[40px] leading-relaxed">
-                                {role.description || 'Sin descripción detallada para este rol.'}
+                                {role.description || t('roles.noDescription')}
                             </p>
                             
                             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Permisos Habilitados</span>
+                                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">{t('roles.permissionsEnabled')}</span>
                                     <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
                                         {role.permissions.length}
                                     </span>
@@ -326,11 +330,11 @@ function RolesTab() {
                                     ))}
                                     {role.permissions.length > 4 && (
                                         <Badge variant="secondary" className="text-[10px] bg-primary/5 text-primary border-none">
-                                            +{role.permissions.length - 4} más
+                                            +{role.permissions.length - 4} {t('common.more')}
                                         </Badge>
                                     )}
                                     {role.permissions.length === 0 && (
-                                        <span className="text-xs text-muted-foreground italic opacity-60">Sin permisos asignados</span>
+                                        <span className="text-xs text-muted-foreground italic opacity-60">{t('roles.noPermissions')}</span>
                                     )}
                                 </div>
                             </div>
@@ -340,22 +344,22 @@ function RolesTab() {
             </div>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle>{isNew ? 'Crear Nuevo Rol' : `Editar ${editing?.name}`}</DialogTitle></DialogHeader>
+                    <DialogHeader><DialogTitle>{isNew ? t('roles.new') : `${t('common.edit')} ${editing?.name}`}</DialogTitle></DialogHeader>
                     <div className="space-y-6 py-4">
                         <div className="space-y-4">
                             <div className="grid gap-2">
-                                <label className="text-sm font-medium">Nombre (ID)</label>
-                                <Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value.toUpperCase().replace(/[^A-Z_]/g, '') })} disabled={!isNew} placeholder="EJEMPLO_ROL" />
-                                <p className="text-xs text-muted-foreground">Solo mayúsculas y guiones bajos.</p>
+                                <label className="text-sm font-medium">{t('roles.nameLabel')}</label>
+                                <Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value.toUpperCase().replace(/[^A-Z_]/g, '') })} disabled={!isNew} placeholder={t('roles.namePlaceholder')} />
+                                <p className="text-xs text-muted-foreground">{t('roles.nameHint')}</p>
                             </div>
                             <div className="grid gap-2">
-                                <label className="text-sm font-medium">Descripción</label>
-                                <Input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Descripción del rol..." />
+                                <label className="text-sm font-medium">{t('roles.descriptionLabel')}</label>
+                                <Input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder={t('roles.descriptionPlaceholder')} />
                             </div>
                         </div>
                         <div className="space-y-4">
                             <label className="text-sm font-semibold flex items-center gap-2">
-                                <Shield className="h-4 w-4" /> Permisos por Módulo
+                                <Shield className="h-4 w-4" /> {t('roles.permissionsModule')}
                             </label>
                             
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -388,8 +392,8 @@ function RolesTab() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleSubmit}><Save className="mr-2 h-4 w-4" /> Guardar Rol</Button>
+                        <Button variant="outline" onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
+                        <Button onClick={handleSubmit}><Save className="mr-2 h-4 w-4" /> {t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -398,6 +402,7 @@ function RolesTab() {
 }
 // ============ BACKUP TAB ============
 function BackupTab() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [restoring, setRestoring] = useState(false)
     const [downloading, setDownloading] = useState(false)
@@ -448,33 +453,33 @@ function BackupTab() {
         <div className="grid gap-6 md:grid-cols-2">
             <Card className="shadow-lg border-blue-100 dark:border-blue-900/50 bg-white dark:bg-slate-950/50">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5 text-blue-500" /> Exportar Datos</CardTitle>
-                    <CardDescription>Descarga una copia completa de la base de datos actual.</CardDescription>
+                    <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5 text-blue-500" /> {t('backup.exportTitle')}</CardTitle>
+                    <CardDescription>{t('backup.exportDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Button onClick={handleDownload} disabled={downloading} className="w-full">
-                        {downloading ? 'Descargando...' : 'Descargar Backup (.sqlite)'}
+                        {downloading ? t('backup.downloading') : t('backup.downloadBtn')}
                     </Button>
-                    <p className="text-xs text-muted-foreground mt-4 text-center">Recomendado antes de realizar actualizaciones importantes.</p>
+                    <p className="text-xs text-muted-foreground mt-4 text-center">{t('backup.recommendedBeforeUpdate')}</p>
                 </CardContent>
             </Card>
             <Card className="shadow-lg border-red-100 dark:border-red-900/30 bg-white dark:bg-slate-950">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-red-600"><Upload className="h-5 w-5" /> Importar / Restaurar</CardTitle>
-                    <CardDescription>Restaura la base de datos desde un archivo backup.</CardDescription>
+                    <CardTitle className="flex items-center gap-2 text-red-600"><Upload className="h-5 w-5" /> {t('backup.importTitle')}</CardTitle>
+                    <CardDescription>{t('backup.importDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert variant="destructive">
                         <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Zona de Peligro</AlertTitle>
-                        <AlertDescription>Esta acción reemplazará toda la base de datos actual.</AlertDescription>
+                        <AlertTitle>{t('backup.dangerZone')}</AlertTitle>
+                        <AlertDescription>{t('backup.dangerZoneDescription')}</AlertDescription>
                     </Alert>
                     <div className="space-y-2">
                         <Input type="file" accept=".sqlite,.db" onChange={e => setFile(e.target.files[0])} className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800" />
-                        {file && <p className="text-xs text-muted-foreground">Archivo: <span className="font-semibold">{file.name} ({(file.size / 1024).toFixed(1)} KB)</span></p>}
+                        {file && <p className="text-xs text-muted-foreground">{t('common.file')}: <span className="font-semibold">{file.name} ({(file.size / 1024).toFixed(1)} KB)</span></p>}
                     </div>
                     <Button onClick={handleRestore} disabled={!file || restoring} variant="destructive" className="w-full">
-                        {restoring ? 'Restaurando...' : 'Restaurar Base de Datos'}
+                        {restoring ? t('backup.restoring') : t('backup.restoreBtn')}
                     </Button>
                 </CardContent>
             </Card>
@@ -483,6 +488,7 @@ function BackupTab() {
 }
 // ============ MAIN COMPONENT ============
 export default function Configuracion() {
+    const { t } = useTranslation()
     const [searchParams, setSearchParams] = useSearchParams();
     // Map legacy tab values to new structure
     const rawTab = searchParams.get('tab') || 'general';
@@ -502,9 +508,9 @@ export default function Configuracion() {
         <div className="space-y-6">
             <div className="space-y-2">
                 <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
-                    <Settings className="h-8 w-8 text-primary" /> Configuración General
+                    <Settings className="h-8 w-8 text-primary" /> {t('configuration.title')}
                 </h1>
-                <p className="text-muted-foreground mt-1">Gestión de parámetros del sistema, roles de usuario y mantenimiento de base de datos.</p>
+                <p className="text-muted-foreground mt-1">{t('configuration.description')}</p>
             </div>
             {/* Page Content based on sidebar selection */}
             <div className="mt-4">

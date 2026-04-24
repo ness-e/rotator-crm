@@ -164,7 +164,7 @@ export default function AdminUsers() {
         </div>
       )
     },
-    { key: 'role', label: t('users.table.role'), render: (v) => <StatusBadge status={v === 'MASTER' ? 'active' : v === 'ANALISTA' ? 'warning' : 'info'} label={v} /> },
+    { key: 'role', label: t('users.table.role'), render: (v) => <StatusBadge status={v === 'MASTER' ? 'active' : v === 'ANALISTA' ? 'warning' : 'info'} label={t(`common.roles.${v}`, { defaultValue: v })} /> },
     {
       key: 'actions', label: '', render: (_, r) => (
         <div className="flex justify-end gap-2">
@@ -236,10 +236,10 @@ export default function AdminUsers() {
                         </div>
                         <FormControl>
                           <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3">
-                            <option value="CLIENTE">CLIENTE</option>
-                            <option value="ANALISTA">ANALISTA</option>
-                            <option value="VISUALIZADOR">VISUALIZADOR</option>
-                            <option value="MASTER">MASTER</option>
+                            <option value="CLIENTE">{t('common.roles.CLIENTE')}</option>
+                            <option value="ANALISTA">{t('common.roles.ANALISTA')}</option>
+                            <option value="VISUALIZADOR">{t('common.roles.VISUALIZADOR')}</option>
+                            <option value="MASTER">{t('common.roles.MASTER')}</option>
                           </select>
                         </FormControl>
                         <FormMessage />

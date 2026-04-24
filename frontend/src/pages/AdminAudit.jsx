@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { useTranslation } from 'react-i18next'
 import { DataTable } from '@/components/DataTable'
 import { AdminGestionLayout } from '@/components/AdminGestionLayout'
 import { ShieldCheck, Fingerprint } from 'lucide-react'
@@ -9,6 +10,7 @@ import { es } from 'date-fns/locale'
 import { useDebouncedValue } from '../utils/debounce'
 
 export default function AdminAudit() {
+    const { t } = useTranslation()
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
     const [query, setQuery] = useState('')
@@ -77,13 +79,13 @@ export default function AdminAudit() {
 
     return (
         <AdminGestionLayout
-            title="Registro de Actividad"
-            description="Historial de acciones registradas en el sistema."
+            title={t('audit.title')}
+            description={t('audit.description')}
             icon={ShieldCheck}
             onRefresh={loadLogs}
             searchValue={query}
             onSearchChange={setQuery}
-            searchPlaceholder="Buscar por acción, usuario, entidad o IP..."
+            searchPlaceholder={t('audit.searchPlaceholder')}
             currentPage={currentPage}
             totalPages={totalPages}
             totalItems={filtered.length}
@@ -96,7 +98,7 @@ export default function AdminAudit() {
                 columns={[
                     {
                         key: 'createdAt',
-                        label: 'Fecha',
+                        label: t('audit.table.date'),
                         render: (v) => (
                             <span className="font-mono text-xs text-muted-foreground">
                                 {v ? format(new Date(v), 'dd MMM yyyy HH:mm:ss', { locale: es }) : '—'}
@@ -105,17 +107,17 @@ export default function AdminAudit() {
                     },
                     {
                         key: 'user',
-                        label: 'Usuario',
+                        label: t('audit.table.user'),
                         render: (_, row) => (
                             <div className="flex flex-col">
-                                <span className="font-medium text-sm">{row.userName || row.userEmail || 'Sistema'}</span>
+                                <span className="font-medium text-sm">{row.userName || row.userEmail || t('audit.systemUser')}</span>
                                 {row.userEmail && <span className="text-xs text-muted-foreground">{row.userEmail}</span>}
                             </div>
                         )
                     },
                     {
                         key: 'action',
-                        label: 'Acción',
+                        label: t('audit.table.action'),
                         render: (v) => (
                             <Badge variant="outline" className={`border-0 ${getActionColor(v)}`}>
                                 {v}
@@ -124,7 +126,7 @@ export default function AdminAudit() {
                     },
                     {
                         key: 'entity',
-                        label: 'Entidad',
+                        label: t('audit.table.entity'),
                         render: (_, row) => (
                             <div className="flex flex-col text-sm">
                                 <span className="font-medium">{row.entityName || row.entityId}</span>
@@ -134,7 +136,7 @@ export default function AdminAudit() {
                     },
                     {
                         key: 'details',
-                        label: 'Detalles',
+                        label: t('audit.table.details'),
                         render: (v) => (
                             <div className="max-w-[300px] text-sm text-muted-foreground whitespace-pre-wrap">
                                 {v}
@@ -157,7 +159,7 @@ export default function AdminAudit() {
                 emptyState={
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                         <ShieldCheck className="h-12 w-12 mb-4 opacity-10" />
-                        <p className="font-medium">{debouncedQuery ? 'Sin resultados para la búsqueda.' : 'No hay registros de actividad aún.'}</p>
+                        <p className="font-medium">{debouncedQuery ? t('audit.noResults') : t('audit.emptyState')}</p>
                     </div>
                 }
             />

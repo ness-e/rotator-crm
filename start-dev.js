@@ -12,39 +12,25 @@ console.log('');
 console.log('Base de datos: SQLite (backend/prisma/rotator.db)');
 console.log('');
 
-// Iniciar backend
-console.log('[1/2] Iniciando Backend en puerto 3005...');
-const backend = spawn('npm', ['-w', 'backend', 'run', 'dev'], {
-  cwd: __dirname,
+// Iniciar Sistema Unificado
+console.log('[1/1] Iniciando Sistema Unificado...');
+const unified = spawn('npm', ['run', 'dev'], {
+  cwd: join(__dirname, 'sistemaUnificado'),
   stdio: 'inherit',
   shell: true
 });
 
-// Esperar un poco antes de iniciar frontend
-setTimeout(() => {
-  console.log('[2/2] Iniciando Frontend en puerto 5180...');
-  const frontend = spawn('npm', ['-w', 'frontend', 'run', 'dev'], {
-    cwd: __dirname,
-    stdio: 'inherit',
-    shell: true
-  });
-
-  frontend.on('error', (err) => {
-    console.error('Error iniciando frontend:', err);
-  });
-}, 2000);
-
-backend.on('error', (err) => {
-  console.error('Error iniciando backend:', err);
+unified.on('error', (err) => {
+  console.error('Error iniciando sistema unificado:', err);
 });
 
 console.log('');
 console.log('========================================');
-console.log('  Servidores iniciados!');
+console.log('  Sistema Unificado Iniciado!');
 console.log('========================================');
 console.log('');
-console.log('Backend:  http://localhost:3005');
 console.log('Frontend: http://localhost:5180');
+console.log('Backend:  http://localhost:3005');
 console.log('');
 console.log('Presiona Ctrl+C para detener ambos servidores');
 

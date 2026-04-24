@@ -33,7 +33,7 @@
  * @lastUpdated 2026-03-23
  * @author Sistema
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2, Plus, Pencil, Trash2, Users, Receipt, Check, ChevronsUpDown,  Globe, Briefcase, Mail, Clock, XCircle, Send, ShoppingCart, CheckCircle2, Sparkles } from 'lucide-react';
 import InfoHint from '@/components/ui/InfoHint';
@@ -57,51 +57,26 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { GlobalPhoneInput } from '@/components/GlobalSelects';
+
 const EntityStatusBadge = ({ status }) => {
+    const { t } = useTranslation();
     switch (status) {
         case 'En proceso':
-            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#0088cc] text-white"><Clock className="w-3.5 h-3.5" /> ESTÁ EN PROCESO</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#0088cc] text-white"><Clock className="w-3.5 h-3.5" /> {t('organizations.status.inProcess')}</span>;
         case 'No renovo':
-            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#ff0000] text-white"><XCircle className="w-3.5 h-3.5" /> NO RENOVÓ</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#ff0000] text-white"><XCircle className="w-3.5 h-3.5" /> {t('organizations.status.noRenewal')}</span>;
         case 'Correo enviado':
-            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#e6c8c8] text-rose-900 border border-rose-200"><Send className="w-3.5 h-3.5" /> CORREO ENVIADO</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#e6c8c8] text-rose-900 border border-rose-200"><Send className="w-3.5 h-3.5" /> {t('organizations.status.emailSent')}</span>;
         case 'Compro por la pagina':
-            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#f0d8a8] text-amber-900 border border-amber-200"><ShoppingCart className="w-3.5 h-3.5" /> COMPRARON POR LA PAGINA</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#f0d8a8] text-amber-900 border border-amber-200"><ShoppingCart className="w-3.5 h-3.5" /> {t('organizations.status.purchasedWeb')}</span>;
         case 'Renovo':
-            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#dcf0d2] text-green-900 border border-green-200"><CheckCircle2 className="w-3.5 h-3.5" /> RENOVÓ</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#dcf0d2] text-green-900 border border-green-200"><CheckCircle2 className="w-3.5 h-3.5" /> {t('organizations.status.renewed')}</span>;
         case 'Nuevo':
         default:
-            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#00b050] text-white"><Sparkles className="w-3.5 h-3.5" /> CLIENTE NUEVO</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[#00b050] text-white"><Sparkles className="w-3.5 h-3.5" /> {t('organizations.status.newClient')}</span>;
     }
 };
-// Schema modificado para abarcar todos los campos nuevos
-const orgSchema = z.object({
-    name: z.string().min(1, 'Nombre requerido'),
-    email: z.string().email('Email inválido').optional().or(z.literal('')),
-    password: z.string().min(6, 'Mínimo 6 caracteres').optional().or(z.literal('')),
-    taxId: z.string().optional(),
-    countryCode: z.string().optional(),
-    city: z.string().optional(),
-    address: z.string().optional(),
-    clientType: z.string().default('C'),
-    notes: z.string().optional().nullable(),
-    isMaster: z.boolean().optional(),
-    isActive: z.boolean().optional(),
-    phone: z.string().optional().nullable(),
-    source: z.string().optional().nullable(),
-    marketTargetId: z.number().optional().nullable(),
-    ejecutivoId: z.number().optional().nullable(),
-    language: z.string().optional().nullable(),
-    adminContactName: z.string().optional().nullable(),
-    adminContactLastName: z.string().optional().nullable(),
-    adminContactEmail: z.string().email('Email inválido').optional().nullable().or(z.literal('')),
-    useContactName: z.string().optional().nullable(),
-    useContactLastName: z.string().optional().nullable(),
-    useContactEmail: z.string().email('Email inválido').optional().nullable().or(z.literal('')),
-    businessType: z.string().optional().nullable(),
-    status: z.string().optional(),
-    primerContactoId: z.number().optional().nullable()
-});
+
 // Helper component for Searchable Comboboxes
 function SearchableCombobox({ items, value, onChange, placeholder, searchPlaceholder, emptyMessage }) {
     const [open, setOpen] = useState(false)
@@ -139,6 +114,7 @@ function SearchableCombobox({ items, value, onChange, placeholder, searchPlaceho
         </Popover>
     )
 }
+
 export default function AdminOrganizations() {
     const { t } = useTranslation();
     const { toast } = useToast();
@@ -152,6 +128,43 @@ export default function AdminOrganizations() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const debouncedSearch = useDebouncedValue(searchValue, 300);
+    const orgStatusOptions = useMemo(() => [
+        { value: "Nuevo", label: t('prospects.stages.new') },
+        { value: "En proceso", label: t('organizations.status.inProcess') },
+        { value: "Correo enviado", label: t('organizations.status.emailSent') },
+        { value: "Compro por la pagina", label: t('organizations.status.purchasedWeb') },
+        { value: "Renovo", label: t('organizations.status.renewed') },
+        { value: "No renovo", label: t('organizations.status.noRenewal') },
+    ], [t]);
+
+    const orgSchema = z.object({
+        name: z.string().min(1, t('common.errors.required')),
+        email: z.string().email(t('common.errors.invalidEmail')).optional().or(z.literal('')),
+        password: z.string().min(6, t('common.errors.minLength', { count: 6 })).optional().or(z.literal('')),
+        taxId: z.string().optional(),
+        countryCode: z.string().optional(),
+        city: z.string().optional(),
+        address: z.string().optional(),
+        clientType: z.string().default('C'),
+        notes: z.string().optional().nullable(),
+        isMaster: z.boolean().optional(),
+        isActive: z.boolean().optional(),
+        phone: z.string().optional().nullable(),
+        source: z.string().optional().nullable(),
+        marketTargetId: z.number().optional().nullable(),
+        ejecutivoId: z.number().optional().nullable(),
+        language: z.string().optional().nullable(),
+        adminContactName: z.string().optional().nullable(),
+        adminContactLastName: z.string().optional().nullable(),
+        adminContactEmail: z.string().email(t('common.errors.invalidEmail')).optional().nullable().or(z.literal('')),
+        useContactName: z.string().optional().nullable(),
+        useContactLastName: z.string().optional().nullable(),
+        useContactEmail: z.string().email(t('common.errors.invalidEmail')).optional().nullable().or(z.literal('')),
+        businessType: z.string().optional().nullable(),
+        status: z.string().optional(),
+        primerContactoId: z.number().optional().nullable()
+    });
+
     // Queries
     const { data: orgs = [], isLoading } = useQuery({
         queryKey: ['organizations'],
@@ -163,6 +176,7 @@ export default function AdminOrganizations() {
             return res.json();
         }
     });
+
     const { data: countries = [] } = useQuery({
         queryKey: ['locations_countries'],
         queryFn: async () => {
@@ -171,6 +185,7 @@ export default function AdminOrganizations() {
             return [];
         }
     });
+
     const { data: usersData = [] } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
@@ -179,6 +194,7 @@ export default function AdminOrganizations() {
             return [];
         }
     });
+
     const { data: licenseVersions = [] } = useQuery({
         queryKey: ['license_templates'],
         queryFn: async () => {
@@ -187,9 +203,11 @@ export default function AdminOrganizations() {
             return [];
         }
     });
+
     // Options derived from queries
     const countryOptions = countries.map(c => ({ value: c.isoCode, label: `${c.name} (${c.isoCode})` }));
     const masterUsers = usersData.filter(u => u.role === 'MASTER' || u.tipo === 'MASTER').map(u => ({ value: u.id, label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email }));
+
     // Mutations
     const createOrg = useMutation({
         mutationFn: async (data) => {
@@ -204,9 +222,10 @@ export default function AdminOrganizations() {
         onSuccess: () => {
             queryClient.invalidateQueries(['organizations']);
             setOpen(false);
-            toast({ title: 'Organización creada' });
+            toast({ title: t('common.success'), description: t('organizations.toast.created') });
         }
     });
+
     const updateOrg = useMutation({
         mutationFn: async ({ id, data }) => {
             const res = await fetch(`/api/crm/organizations/${id}`, {
@@ -221,9 +240,10 @@ export default function AdminOrganizations() {
             queryClient.invalidateQueries(['organizations']);
             setOpen(false);
             setEditing(null);
-            toast({ title: 'Organización actualizada' });
+            toast({ title: t('common.success'), description: t('organizations.toast.updated') });
         }
     });
+
     const form = useForm({
         resolver: zodResolver(orgSchema),
         defaultValues: {
@@ -234,13 +254,15 @@ export default function AdminOrganizations() {
             businessType: '', primerContactoId: null
         }
     });
+
     const inviteForm = useForm({
         resolver: zodResolver(z.object({
-            email: z.string().email('Email requerido para la invitación'),
-            productTemplateId: z.string().min(1, 'Seleccione un plan de licencia')
+            email: z.string().email(t('common.errors.invalidEmail')),
+            productTemplateId: z.string().min(1, t('common.errors.required'))
         })),
         defaultValues: { email: '', productTemplateId: '' }
     });
+
     const createInvitation = useMutation({
         mutationFn: async (data) => {
             const res = await fetch('/api/invitations', {
@@ -255,16 +277,19 @@ export default function AdminOrganizations() {
         onSuccess: (data) => {
             setInviteOpen(false);
             inviteForm.reset();
-            toast({ title: 'Invitación enviada con éxito', description: `Se ha enviado el enlace a ${data.invitation.email}` });
+            toast({ title: t('common.success'), description: t('organizations.toast.invitationSent', { email: data.invitation.email }) });
         },
         onError: (e) => {
-            toast({ title: 'Error al enviar invitación', description: e.message, variant: 'destructive' });
+            toast({ title: t('common.errors.invitationError'), description: e.message, variant: 'destructive' });
         }
     });
+
     const onInviteSubmit = (values) => {
         createInvitation.mutate(values);
     };
+
     const selectedCountry = form.watch('countryCode');
+
     const { data: cities = [] } = useQuery({
         queryKey: ['locations_cities', selectedCountry],
         queryFn: async () => {
@@ -275,7 +300,9 @@ export default function AdminOrganizations() {
         },
         enabled: !!selectedCountry
     });
+
     const cityOptions = cities.map(c => ({ value: c.name, label: `${c.name}, ${c.stateCode}` }));
+
     const onSubmit = (values) => {
         // Remove empty numeric values if any
         if (values.primerContactoId === '') values.primerContactoId = null;
@@ -287,6 +314,7 @@ export default function AdminOrganizations() {
             createOrg.mutate(values);
         }
     };
+
     const handleEdit = (row) => {
         setEditing(row);
         form.reset({
@@ -318,6 +346,7 @@ export default function AdminOrganizations() {
         });
         setOpen(true);
     };
+
     const handleNew = () => {
         setEditing(null);
         form.reset({
@@ -328,6 +357,7 @@ export default function AdminOrganizations() {
         });
         setOpen(true);
     };
+
     // Delete Logic
     const confirmDelete = async () => {
         if (!deleteId) return;
@@ -338,14 +368,15 @@ export default function AdminOrganizations() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Error deleting');
-            toast({ title: 'Organización eliminada' });
+            toast({ title: t('common.success'), description: t('organizations.toast.deleted') });
             queryClient.invalidateQueries(['organizations']);
         } catch (e) {
-            toast({ title: 'Error', description: e.message, variant: 'destructive' });
+            toast({ title: t('common.errors.deleteError'), description: e.message, variant: 'destructive' });
         } finally {
             setDeleteId(null);
         }
     };
+
     // Filter
     const filtered = orgs.filter(o => {
         const q = debouncedSearch.toLowerCase().trim();
@@ -353,11 +384,13 @@ export default function AdminOrganizations() {
                o.taxId?.includes(q) ||
                o.status?.toLowerCase().includes(q);
     });
+
     const isAll = String(pageSize) === 'all';
     const totalPages = isAll ? 1 : Math.max(1, Math.ceil(filtered.length / Number(pageSize)));
     const currentPage = Math.min(page, totalPages);
     const start = isAll ? 0 : (currentPage - 1) * Number(pageSize);
     const pageItems = isAll ? filtered : filtered.slice(start, start + Number(pageSize));
+
     const columns = [
         {
             key: 'name', label: t('organizations.table.org'), render: (v, r) => (
@@ -421,6 +454,7 @@ export default function AdminOrganizations() {
             )
         }
     ];
+
     return (
         <>
             <AdminGestionLayout
@@ -450,7 +484,7 @@ export default function AdminOrganizations() {
                                         <Send className="h-5 w-5 text-primary" /> {t('organizations.new')}
                                     </DialogTitle>
                                     <DialogDescription className="sr-only">
-                                        Formulario para enviar invitación
+                                        {t('organizations.form.inviteDescription')}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <Form {...inviteForm}>
@@ -500,6 +534,9 @@ export default function AdminOrganizations() {
                                         <Building2 className="h-6 w-6 text-primary" />
                                         {editing ? t('organizations.edit') : t('organizations.new')}
                                     </DialogTitle>
+                                    <DialogDescription className="sr-only">
+                                        {editing ? t('organizations.editDescription') : t('organizations.newDescription')}
+                                    </DialogDescription>
                                 </DialogHeader>
                                 
                                 <Form {...form}>
@@ -523,12 +560,9 @@ export default function AdminOrganizations() {
                                                         <FormField control={form.control} name="status" render={({ field }) => (
                                                             <FormItem><FormLabel>{t('organizations.form.status')}</FormLabel><FormControl>
                                                                 <select {...field} className="flex h-10 w-full rounded-md border bg-background px-3 text-sm">
-                                                                    <option value="Nuevo">{t('prospects.stages.new')}</option>
-                                                                    <option value="En proceso">{t('organizations.status.inProcess')}</option>
-                                                                    <option value="Correo enviado">{t('organizations.status.emailSent')}</option>
-                                                                    <option value="Compro por la pagina">{t('organizations.status.purchasedWeb')}</option>
-                                                                    <option value="Renovo">{t('organizations.status.renewed')}</option>
-                                                                    <option value="No renovo">{t('organizations.status.noRenewal')}</option>
+                                                                    {orgStatusOptions.map(opt => (
+                                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                                    ))}
                                                                 </select>
                                                             </FormControl><FormMessage /></FormItem>
                                                         )} />

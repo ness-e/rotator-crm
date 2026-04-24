@@ -297,25 +297,30 @@ export default function AdminProspects() {
                     <Card className="max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle>{selectedProspect.company}</CardTitle>
-                            <Badge>{selectedProspect.status}</Badge>
+                            <Badge>
+                                {(() => {
+                                    const stage = pipelineStages.find(s => s.id === (selectedProspect.stage || selectedProspect.status));
+                                    return stage ? (stage.labelKey ? t(stage.labelKey) : stage.label) : selectedProspect.status;
+                                })()}
+                            </Badge>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span className="text-muted-foreground block text-xs uppercase">{t('prospects.form.contactName')}</span>
-                                    {selectedProspect.contactName || '-'}
+                                    {selectedProspect.contactName || t('common.na')}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground block text-xs uppercase">{t('common.email')}</span>
-                                    {selectedProspect.email || '-'}
+                                    {selectedProspect.email || t('common.na')}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground block text-xs uppercase">{t('common.phone')}</span>
-                                    {selectedProspect.phone || '-'}
+                                    {selectedProspect.phone || t('common.na')}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground block text-xs uppercase">{t('common.country')}</span>
-                                    {selectedProspect.country || '-'}
+                                    {selectedProspect.country || t('common.na')}
                                 </div>
                             </div>
 

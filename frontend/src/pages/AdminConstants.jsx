@@ -8,6 +8,7 @@
  */
 
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +32,7 @@ const HIDDEN_CONSTANTS = [
 ]
 
 export default function AdminConstants() {
+    const { t } = useTranslation()
     const { toast } = useToast()
     const [constants, setConstants] = useState({})
     const [loading, setLoading] = useState(true)
@@ -58,10 +60,10 @@ export default function AdminConstants() {
         try {
             const payload = Object.entries(constants).map(([key, value]) => ({ key, value }))
             const res = await api.put('/settings', payload)
-            if (res.ok) toast({ title: 'Constantes guardadas' })
+            if (res.ok) toast({ title: t('constants.toast.saved') })
             else throw new Error('Error saving')
         } catch (e) {
-            toast({ title: 'Error', description: 'No se pudo guardar', variant: 'destructive' })
+            toast({ title: t('common.error'), description: t('constants.toast.saveError'), variant: 'destructive' })
         } finally { setSaving(false) }
     }
 
@@ -73,23 +75,23 @@ export default function AdminConstants() {
     }
 
     const removeConstant = async (key) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente la constante ${key}?`)) return
+        if (!window.confirm(t('constants.confirmDelete', { key }))) return
         try {
             const res = await api.delete(`/settings/${key}`)
             if (res.ok) {
                 const { [key]: _, ...rest } = constants
                 setConstants(rest)
-                toast({ title: 'Constante eliminada' })
+                toast({ title: t('constants.toast.deleted') })
             } else if (res.status === 404) {
                 // If it doesn't exist on the server yet, just remove from local state
                 const { [key]: _, ...rest } = constants
                 setConstants(rest)
-                toast({ title: 'Constante descartada' })
+                toast({ title: t('constants.toast.discarded') })
             } else {
                 throw new Error('Error deleting')
             }
         } catch (e) {
-            toast({ title: 'Error', description: 'No se pudo eliminar la constante', variant: 'destructive' })
+            toast({ title: t('common.error'), description: t('constants.toast.deleteError'), variant: 'destructive' })
         }
     }
 
@@ -97,28 +99,28 @@ export default function AdminConstants() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold">Constantes del Sistema</h2>
-                    <p className="text-muted-foreground">Variables globales de configuración técnica</p>
+                    <h2 className="text-xl font-bold">{t('constants.title')}</h2>
+                    <p className="text-muted-foreground">{t('constants.description')}</p>
                 </div>
                 <Button onClick={handleSave} disabled={saving}>
-                    {saving ? 'Guardando...' : <><Save className="mr-2 h-4 w-4" /> Guardar Todo</>}
+                    {saving ? t('constants.saving') : <><Save className="mr-2 h-4 w-4" /> {t('constants.saveAll')}</>}
                 </Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Agregar Variable</CardTitle>
+                    <CardTitle>{t('constants.addVariable')}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-4 items-end">
                     <div className="grid gap-2 w-1/3">
-                        <Label>Clave (KEY)</Label>
-                        <Input value={newKey} onChange={e => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))} placeholder="NUEVA_CONSTANTE" />
+                        <Label>{t('constants.keyLabel')}</Label>
+                        <Input value={newKey} onChange={e => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))} placeholder={t('constants.keyPlaceholder')} />
                     </div>
                     <div className="grid gap-2 flex-1">
-                        <Label>Valor</Label>
-                        <Input value={newValue} onChange={e => setNewValue(e.target.value)} placeholder="Valor..." />
+                        <Label>{t('constants.valueLabel')}</Label>
+                        <Input value={newValue} onChange={e => setNewValue(e.target.value)} placeholder={t('constants.valuePlaceholder')} />
                     </div>
-                    <Button onClick={addConstant} variant="secondary"><Plus className="mr-2 h-4 w-4" /> Agregar</Button>
+                    <Button onClick={addConstant} variant="secondary"><Plus className="mr-2 h-4 w-4" /> {t('constants.addBtn')}</Button>
                 </CardContent>
             </Card>
 
@@ -143,7 +145,7 @@ export default function AdminConstants() {
                     <div className="mt-8 pt-8 border-t border-slate-200">
                         <div className="flex items-center gap-2 text-slate-500 mb-4 px-1">
                             <Info className="h-4 w-4" />
-                            <span className="text-sm font-bold uppercase tracking-wider">Variables fijas del núcleo</span>
+                            <span className="text-sm font-bold uppercase tracking-wider">{t('constants.fixedVariables')}</span>
                         </div>
                         <div className="grid gap-2">
                             {Object.entries(constants)

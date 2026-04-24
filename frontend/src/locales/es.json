@@ -15,9 +15,16 @@
     "restore": "Restaurar",
     "create": "Crear",
     "update": "Actualizar",
+    "retry": "Reintentar",
     "details": "Detalles",
     "viewDetails": "Ver Detalles",
     "notDefined": "No definido",
+    "roles": {
+      "MASTER": "Administrador Maestro",
+      "ANALISTA": "Analista de Datos",
+      "VISUALIZADOR": "Visualizador",
+      "CLIENTE": "Cliente / Usuario Final"
+    },
     "status": "Estado",
     "all": "Todos",
     "na": "N/A",
@@ -30,6 +37,7 @@
     "maintenance": "Mantenimiento",
     "client": "Cliente",
     "results": "resultados",
+    "results_count": "Mostrando {{count}} resultados",
     "noResults": "No se encontraron resultados",
     "cleanFilters": "Limpiar filtros",
     "showing": "Mostrando",
@@ -41,6 +49,7 @@
     "vitalicia": "Vitalicia",
     "generate": "Generar",
     "notes": "Notas",
+    "others": "Otros",
     "copy": "Copiar",
     "copied": "Datos copiados",
     "confirmationTitle": "¿Estás seguro?",
@@ -52,7 +61,18 @@
     "noNotifications": "No hay notificaciones",
     "email": "Email",
     "phone": "Teléfono",
-    "country": "País"
+    "country": "País",
+    "date": "Fecha",
+    "id": "ID",
+    "errors": {
+      "required": "Campo requerido",
+      "invalidEmail": "Email inválido",
+      "minLength": "Mínimo {{count}} caracteres",
+      "deleteError": "Error al eliminar",
+      "updateError": "Error al actualizar",
+      "saveError": "Error al guardar",
+      "invitationError": "Error al enviar invitación"
+    }
   },
   "navigation": {
     "summary": "Resumen",
@@ -138,24 +158,17 @@
       "noCity": "Sin ciudad"
     },
     "status": {
-      "inProcess": "EN PROCESO",
-      "noRenewal": "NO RENOVÓ",
-      "emailSent": "CORREO ENVIADO",
-      "purchasedWeb": "COMPRARON POR LA PAGINA",
-      "renewed": "RENOVÓ",
-      "newClient": "CLIENTE NUEVO",
+      "inProcess": "En proceso",
+      "noRenewal": "No renovó",
+      "emailSent": "Correo enviado",
+      "purchasedWeb": "Compró por la página",
+      "renewed": "Renovó",
+      "newClient": "Cliente nuevo",
       "typeA": "Tipo A (Corporativo VIP)",
       "typeB": "Tipo B (Empresa Mediana)",
       "typeC": "Tipo Pyme",
       "typeD": "Tipo D (Micro/Otro)"
     }
-  },
-  "clients": {
-    "title": "Clientes Activos",
-    "description": "Gestión de cartera de clientes y monitorización de licencias.",
-    "searchPlaceholder": "Buscar cliente, email...",
-    "new": "Nuevo Cliente",
-    "directoryTitle": "Directorio de Organizaciones"
   },
   "prospects": {
     "title": "Pipeline de Prospectos",
@@ -229,7 +242,7 @@
     "nodes": "Nodos de Servidor",
     "node": "Nodo",
     "type": "Tipo",
-    "statusLabel": "Estado",
+    "status": "Estado",
     "uptime": "Uptime",
     "lastTest": "Último Test",
     "activeLicenses": "Licencias Activas",
@@ -245,18 +258,12 @@
     "domains": "Dominios",
     "health": "Salud del Sistema",
     "totalServers": "Total Servidores",
-    "nextPayment": "Pago próximo",
     "addFirstServer": "Añade tu primer servidor con el botón superior",
     "runTests": "Ejecutar Tests",
     "serversAndDomains": "Servidores y Dominios",
     "providerCatalog": "Catálogo de Proveedores",
     "allTypes": "Todos los tipos",
     "allProviders": "Todos los proveedores",
-    "status": {
-      "active": "Activo",
-      "inactive": "Inactivo",
-      "maintenance": "Mantenimiento"
-    },
     "view": {
       "cards": "Tarjetas",
       "grouped": "Agrupada",
@@ -267,15 +274,10 @@
     "testsError": "ERROR EN TESTS",
     "verifying": "Verificando...",
     "ipAddress": "Dirección IP",
-    "provider": "Proveedor",
-    "specifications": "Especificaciones",
     "linkedDomains": "{{count}} vinculados",
     "expiration": "Vencimiento",
     "searchPlaceholder": "Buscar servidor, IP, proveedor...",
-    "annualCost": "Costo Anual",
-    "monthlyCost": "Costo Mensual",
     "nextPaymentShort": "Próx. pago",
-    "addDomain": "Añadir dominio",
     "diagnostics": {
       "okBanner": "Servidor operando correctamente",
       "errorBanner": "Se detectaron problemas en el servidor",
@@ -312,14 +314,15 @@
     "types": {
       "cloud": "Nube",
       "private": "Servidor Privado",
-      "shared": "Servidor Compartido",
-      "other": "Otro"
+      "own": "Servidor Propio",
+      "pool": "Servidor Pool",
+      "other": "Otro",
+      "unknown": "Desconocido"
     },
     "connectivity": "Conectividad",
     "publicIp": "IP Pública",
     "primaryDomain": "Dominio Principal",
     "infrastructure": "Infraestructura",
-    "specifications": "Especificaciones",
     "linkedDomainsTitle": "Dominios Vinculados",
     "noDomainsLinked": "Sin dominios vinculados. Usa el botón + para añadir uno.",
     "noLinkedDomains": "No hay dominios vinculados a este servidor",
@@ -341,6 +344,7 @@
     "clientOrganization": "Cliente / Organización",
     "selectOrganization": "Seleccione organización...",
     "unassigned": "– Sin asignar –",
+    "provider": "Proveedor",
     "hostingProvider": "Proveedor de Hosting",
     "selectProvider": "Seleccione proveedor...",
     "noProvider": "– Sin proveedor –",
@@ -349,9 +353,12 @@
     "noPlan": "– Sin plan –",
     "monthlyShort": "mes",
     "annualShort": "año",
+    "monthlyCost": "Costo Mensual",
+    "annualCost": "Costo Anual",
     "noActivePlans": "Este proveedor no tiene planes activos.",
     "billingCycle": "Ciclo de Facturación",
     "nextPaymentDate": "Próxima Fecha de Pago",
+    "placeholderProviderFirst": "Seleccione un proveedor primero",
     "observationsNotes": "Observaciones y Notas",
     "observationsPlaceholder": "Credenciales de acceso (no sensibles), notas de mantenimiento, etc.",
     "saveServer": "Guardar Servidor",
@@ -359,9 +366,17 @@
     "editDomain": "Editar Dominio",
     "expirationDate": "Fecha de Vencimiento",
     "observationsPlaceholderDomain": "DNS, registrar, renovación automática, notas...",
+    "general": "General",
+    "domainName": "Nombre de Dominio",
+    "observations": "Observaciones",
     "appName": "Nombre APP",
     "placeholderAppName": "Ej. WordPress, Laravel, PrestaShop...",
     "ftpAccess": "Accesos FTP",
+    "ftpAddress": "Dirección FTP",
+    "placeholderFtpAddress": "ftp.midominio.com",
+    "ftpUser": "Usuario FTP",
+    "placeholderFtpUser": "usuario@correo.com",
+    "ftpPassword": "Contraseña FTP",
     "leaveEmptyToNotChange": "••••• (dejar vacío = no cambiar)",
     "newPassword": "Nueva contraseña",
     "encryptedPasswordSaved": "Contraseña cifrada guardada. Dejar vacío para no cambiarla.",
@@ -383,6 +398,12 @@
       "QUARTERLY": "Trimestral",
       "SEMIANNUAL": "Semestral",
       "ANNUAL": "Anual"
+    },
+    "statusLabel": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "maintenance": "Mantenimiento",
+      "expired": "Expirado"
     },
     "toast": {
       "testing": "Diagnóstico en curso",
@@ -493,15 +514,22 @@
     "description": "Gestión de licencias y volúmenes B2B.",
     "new": "Nueva Licencia",
     "edit": "Editar Licencia",
-    "delete": "¿Eliminar Licencia?",
+    "deleteTitle": "¿Eliminar Licencia?",
+    "deleteDescription": "Esta acción no se puede deshacer.",
+    "searchPlaceholder": "Buscar por serial o empresa...",
     "form": {
       "organization": "Organización Cliente",
+      "selectOrg": "Seleccione...",
       "user": "Usuario Asignado",
+      "noUser": "Sin usuario asignado...",
+      "alreadyHasLicense": "(Ya tiene licencia)",
       "plan": "Licencia Plan (Plantilla)",
+      "selectPlan": "Seleccione un plan base...",
       "serial": "Serial",
+      "generateAuto": "Generar autom.",
       "activationKey": "Clave de Activación Cifrada",
       "expiration": "Expiración (Vacío = Vitalicia)",
-      "limits": "Límites Técnicos",
+      "limitsTechnical": "Límites Técnicos",
       "questions": "Preguntas",
       "cases": "Casos",
       "admins": "Admins",
@@ -516,9 +544,41 @@
       "kioskSup": "Sup. Kiosco",
       "infrastructure": "Infraestructura",
       "hostingPlan": "Plan de Hosting",
+      "noHostingPlan": "Sin plan asignado",
       "associatedServers": "Servidores y Dominios Asociados",
+      "associatedServersDesc": "Asigne múltiples servidores si el tipo es Propio, Privado o Pool.",
       "addServer": "Añadir Servidor",
-      "concurrentQuest": "Cuestionarios Concurrentes"
+      "noServers": "No hay servidores asignados.",
+      "server": "Servidor",
+      "selectServer": "Seleccione servidor...",
+      "domainOptional": "Dominio (Opcional)",
+      "noDomain": "Todos / Sin dominio específico",
+      "cloudServerWarning": "Aviso: Los servidores Nube usualmente son asignaciones únicas.",
+      "concurrentQuest": "Cuestionarios Concurrentes",
+      "notesPlaceholder": "Observaciones internas...",
+      "newB2B": "Nueva Licencia B2B",
+      "descriptionB2B": "Gestione los parámetros de la licencia SaaS/On-Premise."
+    },
+    "table": {
+      "serial": "Serial",
+      "org": "Organización",
+      "status": "Estado",
+      "expiration": "Expiración",
+      "limits": "Límites",
+      "activations": "Activaciones",
+      "noActivations": "Sin activar",
+      "activationsCount": "{{count}} activ."
+    },
+    "toast": {
+      "created": "Licencia creada",
+      "updated": "Licencia actualizada",
+      "deleted": "Licencia eliminada",
+      "saveError": "Error al guardar la licencia"
+    },
+    "status": {
+      "ACTIVE": "Activa",
+      "INACTIVE": "Inactiva",
+      "SUSPENDED": "Suspendida"
     }
   },
   "configuration": {
@@ -537,82 +597,51 @@
       "medium": "Media (Mayús. y Núm.)",
       "high": "Alta (Mayús., Núm. y Símb.)"
     },
-    "roles": {
-      "new": "Nuevo Rol",
-      "loading": "Cargando roles del sistema...",
-      "system": "Sistema",
-      "custom": "Personalizado",
-      "edit": "Editar rol",
-      "protected": "Rol de Sistema Protegido",
-      "protectedDesc": "El rol MASTER no puede ser modificado para garantizar la integridad del sistema.",
-      "deleteConfirm": "¿Estás seguro de que deseas eliminar el rol \"{{name}}\"? Esta acción no se puede deshacer y fallará si hay usuarios asignados.",
-      "permissionsEnabled": "Permisos Habilitados",
-      "noPermissions": "Sin permisos asignados",
-      "nameLabel": "Nombre (ID)",
-      "namePlaceholder": "EJEMPLO_ROL",
-      "nameHint": "Solo mayúsculas y guiones bajos.",
-      "descriptionLabel": "Descripción",
-      "descriptionPlaceholder": "Descripción del rol...",
-      "permissionsModule": "Permisos por Módulo"
-    },
-    "backup": {
-      "exportTitle": "Exportar Datos",
-      "exportDescription": "Descarga una copia completa de la base de datos actual.",
-      "downloadBtn": "Descargar Backup (.sqlite)",
-      "downloading": "Descargando...",
-      "importTitle": "Importar / Restaurar",
-      "importDescription": "Restaura la base de datos desde un archivo backup.",
-      "dangerZone": "Zona de Peligro",
-      "dangerZoneDescription": "Esta acción reemplazará toda la base de datos actual.",
-      "restoreBtn": "Restaurar Base de Datos",
-      "restoring": "Restaurando...",
-      "restoreConfirm": "ADVERTENCIA: ¿Estás seguro de restaurar? Esto sobrescribirá TODOS los datos actuales.",
-      "recommendedBeforeUpdate": "Recomendado antes de realizar actualizaciones importantes."
-    },
-    "relocated": {
-      "title": "Secciones Reubicadas",
-      "description": "Las opciones avanzadas ahora están disponibles directamente en el menú lateral."
-    },
-    "plans": {
-      "title": "Configuración de Planes",
-      "description": "Define las características de las versiones de licencia y planes de hosting.",
-      "tabs": {
-        "versions": "Versiones de Licencia",
-        "hosting": "Planes de Hosting"
-      },
-      "versions": {
-        "searchPlaceholder": "Buscar versiones...",
-        "new": "Nueva Versión",
-        "edit": "Editar Versión",
-        "create": "Crear Versión",
-        "deleteConfirm": "¿Eliminar versión?",
-        "form": {
-          "name": "Nombre (2 Palabras)",
-          "letter": "Letra (Auto)",
-          "pricing": "Precios (CRM)",
-          "monthly": "Precio Mensual",
-          "annual": "Precio Anual",
-          "currency": "Moneda",
-          "capabilities": "Capacidades del Plan"
-        },
-        "errors": {
-          "required": "Requerido",
-          "twoWords": "Debe tener exactamente 2 palabras"
-        }
-      },
-      "hosting": {
-        "searchPlaceholder": "Buscar hosting...",
-        "new": "Nuevo Hosting",
-        "edit": "Editar Hosting",
-        "create": "Crear Hosting",
-        "deleteConfirm": "¿Eliminar hosting?",
-        "form": {
-          "name": "Nombre",
-          "abbreviation": "Abreviación",
-          "concurrent": "Cuestionarios Concurrentes"
-        }
-      }
+    "tabs": {
+      "general": "General",
+      "roles": "Roles & Permisos",
+      "plans": "Planes & Hosting",
+      "emails": "Plantillas de Email",
+      "integrations": "Integraciones",
+      "constants": "Constantes",
+      "backup": "Backup & SQL"
     }
+  },
+  "roles": {
+    "title": "Roles & Permisos",
+    "description": "Administra los niveles de acceso y permisos de los usuarios.",
+    "new": "Nuevo Rol",
+    "loading": "Cargando roles del sistema...",
+    "system": "Sistema",
+    "custom": "Personalizado",
+    "edit": "Editar rol",
+    "protected": "Rol de Sistema Protegido",
+    "protectedDesc": "El rol MASTER no puede ser modificado para garantizar la integridad del sistema.",
+    "deleteConfirm": "¿Estás seguro de que deseas eliminar el rol \"{{name}}\"? Esta acción no se puede deshacer y fallará si hay usuarios asignados.",
+    "permissionsEnabled": "Permisos Habilitados",
+    "noPermissions": "Sin permisos asignados",
+    "nameLabel": "Nombre (ID)",
+    "namePlaceholder": "EJEMPLO_ROL",
+    "nameHint": "Solo mayúsculas y guiones bajos.",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Descripción del rol...",
+    "permissionsModule": "Permisos por Módulo"
+  },
+  "backup": {
+    "title": "Backup & SQL",
+    "description": "Mantenimiento de la base de datos y exportación de datos.",
+    "exportTitle": "Exportar Datos",
+    "exportDescription": "Descarga una copia completa de la base de datos actual.",
+    "downloadBtn": "Descargar Backup (.sqlite)",
+    "downloading": "Descargando...",
+    "importTitle": "Importar / Restaurar",
+    "importDescription": "Restaura la base de datos desde un archivo backup.",
+    "dangerZone": "Zona de Peligro",
+    "dangerZoneDescription": "Esta acción reemplazará toda la base de datos actual.",
+    "restoreBtn": "Restaurar Base de Datos",
+    "restoring": "Restaurando...",
+    "restoreConfirm": "ADVERTENCIA: ¿Estás seguro de restaurar? Esto sobrescribirá TODOS los datos actuales.",
+    "recommendedBeforeUpdate": "Recomendado antes de realizar actualizaciones importantes."
   },
   "activations": {
     "title": "Monitor de Activaciones",
@@ -655,24 +684,200 @@
   "audit": {
     "title": "Registro de Actividad",
     "description": "Historial de acciones registradas en el sistema.",
-    "searchPlaceholder": "Buscar por acción, usuario, entidad o IP..."
+    "searchPlaceholder": "Buscar por acción, usuario, entidad o IP...",
+    "table": {
+      "date": "Fecha",
+      "user": "Usuario",
+      "action": "Acción",
+      "entity": "Entidad",
+      "details": "Detalles"
+    },
+    "systemUser": "Sistema",
+    "noResults": "Sin resultados para la búsqueda.",
+    "emptyState": "No hay registros de actividad aún."
   },
   "integrations": {
     "title": "Integraciones",
     "description": "Configura las conexiones con servicios externos.",
-    "loading": "Cargando integraciones..."
+    "loading": "Cargando integraciones...",
+    "saveSuccess": "Integraciones actualizadas",
+    "saveError": "No se pudieron guardar los cambios",
+    "groups": {
+      "paypal": "PayPal (Pasarela de Pagos)",
+      "smtp": "SMTP (Envío de Correos)"
+    },
+    "fields": {
+      "port": "Puerto",
+      "user": "Usuario",
+      "pass": "Contraseña",
+      "notConfigured": "No configurado",
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret",
+      "host": "Host"
+    }
+  },
+  "emails": {
+    "title": "Plantillas de Email",
+    "description": "Gestión de plantillas de correo con editor de código y vista previa en tiempo real.",
+    "loading": "Cargando plantillas de correo...",
+    "sidebar": "Repositorio",
+    "searchPlaceholder": "Buscar plantilla...",
+    "emptyList": "No se encontraron plantillas",
+    "editorTitle": "Editor de Estructura HTML",
+    "saveSuccess": "Plantilla guardada correctamente",
+    "saveError": "No se pudo guardar la plantilla",
+    "emptyBody": "Plantilla vacía",
+    "emptyBodyDesc": "El cuerpo HTML de la plantilla no puede estar vacío.",
+    "form": {
+      "name": "Nombre Descriptivo",
+      "namePlaceholder": "Nombre de la plantilla...",
+      "subject": "Asunto del Email",
+      "subjectPlaceholder": "Asunto...",
+      "variables": "Variables Disponibles",
+      "variablePrompt": "Nombre de la variable:",
+      "newName": "Nueva Plantilla",
+      "defaultSubject": "Asunto predeterminado",
+      "newPrompt": "Ingrese el código de la nueva plantilla (ej. USER_ALERTA):"
+    },
+    "alerts": {
+      "unregistered": "Variables sin registrar detectadas en el HTML:",
+      "unregisteredDesc": "Regístralas en \"Variables Disponibles\" para que se reemplacen correctamente al enviar.",
+      "emptyEditor": "El cuerpo de la plantilla está vacío. Escriba el código HTML en el editor para poder guardar."
+    },
+    "preview": {
+      "title": "Live Preview",
+      "from": "Desde:",
+      "to": "Para:",
+      "subject": "Asunto:",
+      "noSubject": "(Sin asunto)",
+      "hint": "Las etiquetas {{variable}} serán inyectadas dinámicamente durante el envío masivo."
+    },
+    "emptyState": {
+      "title": "Seleccione un Repositorio",
+      "desc": "Elija una plantilla de la lista lateral para visualizar el código fuente y previsualizar el renderizado en tiempo real.",
+      "create": "Crear Nueva"
+    },
+    "toast": {
+      "created": "Plantilla creada",
+      "createError": "Error al crear",
+      "deleted": "Plantilla eliminada",
+      "deleteError": "Error al eliminar"
+    },
+    "confirmDelete": "¿Está seguro de eliminar esta plantilla permanentemente?"
   },
   "constants": {
     "title": "Constantes del Sistema",
     "description": "Variables globales de configuración técnica",
     "saveAll": "Guardar Todo",
-    "adding": "Guardando...",
+    "saving": "Guardando...",
     "addVariable": "Agregar Variable",
     "keyLabel": "Clave (KEY)",
     "keyPlaceholder": "NUEVA_CONSTANTE",
     "valueLabel": "Valor",
     "valuePlaceholder": "Valor...",
     "addBtn": "Agregar",
-    "fixedVariables": "Variables fijas del núcleo"
+    "fixedVariables": "Variables fijas del núcleo",
+    "toast": {
+      "saved": "Constantes guardadas",
+      "saveError": "No se pudo guardar",
+      "deleted": "Constante eliminada",
+      "discarded": "Constante descartada",
+      "deleteError": "No se pudo eliminar la constante"
+    },
+    "confirmDelete": "¿Estás seguro de que deseas eliminar permanentemente la constante {{key}}?"
+  },
+  "plans": {
+    "title": "Planes & Hosting",
+    "description": "Gestión de versiones de licencia y planes de alojamiento.",
+    "tabs": {
+      "versions": "Versiones de Licencia",
+      "hosting": "Hosting & Capacidad"
+    },
+    "versions": {
+      "searchPlaceholder": "Buscar versión por nombre o letra...",
+      "new": "Nueva Versión",
+      "edit": "Editar Versión",
+      "create": "Crear Versión",
+      "deleteConfirm": "¿Seguro que desea eliminar esta versión de licencia?",
+      "errors": {
+        "required": "Este campo es requerido",
+        "twoWords": "El nombre debe tener exactamente dos palabras (ej: Professional Edition)"
+      },
+      "form": {
+        "name": "Nombre de Versión",
+        "namePlaceholder": "Ej: Business Standard",
+        "letter": "Letra/Código",
+        "autoGenerated": "Se genera automáticamente del nombre",
+        "pricing": "Configuración de Precios",
+        "monthly": "Precio Mensual (Referencial)",
+        "annual": "Precio Anual (Referencial)",
+        "currency": "Moneda"
+      },
+      "tooltips": {
+        "name": "El nombre se usa para generar el código de 2 letras de la licencia.",
+        "concurrent": "Límite de cuestionarios simultáneos permitidos por el plan de hosting asociado."
+      }
+    },
+    "hosting": {
+      "searchPlaceholder": "Buscar plan de hosting...",
+      "new": "Nuevo Plan Hosting",
+      "edit": "Editar Plan Hosting",
+      "create": "Crear Plan Hosting",
+      "deleteConfirm": "¿Seguro que desea eliminar este plan de hosting?",
+      "description": "Indica cuántos cuestionarios puede procesar este tipo de servidor.",
+      "form": {
+        "abbreviation": "Abreviatura",
+        "concurrent": "Cuestionarios Concurrentes"
+      }
+    }
+  },
+  "clientDetail": {
+    "title": "Detalle del Cliente",
+    "errorLoading": "Error al cargar cliente",
+    "notFound": "El cliente solicitado no existe o no tiene permisos para verlo.",
+    "backToCRM": "Volver al CRM",
+    "licenseHeader": "Licencia",
+    "noNickname": "Sin apodo",
+    "serverDomainHeader": "Servidor / Dominio",
+    "notAssigned": "No asignado",
+    "unknownServer": "Servidor Desconocido",
+    "expirationHeader": "Vencimiento",
+    "userHeader": "Usuario",
+    "noName": "Sin Nombre",
+    "roleHeader": "Rol",
+    "generalInfo": "Información General",
+    "primaryEmail": "Email Principal",
+    "address": "Dirección",
+    "noLicenses": "Este cliente no posee licencias registradas.",
+    "noUsers": "No hay usuarios asociados a esta organización.",
+    "subtitle": "Perfil detallado del cliente · {{city}}, {{country}}"
+  },
+  "clients": {
+    "title": "Clientes Activos",
+    "description": "Gestión de cartera de clientes y monitorización de licencias.",
+    "searchPlaceholder": "Buscar cliente, email...",
+    "newClient": "Nuevo Cliente",
+    "directoryTitle": "Directorio de Organizaciones",
+    "noOrganization": "Sin Organización",
+    "noLicense": "Sin Licencia",
+    "expires": "Vence: {{date}}",
+    "cloudHosting": "Cloud Hosting",
+    "onPremise": "On-Premise Local",
+    "noCity": "Ciudad no espec.",
+    "openRecord": "Abrir Ficha",
+    "viewDetail": "Ver Detalle",
+    "table": {
+      "companyContact": "Empresa / Contacto",
+      "status": "Estado",
+      "planServer": "Plan & Servidor",
+      "location": "Ubicación",
+      "actions": "Acciones"
+    },
+    "filters": {
+      "all": "Todos los estados",
+      "active": "Activos",
+      "warning": "Por Vencer",
+      "expired": "Expirados"
+    }
   }
 }

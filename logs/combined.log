@@ -1,0 +1,37 @@
+{"level":"info","message":"Swagger UI available at /api-docs","service":"rotator-backend","timestamp":"2026-04-23 14:26:32"}
+{"error":"listen EADDRINUSE: address already in use :::3005","level":"error","message":"Uncaught Exception","service":"rotator-backend","stack":"Error: listen EADDRINUSE: address already in use :::3005\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Function.listen (C:\\Users\\Eros\\SistemaDeUsuarios\\node_modules\\express\\lib\\application.js:635:24)\n    at file:///C:/Users/Eros/SistemaDeUsuarios/backend/src/index.js:288:5","timestamp":"2026-04-23 14:26:32"}
+{"level":"info","message":"Email sent: <d8bafc8f-921a-d77f-3da1-290c00326a0a@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:19"}
+{"level":"info","message":"Email sent: <49c4cfc3-10c3-941d-ec6a-242db718b594@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:22"}
+{"level":"info","message":"Email sent: <bb59a941-dfb5-f0ed-f56c-e0b17db92b8a@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:25"}
+{"level":"info","message":"Email sent: <b24968e9-dd32-5736-90c8-582c41fac12d@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:28"}
+{"level":"info","message":"Email sent: <c660fbdb-5c46-09d1-b8b9-356a56917fa9@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:31"}
+{"level":"info","message":"Email sent: <b0af9c8b-0bae-09b3-a042-f36413b3d06f@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:33"}
+{"level":"info","message":"Email sent: <705a0e52-237c-2ed5-2754-3dcd626cb412@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:36"}
+{"level":"info","message":"Email sent: <5d510acc-1578-ca3d-67d4-c6cd977a5cdd@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:39"}
+{"level":"info","message":"Email sent: <9828e5f8-f7af-606b-76c0-abd8c689dd50@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:41"}
+{"level":"info","message":"Email sent: <d9e669e2-3400-9d5b-1eda-31f7514d1453@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:44"}
+{"level":"info","message":"Email sent: <1e4b454e-41cf-8170-3a14-06845b9f7740@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:46"}
+{"level":"info","message":"Email sent: <3aa7575a-5aa2-bf97-bfbb-94b5c5ceeff7@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:49"}
+{"level":"info","message":"Email sent: <1d7da89b-55c5-2707-452d-ece28a777014@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:51"}
+{"level":"info","message":"Email sent: <eef68fbe-7cd9-dc54-4f61-67134405f84a@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:54"}
+{"level":"info","message":"Email sent: <6a6c1ccb-ca35-095f-b276-5e03d490ea53@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:27:57"}
+{"level":"info","message":"Swagger UI available at /api-docs","service":"rotator-backend","timestamp":"2026-04-23 14:37:13"}
+{"level":"info","message":"Server running on port 3005","service":"rotator-backend","timestamp":"2026-04-23 14:37:13"}
+{"level":"info","message":"Environment: production","service":"rotator-backend","timestamp":"2026-04-23 14:37:13"}
+{"level":"info","message":"Allowed origins: http://localhost:5180","service":"rotator-backend","timestamp":"2026-04-23 14:37:13"}
+{"level":"info","message":"Swagger docs: http://localhost:3005/api-docs","service":"rotator-backend","timestamp":"2026-04-23 14:37:13"}
+{"level":"info","message":"Email sent: <ea7bf197-661e-de4f-31c8-4767b74a2bf3@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:37:50"}
+{"level":"info","message":"Email sent: <0765a561-09fe-8922-6dd0-470384ddaa88@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:37:53"}
+{"level":"info","message":"Email sent: <5e5321ff-736f-85c0-75e2-f86893d560ed@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:37:56"}
+{"level":"info","message":"Email sent: <e45022b6-1a3c-6ec7-0d9e-fc5714addbc0@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:37:58"}
+{"level":"info","message":"Email sent: <bf275bb4-c48e-1d65-dbe3-bb5573606b03@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:02"}
+{"level":"info","message":"Email sent: <19c8d361-3c1b-727e-736f-6059b584b532@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:04"}
+{"level":"info","message":"Email sent: <12cbb661-e51b-e815-aad5-7b62f276500a@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:07"}
+{"level":"info","message":"Email sent: <221f06ae-f6b8-aa4a-d37e-5c9700da71f0@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:10"}
+{"level":"info","message":"Email sent: <a5225a45-31e6-e291-0ba6-e4d4248fe58c@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:13"}
+{"level":"info","message":"Email sent: <64e8b157-5037-ba4c-db8e-b20eeaf45203@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:16"}
+{"level":"info","message":"Email sent: <1f35fbe7-f724-b693-84ce-8ddd3d4c3fe8@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:19"}
+{"level":"info","message":"Email sent: <d0feccfb-b453-77b4-a477-a704fc4b7f6d@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:22"}
+{"level":"info","message":"Email sent: <a617e501-fec9-6063-8807-16bcbacdd7de@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:25"}
+{"level":"info","message":"Email sent: <3dc84887-3cd3-96bc-96d8-b937686ea4d3@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:28"}
+{"level":"info","message":"Email sent: <38c1ab24-2615-cfef-7a67-1630b7c9c4ed@rotatorsurvey.com>","service":"rotator-backend","timestamp":"2026-04-23 14:38:30"}

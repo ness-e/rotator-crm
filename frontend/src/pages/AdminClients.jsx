@@ -22,8 +22,10 @@ import { useClients } from '@/hooks/useApi';
 import { getRenewalStatusColor, getRenewalStatusLabel } from '@/constants/renewalStatus';
 import { Search, MoreHorizontal, Users, AlertCircle, Globe2, Building2, Calendar, Mail, Server, Plus, Filter, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminClients() {
+    const { t } = useTranslation();
     const { data, isLoading: loading } = useClients();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -74,16 +76,16 @@ export default function AdminClients() {
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
                         <Users className="h-8 w-8 text-primary" />
-                        Clientes Activos
+                        {t('clients.title')}
                     </h1>
-                    <p className="text-muted-foreground mt-1">Gestión de cartera de clientes y monitorización de licencias.</p>
+                    <p className="text-muted-foreground mt-1">{t('clients.description')}</p>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-1 sm:flex-none">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input 
-                            placeholder="Buscar cliente, email..." 
+                            placeholder={t('clients.searchPlaceholder')} 
                             className="pl-9 w-full sm:w-[260px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 transition-all focus:ring-primary"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
@@ -94,20 +96,20 @@ export default function AdminClients() {
                         <SelectTrigger className="w-[160px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2">
                                 <Filter className="h-3 w-3 text-muted-foreground" />
-                                <SelectValue placeholder="Estado" />
+                                <SelectValue placeholder={t('clients.table.status')} />
                             </div>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos los estados</SelectItem>
-                            <SelectItem value="active">Activos</SelectItem>
-                            <SelectItem value="warning">Por Vencer</SelectItem>
-                            <SelectItem value="expired">Expirados</SelectItem>
+                            <SelectItem value="all">{t('clients.filters.all')}</SelectItem>
+                            <SelectItem value="active">{t('clients.filters.active')}</SelectItem>
+                            <SelectItem value="warning">{t('clients.filters.warning')}</SelectItem>
+                            <SelectItem value="expired">{t('clients.filters.expired')}</SelectItem>
                         </SelectContent>
                     </Select>
 
                     <Button onClick={() => navigate('/admin/crm/clients/new')} className="rounded-xl shadow-lg shadow-primary/20">
                         <Plus className="h-4 w-4 mr-2" />
-                        Nuevo Cliente
+                        {t('clients.newClient')}
                     </Button>
                 </div>
             </div>
@@ -117,9 +119,9 @@ export default function AdminClients() {
                 <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <CardTitle className="text-base font-bold flex items-center gap-2">
                         <Building2 className="h-5 w-5 text-indigo-500" />
-                        Directorio de Organizaciones
+                        {t('clients.directoryTitle')}
                         <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                            {filteredUsers.length} resultados
+                            {t('common.results_count', { count: filteredUsers.length })}
                         </Badge>
                     </CardTitle>
                 </CardHeader>
@@ -127,11 +129,11 @@ export default function AdminClients() {
                     <Table>
                         <TableHeader className="bg-slate-50 dark:bg-slate-900/80 sticky top-0 z-10 backdrop-blur-sm">
                             <TableRow className="border-slate-100 dark:border-slate-800">
-                                <TableHead className="w-[300px] font-bold text-slate-600 dark:text-slate-400">Empresa / Contacto</TableHead>
-                                <TableHead className="font-bold text-slate-600 dark:text-slate-400">Estado</TableHead>
-                                <TableHead className="font-bold text-slate-600 dark:text-slate-400">Plan & Servidor</TableHead>
-                                <TableHead className="font-bold text-slate-600 dark:text-slate-400">Ubicación</TableHead>
-                                <TableHead className="text-right font-bold text-slate-600 dark:text-slate-400">Acciones</TableHead>
+                                <TableHead className="w-[300px] font-bold text-slate-600 dark:text-slate-400">{t('clients.table.companyContact')}</TableHead>
+                                <TableHead className="font-bold text-slate-600 dark:text-slate-400">{t('clients.table.status')}</TableHead>
+                                <TableHead className="font-bold text-slate-600 dark:text-slate-400">{t('clients.table.planServer')}</TableHead>
+                                <TableHead className="font-bold text-slate-600 dark:text-slate-400">{t('clients.table.location')}</TableHead>
+                                <TableHead className="text-right font-bold text-slate-600 dark:text-slate-400">{t('clients.table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -143,12 +145,12 @@ export default function AdminClients() {
                                                 <Search className="h-8 w-8 text-slate-400" />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="font-semibold text-slate-700 dark:text-slate-300">No se encontraron resultados</p>
-                                                <p className="text-sm">Prueba ajustando los filtros o términos de búsqueda.</p>
+                                                <p className="font-semibold text-slate-700 dark:text-slate-300">{t('common.noResults')}</p>
+                                                <p className="text-sm">{t('common.adjustFilters')}</p>
                                             </div>
                                             {(searchTerm !== '' || statusFilter !== 'all') && (
                                                 <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('all'); }} className="mt-2">
-                                                    Limpiar filtros
+                                                    {t('common.clearFilters')}
                                                 </Button>
                                             )}
                                         </div>
@@ -166,7 +168,7 @@ export default function AdminClients() {
                                                 </Avatar>
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-slate-900 dark:text-white truncate max-w-[200px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title={u.organizacion_cliente}>
-                                                        {u.organizacion_cliente || 'Sin Organización'}
+                                                        {u.organizacion_cliente || t('clients.noOrganization')}
                                                     </span>
                                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                                                         <Mail className="h-3 w-3" />
@@ -182,12 +184,12 @@ export default function AdminClients() {
                                                         {getRenewalStatusLabel(u.renewal_status)}
                                                     </Badge>
                                                 ) : (
-                                                    <Badge variant="outline" className="text-muted-foreground bg-slate-100 dark:bg-slate-800">Sin Licencia</Badge>
+                                                    <Badge variant="outline" className="text-muted-foreground bg-slate-100 dark:bg-slate-800">{t('clients.noLicense')}</Badge>
                                                 )}
                                                 {u.license?.licencia_expira && (
                                                     <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
                                                         <Calendar className="h-3 w-3" />
-                                                        Vence: {u.license.licencia_expira}
+                                                        {t('clients.expires', { date: u.license.licencia_expira })}
                                                     </div>
                                                 )}
                                             </div>
@@ -195,11 +197,11 @@ export default function AdminClients() {
                                         <TableCell>
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                    {u.license?.licencia_tipo || 'Ninguno'}
+                                                    {u.license?.licencia_tipo || t('common.none')}
                                                 </span>
                                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                     <Server className="h-3 w-3" />
-                                                    {u.license?.hosting ? 'Cloud Hosting' : 'On-Premise Local'}
+                                                    {u.license?.hosting ? t('clients.cloudHosting') : t('clients.onPremise')}
                                                 </div>
                                             </div>
                                         </TableCell>
@@ -209,7 +211,7 @@ export default function AdminClients() {
                                                     {u.country?.name || u.pais_cliente}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {u.ciudad_cliente || 'Ciudad no espec.'}
+                                                    {u.ciudad_cliente || t('clients.noCity')}
                                                 </span>
                                             </div>
                                         </TableCell>
@@ -221,23 +223,23 @@ export default function AdminClients() {
                                                     className="opacity-0 group-hover:opacity-100 transition-opacity bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20"
                                                     onClick={() => navigate(`/admin/crm/clients/${u.id_cliente}`)}
                                                 >
-                                                    Ver Detalle
+                                                    {t('clients.viewDetail')}
                                                 </Button>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
-                                                            <span className="sr-only">Abrir menú</span>
+                                                            <span className="sr-only">{t('common.openMenu')}</span>
                                                             <MoreHorizontal className="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end" className="w-[160px] rounded-xl shadow-lg border-slate-100 dark:border-slate-800">
-                                                        <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Acciones</DropdownMenuLabel>
+                                                        <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{t('clients.table.actions')}</DropdownMenuLabel>
                                                         <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
                                                         <DropdownMenuItem 
                                                             className="font-medium cursor-pointer focus:bg-indigo-50 focus:text-indigo-700 dark:focus:bg-indigo-900/30 dark:focus:text-indigo-300"
                                                             onClick={() => navigate(`/admin/crm/clients/${u.id_cliente}`)}
                                                         >
-                                                            Abrir Ficha
+                                                            {t('clients.openRecord')}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -254,7 +256,11 @@ export default function AdminClients() {
                 {totalPages > 1 && (
                     <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 p-4 flex items-center justify-between">
                         <p className="text-sm text-muted-foreground font-medium">
-                            Mostrando <span className="text-slate-900 dark:text-white">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, filteredUsers.length)}</span> de <span className="text-slate-900 dark:text-white">{filteredUsers.length}</span> resultados
+                            {t('common.showing_results', { 
+                                start: (currentPage - 1) * itemsPerPage + 1, 
+                                end: Math.min(currentPage * itemsPerPage, filteredUsers.length), 
+                                total: filteredUsers.length 
+                            })}
                         </p>
                         <div className="flex items-center gap-2">
                             <Button

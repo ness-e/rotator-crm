@@ -48,23 +48,6 @@ import { SYSTEM_HINTS } from '@/utils/hints'
 import { useTranslation } from 'react-i18next'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-const SERVER_STATUS_OPTIONS = [
-    { value: 'active', label: 'Activo', color: 'bg-emerald-500' },
-    { value: 'inactive', label: 'Inactivo', color: 'bg-slate-400' },
-    { value: 'maintenance', label: 'Mantenimiento', color: 'bg-amber-500' },
-]
-const BILLING_CYCLES = [
-    { value: 'MONTHLY', label: 'Mensual' },
-    { value: 'QUARTERLY', label: 'Trimestral' },
-    { value: 'SEMIANNUAL', label: 'Semestral' },
-    { value: 'ANNUAL', label: 'Anual' },
-]
-const CURRENCIES = ['USD', 'EUR', 'COP', 'MXN', 'ARS']
-const DOMAIN_STATUS_OPTIONS = [
-    { value: 'active', label: 'Activo' },
-    { value: 'inactive', label: 'Inactivo' },
-    { value: 'expired', label: 'Expirado' },
-]
 
 const emptyServer = {
     name: '', type: '0', ipAddress: '', status: 'active',
@@ -80,8 +63,29 @@ const emptyDomain = {
 }
 
 export default function AdminServersAndDomains() {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const { toast } = useToast()
+
+    const serverStatusOptions = React.useMemo(() => [
+        { value: 'active', label: t('servers.status.active'), color: 'bg-emerald-500' },
+        { value: 'inactive', label: t('servers.status.inactive'), color: 'bg-slate-400' },
+        { value: 'maintenance', label: t('servers.status.maintenance'), color: 'bg-amber-500' },
+    ], [t])
+
+    const billingCycles = React.useMemo(() => [
+        { value: 'MONTHLY', label: t('common.billing.monthly') },
+        { value: 'QUARTERLY', label: t('common.billing.quarterly') },
+        { value: 'SEMIANNUAL', label: t('common.billing.semiannual') },
+        { value: 'ANNUAL', label: t('common.billing.annual') },
+    ], [t])
+
+    const currencies = React.useMemo(() => ['USD', 'EUR', 'COP', 'MXN', 'ARS'], [])
+
+    const domainStatusOptions = React.useMemo(() => [
+        { value: 'active', label: t('servers.status.active') },
+        { value: 'inactive', label: t('servers.status.inactive') },
+        { value: 'expired', label: t('common.expired') },
+    ], [t])
     const [servers, setServers] = useState([])
     const [providers, setProviders] = useState([])
     const [organizations, setOrganizations] = useState([])
@@ -516,7 +520,7 @@ export default function AdminServersAndDomains() {
     const getGroupedServers = () => {
         const groups = {}
         filteredServers.forEach(s => {
-            let key = 'Otros'
+            let key = t('common.others')
             if (groupBy === 'type') {
                 key = getServerTypeName(s.type)
             } else if (groupBy === 'status') {
@@ -937,7 +941,7 @@ export default function AdminServersAndDomains() {
                                 {viewMode === 'grouped' && (
                                     <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-100 dark:border-slate-800">
                                         <span className="text-[10px] uppercase font-bold text-slate-400 px-2">{t('servers.view.groupBy')}</span>
-                                        {[{ key: 'type', label: t('servers.type') }, { key: 'status', label: t('servers.statusLabel') }].map(({ key, label }) => (
+                                        {[{ key: 'type', label: t('servers.type') }, { key: 'status', label: t('servers.status') }].map(({ key, label }) => (
                                             <button key={key}
                                                 onClick={() => setGroupBy(key)}
                                                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
@@ -973,7 +977,7 @@ export default function AdminServersAndDomains() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">{t('common.allStatuses')}</SelectItem>
-                                        {SERVER_STATUS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                                        {serverStatusOptions.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
 
@@ -1351,7 +1355,7 @@ export default function AdminServersAndDomains() {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <Label>Tipo de Servidor *</Label>
+                                            <Label>{t('servers.serverType')} *</Label>
                                             <InfoHint content={SYSTEM_HINTS.SERVER_TYPE} />
                                         </div>
                                         <Select value={sf.type} onValueChange={val => updateServerField('type', val)}>
@@ -1365,13 +1369,13 @@ export default function AdminServersAndDomains() {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <Label>Estado</Label>
+                                            <Label>{t('common.status')}</Label>
                                             <InfoHint content={SYSTEM_HINTS.SERVER_STATUS} />
                                         </div>
                                         <Select value={sf.status} onValueChange={val => updateServerField('status', val)}>
                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                {SERVER_STATUS_OPTIONS.map(s => (
+                                                {serverStatusOptions.map(s => (
                                                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -1379,26 +1383,26 @@ export default function AdminServersAndDomains() {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <Label>Dirección IP</Label>
+                                            <Label>{t('servers.ipAddress')}</Label>
                                             <InfoHint content={SYSTEM_HINTS.SERVER_IP} />
                                         </div>
                                         <Input value={sf.ipAddress} onChange={e => updateServerField('ipAddress', e.target.value)}
-                                            placeholder="192.168.x.x o IP pública" />
+                                            placeholder={t('servers.placeholderIp')} />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <Label className="flex items-center gap-1.5">
                                                 <Globe2 className="h-3.5 w-3.5 text-violet-500" />
-                                                Dominio Principal
+                                                {t('servers.primaryDomain')}
                                             </Label>
                                             <InfoHint content={SYSTEM_HINTS.SERVER_PRIMARY_DOMAIN} />
                                         </div>
                                         <Input value={sf.primaryDomain} onChange={e => updateServerField('primaryDomain', e.target.value)}
-                                            placeholder="Ej. servidor.midominio.com"
+                                            placeholder={t('servers.placeholderPrimaryDomain')}
                                             title="Dominio único usado para monitorServer.php. Ej: servidor.midominio.com (sin https://)"
                                         />
                                         <p className="text-[11px] text-muted-foreground mt-1">
-                                            Debe ser único. Se usará para ejecutar el diagnóstico remoto del servidor.
+                                            {t('servers.primaryDomainHelp')}
                                         </p>
                                     </div>
                                     <div>
@@ -1409,11 +1413,11 @@ export default function AdminServersAndDomains() {
 
                                     {showOrgSelect && (
                                         <div>
-                                            <Label>Cliente / Organización *</Label>
+                                            <Label>{t('servers.clientOrganization')} *</Label>
                                             <Select value={sf.organizationId || 'none'} onValueChange={val => updateServerField('organizationId', val === 'none' ? '' : val)}>
                                                 <SelectTrigger className="mt-1.5"><SelectValue placeholder="Seleccione organización..." /></SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="none">– Sin asignar –</SelectItem>
+                                                    <SelectItem value="none">{t('servers.unassigned')}</SelectItem>
                                                     {organizations.map(org => (
                                                         <SelectItem key={org.id} value={String(org.id)}>{org.name}</SelectItem>
                                                     ))}
@@ -1429,19 +1433,19 @@ export default function AdminServersAndDomains() {
                             {/* Section: Proveedor */}
                             <div>
                                 <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                                    <Building2 className="h-4 w-4 text-indigo-500" /> Proveedor
+                                    <Building2 className="h-4 w-4 text-indigo-500" /> {t('servers.provider')}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label>Proveedor de Hosting</Label>
+                                        <Label>{t('servers.hostingProvider')}</Label>
                                         <Select value={sf.providerId}
                                             onValueChange={val => {
                                                 updateServerField('providerId', val)
                                                 updateServerField('providerPlanId', 'none')
                                             }}>
-                                            <SelectTrigger className="mt-1.5"><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
+                                            <SelectTrigger className="mt-1.5"><SelectValue placeholder={t('servers.selectProvider')} /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">– Sin proveedor –</SelectItem>
+                                                <SelectItem value="none">{t('servers.noProvider')}</SelectItem>
                                                 {providers.map(p => (
                                                     <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
                                                 ))}
@@ -1449,22 +1453,22 @@ export default function AdminServersAndDomains() {
                                         </Select>
                                     </div>
                                     <div>
-                                        <Label>Plan del Proveedor</Label>
+                                        <Label>{t('servers.providerPlan')}</Label>
                                         <Select value={sf.providerPlanId}
                                             onValueChange={val => updateServerField('providerPlanId', val)}
                                             disabled={sf.providerId === 'none' || !sf.providerId}>
-                                            <SelectTrigger className="mt-1.5"><SelectValue placeholder="Seleccione plan..." /></SelectTrigger>
+                                            <SelectTrigger className="mt-1.5"><SelectValue placeholder={t('servers.selectPlan')} /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">– Sin plan –</SelectItem>
+                                                <SelectItem value="none">{t('servers.noPlan')}</SelectItem>
                                                 {availablePlans.map(pl => (
                                                     <SelectItem key={pl.id} value={String(pl.id)}>
-                                                        {pl.name} {pl.specs ? `(${pl.specs})` : ''} — {pl.currency} {pl.costMonthly}/mes | {pl.costAnnual}/año
+                                                        {pl.name} {pl.specs ? `(${pl.specs})` : ''} — {pl.currency} {pl.costMonthly}/{t('servers.monthlyShort')} | {pl.costAnnual}/{t('servers.annualShort')}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                         {availablePlans.length === 0 && sf.providerId !== 'none' && sf.providerId && (
-                                            <p className="text-xs text-amber-500 mt-1">Este proveedor no tiene planes activos.</p>
+                                            <p className="text-xs text-amber-500 mt-1">{t('servers.noActivePlans')}</p>
                                         )}
                                     </div>
                                 </div>
@@ -1475,16 +1479,16 @@ export default function AdminServersAndDomains() {
                             {/* Section: Facturación */}
                             <div>
                                 <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                                    <DollarSign className="h-4 w-4 text-emerald-500" /> Facturación
+                                    <DollarSign className="h-4 w-4 text-emerald-500" /> {t('servers.billingTitle')}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label>Costo Mensual</Label>
+                                        <Label>{t('servers.monthlyCost')}</Label>
                                         <div className="flex gap-2 mt-1.5">
                                             <Select value={sf.currency} onValueChange={val => updateServerField('currency', val)}>
                                                 <SelectTrigger className="w-24 flex-shrink-0"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
-                                                    {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                                    {currencies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
                                             <Input type="number" step="0.01" min="0" value={sf.costMonthly}
@@ -1493,22 +1497,22 @@ export default function AdminServersAndDomains() {
                                         </div>
                                     </div>
                                     <div>
-                                        <Label>Costo Anual</Label>
+                                        <Label>{t('servers.annualCost')}</Label>
                                         <Input type="number" step="0.01" min="0" value={sf.costAnnual}
                                             onChange={e => updateServerField('costAnnual', e.target.value)}
                                             placeholder="0.00" className="mt-1.5" />
                                     </div>
                                     <div>
-                                        <Label>Ciclo de Facturación</Label>
+                                        <Label>{t('servers.billingCycle')}</Label>
                                         <Select value={sf.billingCycle} onValueChange={val => updateServerField('billingCycle', val)}>
                                             <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                {BILLING_CYCLES.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                                                {billingCycles.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div>
-                                        <Label>Próxima Fecha de Pago</Label>
+                                        <Label>{t('servers.nextPaymentDate')}</Label>
                                         <Input type="date" value={sf.nextPaymentDate}
                                             onChange={e => updateServerField('nextPaymentDate', e.target.value)}
                                             className="mt-1.5" />
@@ -1520,17 +1524,17 @@ export default function AdminServersAndDomains() {
 
                             {/* Section: Notas */}
                             <div>
-                                <Label>Observaciones y Notas</Label>
+                                <Label>{t('servers.observationsNotes')}</Label>
                                 <Textarea value={sf.observations}
                                     onChange={e => updateServerField('observations', e.target.value)}
-                                    placeholder="Credenciales de acceso (no sensibles), notas de mantenimiento, etc."
+                                    placeholder={t('servers.observationsPlaceholder')}
                                     className="mt-1.5 resize-none" rows={3} />
                             </div>
                         </div>
 
                         <DialogFooter className="bg-slate-50 dark:bg-slate-900/50 -mx-6 -mb-6 px-6 py-4 border-t border-slate-100 dark:border-slate-800 rounded-b-lg">
-                            <Button type="button" variant="outline" onClick={() => setServerDialog(d => ({ ...d, open: false }))}>Cancelar</Button>
-                            <Button type="submit" className="min-w-[140px]">Guardar Servidor</Button>
+                            <Button type="button" variant="outline" onClick={() => setServerDialog(d => ({ ...d, open: false }))}>{t('common.cancel')}</Button>
+                            <Button type="submit" className="min-w-[140px]">{t('servers.saveServer')}</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -1542,10 +1546,10 @@ export default function AdminServersAndDomains() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl">
                             <Globe className="h-5 w-5 text-indigo-500" />
-                            {domainDialog.mode === 'create' ? 'Nuevo' : 'Editar'} Dominio
+                            {domainDialog.mode === 'create' ? t('common.new') : t('common.edit')} {t('servers.domain')}
                         </DialogTitle>
                         <DialogDescription>
-                            Servidor: <span className="font-semibold text-foreground">{domainDialog.serverName}</span>
+                            {t('servers.server')}: <span className="font-semibold text-foreground">{domainDialog.serverName}</span>
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1553,42 +1557,42 @@ export default function AdminServersAndDomains() {
                         <Tabs defaultValue="general" className="mt-4">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="general" className="flex items-center gap-1.5">
-                                    <Globe className="h-3.5 w-3.5" /> General
+                                    <Globe className="h-3.5 w-3.5" /> {t('servers.generalTab')}
                                 </TabsTrigger>
                                 <TabsTrigger value="ftp" className="flex items-center gap-1.5">
-                                    <Key className="h-3.5 w-3.5" /> Accesos FTP
+                                    <Key className="h-3.5 w-3.5" /> {t('servers.ftpAccess')}
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="general">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-5">
                                     <div className="md:col-span-2">
-                                        <Label>Nombre de Dominio *</Label>
+                                        <Label>{t('servers.domainName')} *</Label>
                                         <Input
                                             value={domainDialog.data.domainName}
                                             onChange={e => updateDomainField('domainName', e.target.value)}
-                                            required placeholder="midominio.com" className="mt-1.5" />
+                                            required placeholder={t("servers.domainNamePlaceholder")} className="mt-1.5" />
                                     </div>
                                     <div>
-                                        <Label>Estado</Label>
+                                        <Label>{t('common.status')}</Label>
                                         <Select value={domainDialog.data.status} onValueChange={val => updateDomainField('status', val)}>
                                             <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                {DOMAIN_STATUS_OPTIONS.map(s => (
+                                                {domainStatusOptions.map(s => (
                                                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div>
-                                        <Label>Fecha de Vencimiento</Label>
+                                        <Label>{t('servers.expirationDate')}</Label>
                                         <Input type="date"
                                             value={domainDialog.data.expiresAt}
                                             onChange={e => updateDomainField('expiresAt', e.target.value)}
                                             className="mt-1.5" />
                                     </div>
                                     <div className="md:col-span-2">
-                                        <Label>Observaciones</Label>
+                                        <Label>{t('servers.observations')}</Label>
                                         <Textarea
                                             value={domainDialog.data.observations}
                                             onChange={e => updateDomainField('observations', e.target.value)}
@@ -1601,25 +1605,25 @@ export default function AdminServersAndDomains() {
                             <TabsContent value="ftp">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-5">
                                     <div className="md:col-span-2">
-                                        <Label>Nombre APP</Label>
+                                        <Label>{t('servers.appName')}</Label>
                                         <Input
                                             value={domainDialog.data.appName}
                                             onChange={e => updateDomainField('appName', e.target.value)}
-                                            placeholder="Ej. WordPress, Laravel, PrestaShop..." className="mt-1.5" />
+                                            placeholder={t("servers.placeholderAppName")} className="mt-1.5" />
                                     </div>
                                     <div className="md:col-span-2">
                                         <Label>Dirección FTP</Label>
                                         <Input
                                             value={domainDialog.data.ftpAddress}
                                             onChange={e => updateDomainField('ftpAddress', e.target.value)}
-                                            placeholder="ftp.midominio.com" className="mt-1.5" />
+                                            placeholder={t("servers.placeholderFtpAddress")} className="mt-1.5" />
                                     </div>
                                     <div>
-                                        <Label>Usuario FTP</Label>
+                                        <Label>{t('servers.ftpUser')}</Label>
                                         <Input
                                             value={domainDialog.data.ftpUser}
                                             onChange={e => updateDomainField('ftpUser', e.target.value)}
-                                            placeholder="usuario@correo.com" className="mt-1.5" />
+                                            placeholder={t("placeholderFtpUser")} className="mt-1.5" />
                                     </div>
                                     <div>
                                         <Label>Contraseña FTP</Label>
@@ -1641,8 +1645,8 @@ export default function AdminServersAndDomains() {
                     </form>
 
                     <DialogFooter className="bg-slate-50 dark:bg-slate-900/50 -mx-6 -mb-6 px-6 py-4 border-t border-slate-100 dark:border-slate-800 rounded-b-lg">
-                        <Button type="button" variant="outline" onClick={() => setDomainDialog(d => ({ ...d, open: false }))}>Cancelar</Button>
-                        <Button type="submit" form="domain-form" className="min-w-[130px]">Guardar Dominio</Button>
+                        <Button type="button" variant="outline" onClick={() => setDomainDialog(d => ({ ...d, open: false }))}>{t('common.cancel')}</Button>
+                        <Button type="submit" form="domain-form" className="min-w-[130px]">{t('servers.saveDomain')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -2178,4 +2182,4 @@ export default function AdminServersAndDomains() {
             />
         </div>
     )
-}
+}
